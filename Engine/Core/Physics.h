@@ -42,29 +42,29 @@ namespace Plaza {
 	class ColliderShape;
 	class PLAZA_API Physics {
 	public:
-		static inline physx::PxDefaultAllocator m_defaultAllocatorCallback;
-		static inline physx::PxDefaultErrorCallback m_defaultErrorCallback;
-		static inline physx::PxDefaultCpuDispatcher* m_dispatcher = nullptr;
-		static inline physx::PxTolerancesScale m_toleranceScale;
-		static inline physx::PxFoundation* m_foundation = nullptr;
-		static inline physx::PxPhysics* m_physics = nullptr;
+		static physx::PxDefaultAllocator m_defaultAllocatorCallback;
+		static physx::PxDefaultErrorCallback m_defaultErrorCallback;
+		static physx::PxDefaultCpuDispatcher* m_dispatcher;
+		static physx::PxTolerancesScale m_toleranceScale;
+		static physx::PxFoundation* m_foundation;
+		static physx::PxPhysics* m_physics;
 
-		static inline std::unordered_map<uint64_t, physx::PxGeometry*> sCookedGeometries = std::unordered_map<uint64_t, physx::PxGeometry*>();
-		static inline std::unordered_map<uint64_t, std::unordered_map<PhysicsMaterial, physx::PxShape*>> sShapes = std::unordered_map<uint64_t, std::unordered_map<PhysicsMaterial, physx::PxShape*>>(); // Keys: Mesh UUID, Physics Material hash map
+		static std::unordered_map<uint64_t, physx::PxGeometry*> sCookedGeometries;
+		static std::unordered_map<uint64_t, std::unordered_map<PhysicsMaterial, physx::PxShape*>> sShapes;
 
-		static inline physx::PxMaterial* defaultMaterial = nullptr;
+		static physx::PxMaterial* defaultMaterial;
 
 		static physx::PxMaterial* InitializePhysicsMaterial(float staticFriction, float dynamicFriction, float restitution);
 		static PhysicsMaterial& GetDefaultPhysicsMaterial();
 
-		static inline physx::PxScene* m_scene = nullptr;
-		static inline physx::PxMaterial* m_material = nullptr;
-		static inline physx::PxPvd* m_pvd = nullptr;
-		static inline bool m_canRun = true;
+		static physx::PxScene* m_scene;
+		static physx::PxMaterial* m_material;
+		static physx::PxPvd* m_pvd;
+		static bool m_canRun;
 
-		static inline const float maxFrameAdvance = 0.1f;
-		static inline float accumulatedTime = 0.0f;
-		static inline float stepSize = 1 / 60.0f;
+		static const float maxFrameAdvance;
+		static float accumulatedTime;
+		static float stepSize;
 
 		static physx::PxSceneDesc GetSceneDesc();
 

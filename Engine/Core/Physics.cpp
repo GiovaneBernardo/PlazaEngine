@@ -3,9 +3,31 @@
 #include <ThirdParty/PhysX/physx/include/cooking/Pxc.h>
 #include "Engine/Core/Scene.h"
 #include "Engine/ECS/ECSManager.h"
+#include "Engine/Components/Physics/PhysicsMaterial.h"
 
 using namespace physx;
 namespace Plaza {
+	physx::PxDefaultAllocator Physics::m_defaultAllocatorCallback;
+	physx::PxDefaultErrorCallback Physics::m_defaultErrorCallback;
+	physx::PxDefaultCpuDispatcher* Physics::m_dispatcher = nullptr;
+	physx::PxTolerancesScale Physics::m_toleranceScale;
+	physx::PxFoundation* Physics::m_foundation = nullptr;
+	physx::PxPhysics* Physics::m_physics = nullptr;
+
+	std::unordered_map<uint64_t, physx::PxGeometry*> Physics::sCookedGeometries = std::unordered_map<uint64_t, physx::PxGeometry*>();
+	std::unordered_map<uint64_t, std::unordered_map<PhysicsMaterial, physx::PxShape*>> Physics::sShapes = std::unordered_map<uint64_t, std::unordered_map<PhysicsMaterial, physx::PxShape*>>(); // Keys: Mesh UUID, Physics Material hash map
+
+	physx::PxMaterial* Physics::defaultMaterial = nullptr;
+
+	physx::PxScene* Physics::m_scene = nullptr;
+	physx::PxMaterial* Physics::m_material = nullptr;
+	physx::PxPvd* Physics::m_pvd = nullptr;
+	bool Physics::m_canRun = true;
+
+	const float Physics::maxFrameAdvance = 0.1f;
+	float Physics::accumulatedTime = 0.0f;
+	float Physics::stepSize = 1 / 60.0f;
+
 	class CollisionCallback : public physx::PxSimulationEventCallback {
 	public:
 		virtual void onContact(const PxContactPairHeader& pairHeader, const PxContactPair* pairs, PxU32 nbPairs) override {

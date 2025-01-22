@@ -3,12 +3,15 @@
 
 #ifdef ENGINE_EXPORT
 #define PLAZA_API __declspec(dllexport)
+#define GAME_API __declspec(dllimport)
 #define MONO_DLL_EXPORT
 #elif ENGINE_IMPORT
 #define PLAZA_API  __declspec(dllimport)
+#define GAME_API __declspec(dllexport)
 #define MONO_DLL_IMPORT
 #else
 #define PLAZA_API 
+#define GAME_API 
 #endif
 
 #include <ThirdParty/cereal/cereal/archives/json.hpp>

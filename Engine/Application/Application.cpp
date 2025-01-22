@@ -36,9 +36,15 @@ using namespace Plaza::Editor;
 #define DEFAULT_GRAPHICAL_API "Vulkan"
 
 namespace Plaza {
+	Application* Application::sApplication = nullptr;
+	Application* Application::Get() {
+		static Application* sApplication = new Application();
+		return sApplication;
+	}
+
 	void Application::Init() {
 		PL_CORE_INFO("Start");
-		sApplication = new Application();
+		Application::Get();
 		Application::Get()->CreateApplication();
 		Application::Get()->Loop();
 		Application::Get()->Terminate();

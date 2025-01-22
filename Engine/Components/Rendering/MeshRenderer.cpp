@@ -59,7 +59,7 @@ namespace Plaza {
 		this->renderGroup = Scene::GetActiveScene()->AddRenderGroup(new RenderGroup(this->GetMesh(), this->GetMaterials()));
 	}
 	void MeshRenderer::ChangeMesh(Mesh* newMesh) {
-		this->mMeshUuid = newMesh->uuid;
+		this->mMeshUuid = newMesh ? newMesh->uuid : 0;
 		this->renderGroup = Scene::GetActiveScene()->AddRenderGroup(new RenderGroup(newMesh, this->GetMaterials()));
 	}
 }

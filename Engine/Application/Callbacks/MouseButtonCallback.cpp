@@ -21,7 +21,7 @@ void Callbacks::mouseButtonCallback(GLFWwindow* window, int button, int action, 
 		tool.second->OnMouseClick(button, action, mods);
 	}
 
-	if (scene->mRunning && Application::Get()->focusedMenu == "Scene") {
+	if (scene && scene->mRunning && Application::Get()->focusedMenu == "Scene") {
 		for (uint64_t uuid : SceneView<GuiComponent>(scene)) {
 			GuiComponent* component = scene->GetComponent<GuiComponent>(uuid);
 			for (auto& [itemKey, itemValue] : component->mGuiItems) {

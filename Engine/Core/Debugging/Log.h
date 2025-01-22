@@ -7,12 +7,12 @@ namespace Plaza {
 	public:
 		static void Init();
 
-		static inline std::shared_ptr<spdlog::logger>& GetCoreLogger() { return sCoreLogger; }
-		static inline std::shared_ptr<spdlog::logger>& GetClientLogger() { return sClientLogger; }
+		static std::shared_ptr<spdlog::logger>& GetCoreLogger();
+		static std::shared_ptr<spdlog::logger>& GetClientLogger();
 
 	private:
-		static inline std::shared_ptr<spdlog::logger> sCoreLogger = nullptr;
-		static inline std::shared_ptr<spdlog::logger> sClientLogger = nullptr;
+		static std::shared_ptr<spdlog::logger> sCoreLogger;
+		static std::shared_ptr<spdlog::logger> sClientLogger;
 	};
 }
 

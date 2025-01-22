@@ -11,7 +11,32 @@ namespace Plaza {
 	class ComponentPool;
 	class PLAZA_API ECS {
 	public:
-		static void RegisterComponents();
+		static inline void RegisterComponents() {
+			Application::Get()->mComponentCounter = 0;
+			Scene::GetComponentId<TransformComponent>();
+			ECS::RegisterComponent<TransformComponent>();
+			Scene::GetComponentId<MeshRenderer>();
+			ECS::RegisterComponent<MeshRenderer>();
+			Scene::GetComponentId<Collider>();
+			ECS::RegisterComponent<Collider>();
+			Scene::GetComponentId<RigidBody>();
+			ECS::RegisterComponent<RigidBody>();
+			Scene::GetComponentId<Camera>();
+			ECS::RegisterComponent<Camera>();
+			Scene::GetComponentId<Light>();
+			ECS::RegisterComponent<Light>();
+			Scene::GetComponentId<AudioSource>();
+			ECS::RegisterComponent<AudioSource>();
+			Scene::GetComponentId<AudioListener>();
+			ECS::RegisterComponent<AudioListener>();
+			Scene::GetComponentId<CppScriptComponent>();
+			ECS::RegisterComponent<CppScriptComponent>();
+			Scene::GetComponentId<AnimationComponent>();
+			ECS::RegisterComponent<AnimationComponent>();
+			Scene::GetComponentId<CsScriptComponent>();
+			ECS::RegisterComponent<CsScriptComponent>();
+		}
+
 		static void InstantiateComponent(ComponentPool* srcPool, ComponentPool* dstPool, uint64_t srcUuid, uint64_t dstUuid);
 		static inline std::vector<std::function<void* (ComponentPool* srcPool, ComponentPool* dstPool, uint64_t srcUuid, uint64_t dstUuid)>> sInstantiateComponentFactory{};
 		template<typename T>

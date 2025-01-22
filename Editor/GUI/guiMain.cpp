@@ -434,7 +434,7 @@ namespace Plaza {
 			ImVec2 uv1(1, 1); // top-right corner
 			appSizes.sceneImageStart = ImGui::glmVec2(ImGui::GetCursorScreenPos());
 
-			ImGui::Image(mShowSelectedImageInEditorView ? Gui::mSelectedImageInspector->mTextureID : ImTextureID(Application::Get()->mRenderer->GetFrameImage()), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
+			ImGui::Image(mShowSelectedImageInEditorView && Gui::mSelectedImageInspector ? Gui::mSelectedImageInspector->mTextureID : ImTextureID(Application::Get()->mRenderer->GetFrameImage()), ImGui::imVec2(appSizes.sceneSize), uv0, uv1);
 
 			// Show the gizmo if there's a selected entity
 			std::map<std::string, File*> files = Editor::selectedFiles;

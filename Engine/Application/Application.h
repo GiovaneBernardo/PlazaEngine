@@ -77,11 +77,9 @@ namespace Plaza {
 		Editor::EditorClass* mEditor = new Editor::EditorClass();
 
 		static void Init();
-		static inline Application* Get() {
-			return sApplication;
-		}
+		static Application* Get();
 
 	private:
-		static inline Application* sApplication = nullptr;
+		static Application* sApplication;
 	};
 }

@@ -15,6 +15,9 @@
 #include "Engine/ECS/ECSManager.h"
 
 namespace Plaza {
+	std::shared_ptr<Scene> Scene::sEditorScene = nullptr;
+	std::shared_ptr<Scene> Scene::sRuntimeScene = nullptr;
+	Scene* Scene::sActiveScene = nullptr;
 	void Scene::Copy(Scene* baseScene) {
 		*this = *baseScene;
 		this->mComponentPools.clear();

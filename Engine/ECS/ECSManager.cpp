@@ -32,43 +32,6 @@
 	CEREAL_REGISTER_POLYMORPHIC_RELATION(Component, T) ;
 namespace Plaza {
 
-	void ECS::RegisterComponents() {
-        Application::Get()->mComponentCounter = 0;
-        Scene::GetComponentId<TransformComponent>();
-		ECS::RegisterComponent<TransformComponent>();
-        Application::Get()->mComponentCounter++;
-        Scene::GetComponentId<MeshRenderer>();
-		ECS::RegisterComponent<MeshRenderer>();
-        Application::Get()->mComponentCounter++;
-        Scene::GetComponentId<Collider>();
-		ECS::RegisterComponent<Collider>();
-        Application::Get()->mComponentCounter++;
-        Scene::GetComponentId<RigidBody>();
-		ECS::RegisterComponent<RigidBody>();
-        Application::Get()->mComponentCounter++;
-        Scene::GetComponentId<Camera>();
-		ECS::RegisterComponent<Camera>();
-        Application::Get()->mComponentCounter++;
-        Scene::GetComponentId<Light>();
-		ECS::RegisterComponent<Light>();
-        Application::Get()->mComponentCounter++;
-        Scene::GetComponentId<AudioSource>();
-		ECS::RegisterComponent<AudioSource>();
-        Application::Get()->mComponentCounter++;
-        Scene::GetComponentId<AudioListener>();
-		ECS::RegisterComponent<AudioListener>();
-        Application::Get()->mComponentCounter++;
-        Scene::GetComponentId<CppScriptComponent>();
-		ECS::RegisterComponent<CppScriptComponent>();
-        Application::Get()->mComponentCounter++;
-        Scene::GetComponentId<AnimationComponent>();
-		ECS::RegisterComponent<AnimationComponent>();
-        Application::Get()->mComponentCounter++;
-        Scene::GetComponentId<CsScriptComponent>();
-		ECS::RegisterComponent<CsScriptComponent>();
-        Application::Get()->mComponentCounter++;
-	}
-
 	void ECS::InstantiateComponent(ComponentPool* srcPool, ComponentPool* dstPool, uint64_t srcUuid, uint64_t dstUuid) {
 		Component* component = static_cast<Component*>(sInstantiateComponentFactory[srcPool->mComponentMask](srcPool, dstPool, srcUuid, dstUuid));
 		component->mUuid = dstUuid;

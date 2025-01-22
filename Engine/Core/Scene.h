@@ -112,7 +112,7 @@ namespace Plaza {
 		template <class T>
 		static int GetComponentId()
 		{
-			static const int sComponentId = Application::Get()->mComponentCounter;
+			static const int sComponentId = Application::Get()->mComponentCounter++;
 			return sComponentId;
 		}
 
@@ -347,10 +347,10 @@ namespace Plaza {
 		static void NewRuntimeScene(Scene* baseScene);
 
 		static void Terminate();
+		static std::shared_ptr<Scene> sEditorScene;
+		static std::shared_ptr<Scene> sRuntimeScene;
+		static Scene* sActiveScene;
 	private:
-		static inline std::shared_ptr<Scene> sEditorScene = nullptr;
-		static inline std::shared_ptr<Scene> sRuntimeScene = nullptr;
-		static inline Scene* sActiveScene = nullptr;
 
 		template<typename T>
 		T* InstantiateComponent(T* componentToInstantiate, uint64_t newUuid) {

@@ -7,7 +7,7 @@ namespace Plaza {
 		CppScript() {
 			this->lastModifiedDate = std::chrono::system_clock::now();
 		}
-
+		virtual ~CppScript() {};
 		virtual void OnStart(Scene* scene) {};
 		virtual void OnUpdate(Scene* scene) {};
 		virtual void OnTerminate(Scene* scene) {};
