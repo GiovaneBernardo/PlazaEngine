@@ -304,15 +304,16 @@ namespace Plaza {
 		PL_RENDER_PASS_HOLDER = 0,
 		PL_RENDER_PASS_INDIRECT_BUFFER = 1,
 		PL_RENDER_PASS_INDIRECT_BUFFER_SHADOW_MAP = 2,
-		PL_RENDER_PASS_INDIRECT_BUFFER_SPECIFIC_MESH = 3,
-		PL_RENDER_PASS_FULL_SCREEN_QUAD = 4,
-		PL_RENDER_PASS_CUBE = 5,
-		PL_RENDER_PASS_COMPUTE = 6,
-		PL_RENDER_PASS_GUI = 7,
-		PL_RENDER_PASS_GUI_RECTANGLE = 8,
-		PL_RENDER_PASS_GUI_BUTTON = 9,
-		PL_RENDER_PASS_GUI_TEXT = 10,
-		PL_RENDER_PASS_INDIRECT_BUFFER_SKINNED = 11
+		PL_RENDER_PASS_INDIRECT_BUFFER_SPECIFIC_ENTITY = 3,
+		PL_RENDER_PASS_INDIRECT_BUFFER_SPECIFIC_MESH = 4,
+		PL_RENDER_PASS_FULL_SCREEN_QUAD = 5,
+		PL_RENDER_PASS_CUBE = 6,
+		PL_RENDER_PASS_COMPUTE = 7,
+		PL_RENDER_PASS_GUI = 8,
+		PL_RENDER_PASS_GUI_RECTANGLE = 9,
+		PL_RENDER_PASS_GUI_BUTTON = 10,
+		PL_RENDER_PASS_GUI_TEXT = 11,
+		PL_RENDER_PASS_INDIRECT_BUFFER_SKINNED = 12
 	};
 
 	enum PlPrimitiveTopology {
@@ -768,12 +769,12 @@ namespace Plaza {
 		PlPipelineMultisampleStateCreateInfo multiSampleState;
 		std::vector<PlDynamicState> dynamicStates;
 		std::vector<PlPushConstantRange> pushConstants;
-		std::vector<uint64_t> staticMeshesUuid;
+		std::vector<uint64_t> specificUuids;
 
 		template <class Archive>
 		void serialize(Archive& archive) {
 			archive(PL_SER(pipelineName), PL_SER(renderMethod), PL_SER(shaderStages), PL_SER(vertexBindingDescriptions), PL_SER(vertexAttributeDescriptions), PL_SER(topology), PL_SER(primitiveRestartEnable), PL_SER(rasterization), PL_SER(colorBlendState),
-				PL_SER(depthStencilState), PL_SER(viewPortState), PL_SER(multiSampleState), PL_SER(dynamicStates), PL_SER(pushConstants), PL_SER(staticMeshesUuid));
+				PL_SER(depthStencilState), PL_SER(viewPortState), PL_SER(multiSampleState), PL_SER(dynamicStates), PL_SER(pushConstants), PL_SER(specificUuids));
 		}
 	};
 
@@ -973,7 +974,7 @@ namespace Plaza {
 			PlPipelineMultisampleStateCreateInfo multiSampleState,
 			std::vector<PlDynamicState> dynamicStates,
 			std::vector<PlPushConstantRange> pushConstants,
-			std::vector<uint64_t> staticMeshesUuid = std::vector<uint64_t>()) {
+			std::vector<uint64_t> specificUuids = std::vector<uint64_t>()) {
 
 			PlPipelineCreateInfo createInfo{
 				pipelineName,
@@ -990,7 +991,7 @@ namespace Plaza {
 			 multiSampleState,
 			 dynamicStates,
 			 pushConstants,
-			 staticMeshesUuid
+			 specificUuids
 			};
 			return createInfo;
 		}

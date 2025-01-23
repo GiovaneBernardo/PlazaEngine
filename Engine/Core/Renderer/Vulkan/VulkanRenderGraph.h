@@ -983,6 +983,7 @@ namespace Plaza {
 		virtual void EndRenderPass() override;
 		virtual void RenderIndirectBuffer(PlazaPipeline* pipeline) override;
 		virtual void RenderIndirectBufferShadowMap(PlazaPipeline* pipeline) override;
+		virtual void RenderIndirectBufferSpecificEntity(PlazaPipeline* pipeline) override;
 		virtual void RenderIndirectBufferSpecificMesh(PlazaPipeline* pipeline) override;
 		virtual void RenderIndirectBufferSkinned(PlazaPipeline* pipeline) override;
 		virtual void RenderFullScreenQuad(PlazaPipeline* pipeline) override;

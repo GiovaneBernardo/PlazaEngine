@@ -10,6 +10,14 @@
 #include "Engine/Core/Scene.h"
 
 namespace Plaza {
+	void GetChilrendUuid(std::vector<uint64_t>& vector, Entity* entity, Scene* scene) {
+		if (scene->GetComponent<MeshRenderer>(entity->uuid))
+			vector.push_back(entity->uuid);
+		for (uint64_t child : entity->childrenUuid) {
+			GetChilrendUuid(vector, scene->GetEntity(child), scene);
+		}
+	}
+
 	void VulkanRenderGraph::BuildDefaultRenderGraph() {
 		PlImageUsage inImageUsageFlags = static_cast<PlImageUsage>(PL_IMAGE_USAGE_COLOR_ATTACHMENT | PL_IMAGE_USAGE_SAMPLED | PL_IMAGE_USAGE_TRANSFER_DST | PL_IMAGE_USAGE_TRANSFER_SRC);
 		PlImageUsage outImageUsageFlags = static_cast<PlImageUsage>(PL_IMAGE_USAGE_TRANSFER_DST | PL_IMAGE_USAGE_TRANSFER_SRC | PL_IMAGE_USAGE_SAMPLED | PL_IMAGE_USAGE_COLOR_ATTACHMENT);
@@ -41,6 +49,7 @@ namespace Plaza {
 		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application::Get()->appSizes->sceneSize, 1), 1, 1, "GNormal"));
 		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application::Get()->appSizes->sceneSize, 1), 1, 1, "GOthers"));
 		this->AddTexture(make_shared<VulkanTexture>(1, depthTextureFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_D32_SFLOAT_S8_UINT, glm::vec3(Application::Get()->appSizes->sceneSize, 1), 1, 1, "SceneDepth"));
+		this->AddTexture(make_shared<VulkanTexture>(1, depthTextureFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_D32_SFLOAT_S8_UINT, glm::vec3(Application::Get()->appSizes->sceneSize, 1), 1, 1, "OutlineStencil"));
 
 		TextureInfo info{};
 		info.mPath = "deferred";
@@ -51,7 +60,10 @@ namespace Plaza {
 
 		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application::Get()->appSizes->sceneSize, 1), 1, 1, "SceneTexture"));
 		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application::Get()->appSizes->sceneSize, 1), 1, 1, "OutFinalPostProcessTexture"));
-		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application::Get()->appSizes->sceneSize, 1), 1, 1, "FinalTexture"));
+		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R8G8B8A8_UNORM, glm::vec3(Application::Get()->appSizes->sceneSize, 1), 1, 1, "FinalTexture"));
+		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R8G8B8A8_UNORM, glm::vec3(Application::Get()->appSizes->sceneSize, 1), 1, 1, "PostProcessedTexture"));
+		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R8G8B8A8_UNORM, glm::vec3(Application::Get()->appSizes->sceneSize, 1), 1, 1, "OutlineTexture"));
+		this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R8G8B8A8_UNORM, glm::vec3(Application::Get()->appSizes->sceneSize, 1), 1, 1, "OutlineBlurredTexture"));
 
 		this->AddTexture(make_shared<VulkanTexture>(1, PlImageUsage(outImageUsageFlags | PL_IMAGE_USAGE_STORAGE), PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application::Get()->appSizes->sceneSize, 1), 0, 1, "BloomTexture"));
 		TextureInfo bloomInfo = this->GetTexture<VulkanTexture>("BloomTexture")->GetTextureInfo();
@@ -532,7 +544,7 @@ layout(push_constant) uniform PushConstants {
 		this->AddRenderPass(std::make_shared<VulkanRenderPass>("Final Post Processing Pass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_PASS_FULL_SCREEN_QUAD, gPassSize, false))
 			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("SSRTexture")))
 			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 1, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("FontTexture")))
-			->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL, 0, 0, this->GetSharedTexture("FinalTexture")));
+			->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL, 0, 0, this->GetSharedTexture("PostProcessedTexture")));
 
 		struct FinalPostProcessingPC {
 			float exposure;
@@ -594,18 +606,163 @@ layout(push_constant) uniform PushConstants {
 		pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "\\Shaders\\Vulkan\\gui\\text.frag", "main") };
 		this->GetRenderPass("Final Post Processing Pass")->AddPipeline(guiPipelineInfo);
 
-		//this->AddRenderPassCallback("Gui Pass", [&, guiPass](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass) {
-		//	guiPass->mPipelines[0]->UpdatePushConstants<GuiShadersPC>(0, GuiShadersPC(Application::Get()->activeCamera->GetOrthogonalMatrix()));
-		//	guiPass->mPipelines[1]->UpdatePushConstants<GuiShadersPC>(0, GuiShadersPC(Application::Get()->activeCamera->GetOrthogonalMatrix()));
-		//	guiPass->mPipelines[2]->UpdatePushConstants<GuiShadersPC>(0, GuiShadersPC(Application::Get()->activeCamera->GetOrthogonalMatrix()));
-		//	});
-
 		this->AddRenderPassCallback("Final Post Processing Pass", [&](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass) {
 			plazaRenderPass->mPipelines[0]->UpdatePushConstants<FinalPostProcessingPC>(0, FinalPostProcessingPC(VulkanRenderer::GetRenderer()->exposure, VulkanRenderer::GetRenderer()->gamma));
 			plazaRenderPass->mPipelines[1]->UpdatePushConstants<GuiShadersPC>(0, GuiShadersPC(Application::Get()->activeCamera->GetOrthogonalMatrix()));
 			plazaRenderPass->mPipelines[2]->UpdatePushConstants<GuiShadersPC>(0, GuiShadersPC(Application::Get()->activeCamera->GetOrthogonalMatrix()));
 			plazaRenderPass->mPipelines[3]->UpdatePushConstants<GuiShadersPC>(0, GuiShadersPC(Application::Get()->activeCamera->GetOrthogonalMatrix()));
 			});
+
+		// Outline
+		this->AddRenderPass(std::make_shared<VulkanRenderPass>("OutlineDrawPass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_PASS_INDIRECT_BUFFER_SPECIFIC_ENTITY, gPassSize, true))
+			->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL, 0, 0, this->GetSharedTexture("OutlineTexture")))
+			->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 1, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 0, 0, this->GetSharedTexture("OutlineStencil")));
+
+		struct OutlinePC {
+			glm::mat4 projection;
+			glm::mat4 view;
+		};
+
+		this->AddRenderPassCallback("OutlineDrawPass", [&](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass) {
+			plazaRenderPass->mPipelines[0]->UpdatePushConstants<OutlinePC>(0, OutlinePC(Application::Get()->activeCamera->GetProjectionMatrix(), Application::Get()->activeCamera->GetViewMatrix()));
+
+
+			if (!plazaRenderPass->mPipelines[0]->mIndirectBuffer) {
+				std::shared_ptr<PlVkBuffer> buffer = std::make_shared<PlVkBuffer>();
+				buffer->CreateBuffer(sizeof(VkDrawIndexedIndirectCommand) * 1024 * 64, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU, 0, Application::Get()->mRenderer->mMaxFramesInFlight);
+				plazaRenderPass->mPipelines[0]->mIndirectBuffer = buffer;
+			}
+
+			plazaRenderPass->mPipelines[0]->mCreateInfo.specificUuids.clear();
+			if (Editor::selectedGameObject && Scene::GetActiveScene()->GetEntity(Editor::selectedGameObject->uuid)) {
+				GetChilrendUuid(plazaRenderPass->mPipelines[0]->mCreateInfo.specificUuids, Scene::GetActiveScene()->GetEntity(Editor::selectedGameObject->uuid), Scene::GetActiveScene());
+			}
+
+			std::vector<VkDrawIndexedIndirectCommand> indirectCommands;
+			int totalInstances = 0;
+			for (const auto& uuid : plazaRenderPass->mPipelines[0]->mCreateInfo.specificUuids) {
+				auto& value = *Scene::GetActiveScene()->GetComponent<MeshRenderer>(uuid)->renderGroup;
+				const size_t& instanceCount = value.instanceModelMatrices.size();
+
+				VkDrawIndexedIndirectCommand indirectCommand{};
+				indirectCommand.firstIndex = value.mesh->indicesOffset;
+				indirectCommand.vertexOffset = value.mesh->verticesOffset;
+				indirectCommand.firstInstance = totalInstances;
+				indirectCommand.indexCount = value.mesh->indicesCount;
+				indirectCommand.instanceCount = 1;
+				indirectCommands.push_back(indirectCommand);
+			}
+
+			plazaRenderPass->mPipelines[0]->mIndirectBuffer->mCurrentItemCount = indirectCommands.size();
+			if (indirectCommands.size() > 0)
+				plazaRenderPass->mPipelines[0]->mIndirectBuffer->UpdateData<VkDrawIndexedIndirectCommand>(Application::Get()->mRenderer->mCurrentFrame, indirectCommands.data());
+
+			});
+
+		PlPipelineCreateInfo outlinePipelineInfo = pl::pipelineCreateInfo(
+			"Outline",
+			PL_RENDER_PASS_INDIRECT_BUFFER_SPECIFIC_ENTITY,
+			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "\\Shaders\\Vulkan\\outline\\outline.vert", "main"),
+				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "\\Shaders\\Vulkan\\outline\\outline.frag", "main") },
+			VertexGetBindingDescription(),
+			VertexGetAttributeDescriptions(),
+			PL_TOPOLOGY_TRIANGLE_LIST,
+			false,
+			pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f, 0.0f, PL_CULL_MODE_NONE, PL_FRONT_FACE_COUNTER_CLOCKWISE),
+			pl::pipelineColorBlendStateCreateInfo({ pl::pipelineColorBlendAttachmentState(true) }),
+			pl::pipelineDepthStencilStateCreateInfo(false, true, PL_COMPARE_OP_LESS, false, true),
+			pl::pipelineViewportStateCreateInfo(1, 1),
+			pl::pipelineMultisampleStateCreateInfo(PL_SAMPLE_COUNT_1_BIT, 0),
+			{ PL_DYNAMIC_STATE_VIEWPORT, PL_DYNAMIC_STATE_SCISSOR },
+			{ pl::pushConstantRange(PL_STAGE_VERTEX, 0, sizeof(OutlinePC)) },
+			{  }
+		);
+
+		/*
+		PL_RENDER_PASS_INDIRECT_BUFFER_SHADOW_MAP,
+		{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "\\Shaders\\shadows\\cascadedShadowDepthShaders.vert", "main"),
+			pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "\\Shaders\\shadows\\cascadedShadowDepthShaders.frag", "main") },
+		{ pl::vertexInputBindingDescription(0, sizeof(Vertex), PL_VERTEX_INPUT_RATE_VERTEX), pl::vertexInputBindingDescription(1, sizeof(glm::vec4) * 4, PL_VERTEX_INPUT_RATE_INSTANCE) },
+		{ pl::vertexInputAttributeDescription(0, 0, PL_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, position)),
+		pl::vertexInputAttributeDescription(5, 1, PL_FORMAT_R32G32B32A32_SFLOAT, 0),
+		pl::vertexInputAttributeDescription(6, 1, PL_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 4),
+		pl::vertexInputAttributeDescription(7, 1, PL_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 8),
+		pl::vertexInputAttributeDescription(8, 1, PL_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 12) },
+			PL_TOPOLOGY_TRIANGLE_LIST,
+			false,
+			pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f, 0.0f, PL_CULL_MODE_BACK, PL_FRONT_FACE_COUNTER_CLOCKWISE),
+			pl::pipelineColorBlendStateCreateInfo({ pl::pipelineColorBlendAttachmentState(true) }),
+			pl::pipelineDepthStencilStateCreateInfo(true, true, PL_COMPARE_OP_LESS),
+			pl::pipelineViewportStateCreateInfo(1, 1),
+			pl::pipelineMultisampleStateCreateInfo(PL_SAMPLE_COUNT_1_BIT, 0),
+		{ PL_DYNAMIC_STATE_VIEWPORT, PL_DYNAMIC_STATE_SCISSOR },
+		{}
+		this->GetRenderPass("Deferred Geometry Pass")->AddPipeline(pl::pipelineCreateInfo(
+			"MainShaders",
+			PL_RENDER_PASS_INDIRECT_BUFFER,
+			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "\\Shaders\\Vulkan\\deferred\\geometryPass.vert", "main"),
+				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "\\Shaders\\Vulkan\\deferred\\geometryPass.frag", "main") },
+			VertexGetBindingDescription(),
+			VertexGetAttributeDescriptions(),
+			PL_TOPOLOGY_TRIANGLE_LIST,
+			false,
+			pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f, 0.0f, PL_CULL_MODE_BACK, PL_FRONT_FACE_COUNTER_CLOCKWISE),
+			pl::pipelineColorBlendStateCreateInfo({ pl::pipelineColorBlendAttachmentState(true) , pl::pipelineColorBlendAttachmentState(true)  ,pl::pipelineColorBlendAttachmentState(true) }),
+			pl::pipelineDepthStencilStateCreateInfo(true, true, PL_COMPARE_OP_LESS_OR_EQUAL),
+			pl::pipelineViewportStateCreateInfo(1, 1),
+			pl::pipelineMultisampleStateCreateInfo(PL_SAMPLE_COUNT_1_BIT, 0),
+			{ PL_DYNAMIC_STATE_VIEWPORT, PL_DYNAMIC_STATE_SCISSOR },
+			{}
+		));
+
+
+		*/
+
+		std::vector<PlVertexInputBindingDescription> bindingDescriptions{};
+		bindingDescriptions.push_back(pl::vertexInputBindingDescription(0, sizeof(Vertex), PL_VERTEX_INPUT_RATE_VERTEX));
+		bindingDescriptions.push_back(pl::vertexInputBindingDescription(1, sizeof(glm::vec4) * 4, PL_VERTEX_INPUT_RATE_INSTANCE));
+		outlinePipelineInfo.vertexBindingDescriptions = bindingDescriptions;
+		std::vector<PlVertexInputAttributeDescription> attributeDescriptions{};
+		attributeDescriptions.push_back(pl::vertexInputAttributeDescription(0, 0, PL_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, position)));
+		attributeDescriptions.push_back(pl::vertexInputAttributeDescription(1, 1, PL_FORMAT_R32G32B32A32_SFLOAT, 0));
+		attributeDescriptions.push_back(pl::vertexInputAttributeDescription(2, 1, PL_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 4));
+		attributeDescriptions.push_back(pl::vertexInputAttributeDescription(3, 1, PL_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 8));
+		attributeDescriptions.push_back(pl::vertexInputAttributeDescription(4, 1, PL_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 12));
+		outlinePipelineInfo.vertexAttributeDescriptions = attributeDescriptions;
+
+		this->GetRenderPass("OutlineDrawPass")->AddPipeline(outlinePipelineInfo);
+
+		outlinePipelineInfo.pushConstants = {};
+		outlinePipelineInfo.pipelineName = "OutlineBlurPass";
+		outlinePipelineInfo.renderMethod = PL_RENDER_PASS_FULL_SCREEN_QUAD;
+		outlinePipelineInfo.shaderStages = {
+			pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "\\Shaders\\Vulkan\\fullScreenQuad.vert", "main"),
+			pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "\\Shaders\\Vulkan\\outline\\outlineBlur.frag", "main") };
+
+		this->AddRenderPass(std::make_shared<VulkanRenderPass>("OutlineBlurPass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_PASS_FULL_SCREEN_QUAD, gPassSize, false))
+			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("OutlineTexture")))
+			->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL, 0, 0, this->GetSharedTexture("OutlineBlurredTexture")));
+		this->GetRenderPass("OutlineBlurPass")->AddPipeline(outlinePipelineInfo);
+
+		outlinePipelineInfo.depthStencilState = pl::pipelineDepthStencilStateCreateInfo(true, false, PL_COMPARE_OP_LESS_OR_EQUAL, false, false);
+		outlinePipelineInfo.shaderStages = {
+			pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "\\Shaders\\Vulkan\\fullScreenQuad.vert", "main"),
+			pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "\\Shaders\\Vulkan\\outline\\outlineSceneMerge.frag", "main") };
+
+		outlinePipelineInfo.pipelineName = "OutlineSceneMergePass";
+		this->AddRenderPass(std::make_shared<VulkanRenderPass>("OutlineSceneMergePass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_PASS_FULL_SCREEN_QUAD, gPassSize, false))
+			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("PostProcessedTexture")))
+			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 1, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("OutlineBlurredTexture")))
+			->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL, 0, 0, this->GetSharedTexture("FinalTexture")))
+			->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 1, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 0, 0, this->GetSharedTexture("OutlineStencil")));
+		this->GetRenderPass("OutlineSceneMergePass")->AddPipeline(outlinePipelineInfo);
+
+		//this->AddRenderPassCallback("Gui Pass", [&, guiPass](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass) {
+		//	guiPass->mPipelines[0]->UpdatePushConstants<GuiShadersPC>(0, GuiShadersPC(Application::Get()->activeCamera->GetOrthogonalMatrix()));
+		//	guiPass->mPipelines[1]->UpdatePushConstants<GuiShadersPC>(0, GuiShadersPC(Application::Get()->activeCamera->GetOrthogonalMatrix()));
+		//	guiPass->mPipelines[2]->UpdatePushConstants<GuiShadersPC>(0, GuiShadersPC(Application::Get()->activeCamera->GetOrthogonalMatrix()));
+		//	});
+
 
 
 		this->OrderPasses();
@@ -1484,6 +1641,20 @@ layout(push_constant) uniform PushConstants {
 		vkCmdDrawIndexedIndirect(mCommandBuffer, VulkanRenderer::GetRenderer()->mIndirectBuffers[VulkanRenderer::GetRenderer()->mCurrentFrame], pipeline->mIndirectBufferOffset, VulkanRenderer::GetRenderer()->mIndirectDrawCount, sizeof(VkDrawIndexedIndirectCommand));
 	}
 
+	void VulkanRenderPass::RenderIndirectBufferSpecificEntity(PlazaPipeline* pipeline) {
+		VulkanPlazaPipeline* vulkanPipeline = static_cast<VulkanPlazaPipeline*>(pipeline);
+		vkCmdBindPipeline(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipeline);
+		vkCmdBindDescriptorSets(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipelineLayout, 0, 1, &mDescriptorSets[VulkanRenderer::GetRenderer()->mCurrentFrame], 0, nullptr);
+		for (const PlPushConstants& pushConstant : pipeline->mPushConstants) {
+			vkCmdPushConstants(mCommandBuffer, vulkanPipeline->mShaders->mPipelineLayout, PlRenderStageToVkShaderStage(pushConstant.mStage), pushConstant.mOffset, pushConstant.mStride, pushConstant.mData);
+		}
+
+		if (pipeline->mIndirectBuffer && pipeline->mIndirectBuffer->mCurrentItemCount > 0) {
+			vkCmdDrawIndexedIndirect(mCommandBuffer, static_cast<PlVkBuffer*>(pipeline->mIndirectBuffer.get())->GetBuffer(VulkanRenderer::GetRenderer()->mCurrentFrame),
+				pipeline->mIndirectBufferOffset, pipeline->mIndirectBuffer->mCurrentItemCount, sizeof(VkDrawIndexedIndirectCommand));
+		}
+	}
+
 	void VulkanRenderPass::RenderIndirectBufferSpecificMesh(PlazaPipeline* pipeline) {
 		VulkanPlazaPipeline* vulkanPipeline = static_cast<VulkanPlazaPipeline*>(pipeline);
 		vkCmdBindPipeline(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipeline);
@@ -1491,7 +1662,7 @@ layout(push_constant) uniform PushConstants {
 		for (const PlPushConstants& pushConstant : pipeline->mPushConstants) {
 			vkCmdPushConstants(mCommandBuffer, vulkanPipeline->mShaders->mPipelineLayout, PlRenderStageToVkShaderStage(pushConstant.mStage), pushConstant.mOffset, pushConstant.mStride, pushConstant.mData);
 		}
-		for (auto& meshUuid : pipeline->mCreateInfo.staticMeshesUuid) {
+		for (auto& meshUuid : pipeline->mCreateInfo.specificUuids) {
 			Mesh* mesh = AssetsManager::GetMesh(meshUuid);
 			if (!mesh) continue;
 			vkCmdDrawIndexed(mCommandBuffer, static_cast<uint32_t>(mesh->indices.size()), 1, mesh->indicesOffset, mesh->verticesOffset, mesh->instanceOffset);
@@ -1607,7 +1778,7 @@ layout(push_constant) uniform PushConstants {
 
 		VkDeviceSize offsets[1] = { 0 };
 		vkCmdBindVertexBuffers(mCommandBuffer, 1, 1, &buffer->GetBuffer(Application::Get()->mRenderer->mCurrentFrame), offsets);
-		for (auto& meshUuid : pipeline->mCreateInfo.staticMeshesUuid) {
+		for (auto& meshUuid : pipeline->mCreateInfo.specificUuids) {
 			Mesh* mesh = AssetsManager::GetMesh(meshUuid);
 			if (!mesh) continue;
 			vkCmdDrawIndexed(mCommandBuffer, static_cast<uint32_t>(mesh->indices.size()), glm::max<int>(rectanglesTransform.size(), 1), mesh->indicesOffset, mesh->verticesOffset, mesh->instanceOffset);
@@ -1663,7 +1834,7 @@ layout(push_constant) uniform PushConstants {
 
 		VkDeviceSize offsets[1] = { 0 };
 		vkCmdBindVertexBuffers(mCommandBuffer, 1, 1, &buffer->GetBuffer(Application::Get()->mRenderer->mCurrentFrame), offsets);
-		for (auto& meshUuid : pipeline->mCreateInfo.staticMeshesUuid) {
+		for (auto& meshUuid : pipeline->mCreateInfo.specificUuids) {
 			Mesh* mesh = AssetsManager::GetMesh(meshUuid);
 			if (!mesh) mesh = AssetsManager::GetMesh(1);
 			vkCmdDrawIndexed(mCommandBuffer, static_cast<uint32_t>(mesh->indices.size()), glm::max<int>(rectanglesTransform.size(), 1), mesh->indicesOffset, mesh->verticesOffset, mesh->instanceOffset);

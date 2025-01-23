@@ -169,6 +169,7 @@ namespace Plaza {
 					case PL_RENDER_PASS_FULL_SCREEN_QUAD: this->RenderFullScreenQuad(pipeline.get()); break;
 					case PL_RENDER_PASS_INDIRECT_BUFFER: this->RenderIndirectBuffer(pipeline.get()); break;
 					case PL_RENDER_PASS_INDIRECT_BUFFER_SHADOW_MAP: this->RenderIndirectBufferShadowMap(pipeline.get()); break;
+					case PL_RENDER_PASS_INDIRECT_BUFFER_SPECIFIC_ENTITY: this->RenderIndirectBufferSpecificEntity(pipeline.get()); break;
 					case PL_RENDER_PASS_INDIRECT_BUFFER_SPECIFIC_MESH: this->RenderIndirectBufferSpecificMesh(pipeline.get()); break;
 					case PL_RENDER_PASS_INDIRECT_BUFFER_SKINNED: this->RenderIndirectBufferSkinned(pipeline.get()); break;
 					case PL_RENDER_PASS_CUBE: this->RenderCube(pipeline.get()); break;
@@ -194,6 +195,7 @@ namespace Plaza {
 
 		virtual void RenderIndirectBuffer(PlazaPipeline* pipeline) { };
 		virtual void RenderIndirectBufferShadowMap(PlazaPipeline* pipeline) { };
+		virtual void RenderIndirectBufferSpecificEntity(PlazaPipeline* pipeline) {};
 		virtual void RenderIndirectBufferSpecificMesh(PlazaPipeline* pipeline) {};
 		virtual void RenderIndirectBufferSkinned(PlazaPipeline* pipeline) { };
 		virtual void RenderFullScreenQuad(PlazaPipeline* pipeline) { };

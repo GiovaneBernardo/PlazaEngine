@@ -2,6 +2,7 @@
 #include "PushConstants.h"
 #include "Engine/Core/Engine.h"
 #include "Engine/Core/Renderer/RendererTypes.h"
+#include "Buffer.h"
 
 namespace Plaza {
 	class PLAZA_API PlazaPipeline {
@@ -25,6 +26,8 @@ namespace Plaza {
 		virtual void Update() {};
 		virtual void DrawFullScreenRectangle() {};
 		virtual void Terminate() {};
+
+		std::shared_ptr<PlBuffer> mIndirectBuffer = nullptr;
 
 		void SetCreateInfo(PlPipelineCreateInfo createInfo) { mCreateInfo = createInfo; };
 		PlPipelineCreateInfo mCreateInfo{};
