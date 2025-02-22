@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 3.25)
-project(PlazaEngineProject VERSION 0.0.2)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -8,18 +7,40 @@ if(POLICY CMP0091) # Force thidparty libraries to use static MSVC
     cmake_policy(SET CMP0091 NEW)
 endif()
 
+if(WIN32)
+    set(TARGET_BUILD_PLATFORM "windows")
+    set(PLATFORM "Windows")
+    set(EDITOR_CONFIG_DIRECTORY "$ENV{APPDATA}")
+elseif(UNIX)
+    set(TARGET_BUILD_PLATFORM "linux")
+    set(PLATFORM "Linux")
+    set(EDITOR_CONFIG_DIRECTORY "$ENV{HOME}/.config")
+endif()
 
-if (MSVC)
+if(MSVC)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE STRING "" FORCE)
     add_compile_options(/MP)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /WX- /W4 /O2")
     add_compile_options(/bigobj)
+elseif(UNIX AND NOT APPLE)
+    find_program(CLANG_PATH NAMES clang++)
+    find_program(CLANG_PATH2 NAMES clang)
+    if(CLANG_PATH)
+        message(STATUS "Using Clang for Linux build")
+        set(CMAKE_C_COMPILER "${CLANG_PATH2}")
+        set(CMAKE_CXX_COMPILER "${CLANG_PATH}")
+    else()
+        message(FATAL_ERROR "Clang not found. Please install Clang before building.")
+    endif()
+
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unsafe-buffer-usage -fsafe-buffer-usage-suggestions -Wno-switch-default -Wno-invalid-offsetof")
 endif()
 
+project(PlazaEngineProject VERSION 0.0.2)
 set(BUILD_STATIC_LIB ON)
 
-set(TARGET_BUILD_PLATFORM "windows")
-set(PLATFORM "Windows")
+#set(TARGET_BUILD_PLATFORM "windows")
+#set(PLATFORM "Windows")
 #set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 include(FindVulkan)
@@ -39,8 +60,16 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_definitions(-D_DEBUG)
     add_definitions(-D_ITERATOR_DEBUG_LEVEL=2)
     option(PHYSX_BUILD_TYPE "debug")
-    set(CMAKE_CXX_FLAGS_DEBUG "/Zi /Ob0 /Od /RTC1")
-    option(MSVC_CRT_STATIC   "Link primesieve.lib with /MT instead of the default /MD" OFF)
+
+    if(MSVC)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4244")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /C2220")
+        set(CMAKE_CXX_FLAGS_DEBUG "/Zi /Ob0 /Od /RTC1")
+
+    else()
+        set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -fno-inline -DDEBUG")
+    endif()
+    option(MSVC_CRT_STATIC "Link primesieve.lib with /MT instead of the default /MD" OFF)
     #set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Release>:>")
 elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
@@ -48,7 +77,7 @@ elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
     add_definitions(-DNDEBUG)
     option(PHYSX_BUILD_TYPE "release")
     set(CMAKE_CXX_FLAGS_RELEASE "/O2")
-    option(MSVC_CRT_STATIC   "Link primesieve.lib with /MT instead of the default /MD" ON)
+    option(MSVC_CRT_STATIC "Link primesieve.lib with /MT instead of the default /MD" ON)
     #set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
 endif()
 #add_compile_definitions(<$<CONFIG:Debug>:_DEBUG><$<CONFIG:Debug>:NDEBUG>)
@@ -67,7 +96,19 @@ set(PHYSX_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/PhysX/physx")
 set(PX_OUTPUT_LIB_DIR "${BUILD_DIR}/libs")
 set(PX_OUTPUT_BIN_DIR "${BUILD_DIR}/bin")
 
-OPTION(COPY_EXTERNAL_DLLS "Control the copying of external DLLs" OFF) # PhysX external dlls
+set(PHYSX_LIBRARIES
+    PhysXExtensions
+    PhysX
+    PhysXPvdSDK
+    PhysXVehicle
+    PhysXCharacterKinematic
+    PhysXCooking
+    PhysXCommon
+    PhysXFoundation
+    # SnippetUtils
+)
+set(TARGET_BUILD_PLATFORM "linux")
+option(COPY_EXTERNAL_DLLS "Control the copying of external DLLs" OFF) # PhysX external dlls
 option(PX_BUILDSNIPPETS "Generate the snippets" OFF)
 option(PX_BUILDPVDRUNTIME "Generate the OmniPVD project" OFF)
 option(PX_GENERATE_STATIC_LIBRARIES "Generate static libraries" ON)
@@ -75,21 +116,54 @@ option(NV_USE_STATIC_WINCRT "Use the statically linked windows CRT" ON)
 option(NV_USE_DEBUG_WINCRT "Use the debug version of the CRT" ON)
 option(PX_FLOAT_POINT_PRECISE_MATH "Float point precise math" OFF)
 #include("${PHYSX_ROOT_DIR}/compiler/public/CMakeLists.txt")
-OPTION(PX_BUILDSNIPPETS "Generate the snippets" OFF)
-OPTION(PX_CMAKE_SUPPRESS_REGENERATION "Disable zero_check projects" OFF)
+option(PX_BUILDSNIPPETS "Generate the snippets" OFF)
+option(PX_CMAKE_SUPPRESS_REGENERATION "Disable zero_check projects" OFF)
 
 set(LIBTYPE STATIC)
 set(BUILD_SHARED_LIBS OFF)
 add_subdirectory("ThirdParty/AL/" EXCLUDE_FROM_ALL)
-add_subdirectory("ThirdParty/DirectXTex/" EXCLUDE_FROM_ALL)
+#add_subdirectory("ThirdParty/DirectXTex/" EXCLUDE_FROM_ALL)
 add_subdirectory("ThirdParty/embed/" EXCLUDE_FROM_ALL)
 add_subdirectory("ThirdParty/GLFW/" EXCLUDE_FROM_ALL)
 #add_subdirectory("ThirdParty/pfr/" EXCLUDE_FROM_ALL)
 add_subdirectory("ThirdParty/Tracy/" EXCLUDE_FROM_ALL)
 add_subdirectory("ThirdParty/PhysX/physx/compiler/public/" EXCLUDE_FROM_ALL)
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4244")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /C2220")
+#include(ExternalProject)
+#ExternalProject_Add(
+#    AL
+#    PREFIX ${CMAKE_BINARY_DIR}/_deps
+#    SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/AL"
+#    GIT_TAG master # Use the appropriate branch or commit
+#    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/_install
+#)
+##add_subdirectory("ThirdParty/DirectXTex/" EXCLUDE_FROM_ALL)
+#add_subdirectory("ThirdParty/embed")
+#ExternalProject_Add(
+#    GLFW
+#    PREFIX ${CMAKE_BINARY_DIR}/_deps
+#    SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/GLFW"
+#    GIT_TAG master
+#    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/_install
+#)
+##add_subdirectory("ThirdParty/pfr/" EXCLUDE_FROM_ALL)
+#ExternalProject_Add(
+#    Tracy
+#    PREFIX ${CMAKE_BINARY_DIR}/_deps
+#    SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/Tracy"
+#    GIT_TAG master
+#    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/_install
+#)
+#ExternalProject_Add(
+#    PhysX
+#    PREFIX ${CMAKE_BINARY_DIR}/_deps
+#    SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/PhysX/physx/compiler/public"
+#    GIT_TAG master
+#    CMAKE_ARGS
+#    -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/_install
+#    -DPHYSX_ROOT_DIR=${PHYSX_ROOT_DIR}
+#    -DPX_OUTPUT_LIB_DIR=${PX_OUTPUT_LIB_DIR}
+#    -DPX_OUTPUT_BIN_DIR=${PX_OUTPUT_BIN_DIR}
+#)
 
 
 
@@ -112,16 +186,22 @@ set(IMGUI_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/imgui/nodes/imgui_node_editor_api.cpp"
 )
 
+if(WIN32)
+    set(PX_OUTPUT_LIB_PREFIX "bin/win.x86_64.vc143.mt")
+elseif(UNIX)
+    set(PX_OUTPUT_LIB_PREFIX "bin/linux.clang")
+endif()
+
 string(TOLOWER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_LOWER)
 set(PHYSX_LIBS
-    "${PX_OUTPUT_LIB_DIR}/bin/win.x86_64.vc143.mt/${CMAKE_BUILD_TYPE_LOWER}/PhysX_static.lib"
-    "${PX_OUTPUT_LIB_DIR}/bin/win.x86_64.vc143.mt/${CMAKE_BUILD_TYPE_LOWER}/PhysXExtensions_static.lib"
-    "${PX_OUTPUT_LIB_DIR}/bin/win.x86_64.vc143.mt/${CMAKE_BUILD_TYPE_LOWER}/PhysXCooking_static.lib"
-    "${PX_OUTPUT_LIB_DIR}/bin/win.x86_64.vc143.mt/${CMAKE_BUILD_TYPE_LOWER}/PhysXCommon_static.lib"
-    "${PX_OUTPUT_LIB_DIR}/bin/win.x86_64.vc143.mt/${CMAKE_BUILD_TYPE_LOWER}/PhysXFoundation_static.lib"
-    "${PX_OUTPUT_LIB_DIR}/bin/win.x86_64.vc143.mt/${CMAKE_BUILD_TYPE_LOWER}/PhysXPvdSDK_static.lib"
-    "${PX_OUTPUT_LIB_DIR}/bin/win.x86_64.vc143.mt/${CMAKE_BUILD_TYPE_LOWER}/PhysXVehicle_static.lib"
-    "${PX_OUTPUT_LIB_DIR}/bin/win.x86_64.vc143.mt/${CMAKE_BUILD_TYPE_LOWER}/PhysXVehicle2_static.lib"
+    "${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/libPhysX_static.a"
+    "${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/libPhysXExtensions_static.a"
+    "${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/libPhysXCooking_static.a"
+    "${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/libPhysXCommon_static.a"
+    "${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/libPhysXFoundation_static.a"
+    "${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/libPhysXPvdSDK_static.a"
+    "${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/libPhysXVehicle_static.a"
+    "${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/libPhysXVehicle2_static.a"
 )
 
 set(MONO_PATH "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/mono/lib/${CMAKE_BUILD_TYPE}")
@@ -137,18 +217,18 @@ set_target_properties(PlazaEngineCore PROPERTIES
     VS_GLOBAL_MONO_USE_STATIC_C_RUNTIME "true"
     VS_GLOBAL_MONO_USE_STATIC_LIBMONO "true"
 )
-target_compile_definitions(PlazaEngineCore PUBLIC  PX_PHYSX_STATIC_LIB)
-target_compile_definitions(PlazaEngineCore PUBLIC  EDITOR_MODE)
-target_compile_options(PlazaEngineCore PUBLIC  /WX-)
+target_compile_definitions(PlazaEngineCore PUBLIC PX_PHYSX_STATIC_LIB)
+target_compile_definitions(PlazaEngineCore PUBLIC EDITOR_MODE)
+#target_compile_options(PlazaEngineCore PUBLIC /WX-)
 
 if(MSVC)
-  target_compile_options(PlazaEngineCore PUBLIC "/ZI")
-  target_link_options(PlazaEngineCore PUBLIC "/INCREMENTAL")
+    target_compile_options(PlazaEngineCore PUBLIC "/ZI")
+    target_link_options(PlazaEngineCore PUBLIC "/INCREMENTAL")
 endif()
 #target_include_directories(PlazaEngineCore PUBLIC "lib/")
 
 target_include_directories(PlazaEngineCore PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/>                        # For builds
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/> # For builds
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/AL/include/AL>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/cereal/>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/DirectXTex/DirectXTex/>
@@ -171,8 +251,8 @@ target_include_directories(PlazaEngineCore PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/uuid_v4/>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/vswhere/>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/vulkan/vulkan/>
-    
-    $<INSTALL_INTERFACE:include>  # For installs (adjust paths if necessary)
+
+    $<INSTALL_INTERFACE:include> # For installs (adjust paths if necessary)
 )
 
 #add_dependencies(PlazaEngineCore PhysX)
@@ -180,26 +260,26 @@ target_include_directories(PlazaEngineCore PUBLIC
 add_library(PlazaEngineCoreLibs INTERFACE)
 #target_link_libraries(PlazaEngineCoreLibs INTERFACE  glfw OpenAL TracyClient "${MONO_PATH}/mono-2.0-sgen.lib" "${MONO_PATH}/libmono-static-sgen.lib"  DirectXTex ${PHYSX_LIBS} "${CMAKE_CURRENT_SOURCE_DIR}/lib/OpenAL32.lib" Vulkan::Vulkan)
 target_link_libraries(PlazaEngineCoreLibs INTERFACE
-$<BUILD_INTERFACE:glfw>
-$<BUILD_INTERFACE:OpenAL>
-$<BUILD_INTERFACE:TracyClient>
-$<BUILD_INTERFACE:${MONO_PATH}/mono-2.0-sgen.lib>
-$<BUILD_INTERFACE:"${MONO_PATH}/libmono-static-sgen">
-$<BUILD_INTERFACE:DirectXTex>
-$<BUILD_INTERFACE:${PHYSX_LIBS}>
-$<BUILD_INTERFACE:"${CMAKE_CURRENT_SOURCE_DIR}/lib/OpenAL32">
-$<BUILD_INTERFACE:Vulkan::Vulkan>
+    $<BUILD_INTERFACE:glfw>
+    $<BUILD_INTERFACE:OpenAL>
+    $<BUILD_INTERFACE:TracyClient>
+    $<BUILD_INTERFACE:${MONO_PATH}/mono-2.0-sgen.lib>
+    $<BUILD_INTERFACE:"${MONO_PATH}/libmono-static-sgen">
+    $<BUILD_INTERFACE:DirectXTex>
+    $<BUILD_INTERFACE:${PHYSX_LIBS}>
+    $<BUILD_INTERFACE:"${CMAKE_CURRENT_SOURCE_DIR}/lib/OpenAL32">
+    $<BUILD_INTERFACE:Vulkan::Vulkan>
 )
 foreach(PHYSX_LIB ${PHYSX_LIBS})
-target_link_libraries(PlazaEngineCoreLibs INTERFACE
-$<BUILD_INTERFACE:${PHYSX_LIB}>
-)
+    target_link_libraries(PlazaEngineCoreLibs INTERFACE
+        $<BUILD_INTERFACE:${PHYSX_LIB}>
+    )
 endforeach()
 
 target_link_libraries(PlazaEngineCore PUBLIC PlazaEngineCoreLibs)
 
 target_include_directories(PlazaEngineCoreLibs INTERFACE
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/>                        # For builds
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/> # For builds
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/AL/include/AL>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/cereal/>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/DirectXTex/DirectXTex/>
@@ -222,8 +302,8 @@ target_include_directories(PlazaEngineCoreLibs INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/uuid_v4/>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/vswhere/>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/vulkan/vulkan/>
-    
-    $<INSTALL_INTERFACE:include>  # For installs (adjust paths if necessary)
+
+    $<INSTALL_INTERFACE:include> # For installs (adjust paths if necessary)
 )
 #target_link_options(PlazaEngineCore PUBLIC
 #    #$<$<CXX_COMPILER_ID:MSVC>:/WHOLEARCHIVE:glfw>
@@ -242,31 +322,31 @@ target_include_directories(PlazaEngineCoreLibs INTERFACE
 target_compile_definitions(PlazaEngineCore PUBLIC ENGINE_EXPORT)
 
 if(MSVC)
- target_compile_options(PlazaEngineCore PRIVATE "/MP")
+    target_compile_options(PlazaEngineCore PRIVATE "/MP")
 endif()
 
 
 set_target_properties(PlazaEngineCore PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"  # For the DLL
-    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"  # For the .lib (import library)
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"  # For shared libs
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin" # For the DLL
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib" # For the .lib (import library)
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib" # For shared libs
 )
-  set_property(TARGET PlazaEngineCore PROPERTY CXX_STANDARD 20)
+set_property(TARGET PlazaEngineCore PROPERTY CXX_STANDARD 20)
 
 # PlazaEngine and PlazaShippingGame
-add_executable(PlazaEngine  "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Application/EntryPoint.cpp")
+add_executable(PlazaEngine "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Application/EntryPoint.cpp")
 
 set_target_properties(PlazaEngine PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"  # For the DLL
-    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"  # For the .lib (import library)
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"  # For shared libs
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin" # For the DLL
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib" # For the .lib (import library)
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib" # For shared libs
 )
 
 add_executable(PlazaShippingGame "${IMGUI_SOURCES}" "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Application/EntryPoint.cpp" "${MY_SOURCES}" "${MY_SOURCES2}")
 set_target_properties(PlazaShippingGame PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"  # For the DLL
-    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"  # For the .lib (import library)
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"  # For shared libs
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin" # For the DLL
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib" # For the .lib (import library)
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib" # For shared libs
 )
 
 set_target_properties(PlazaEngine PROPERTIES
@@ -280,14 +360,14 @@ set_target_properties(PlazaShippingGame PROPERTIES
 )
 
 #target_link_libraries(PlazaEngine PUBLIC  glfw OpenAL TracyClient "${MONO_PATH}/mono-2.0-sgen.lib" "${MONO_PATH}/libmono-static-sgen.lib"  DirectXTex ${PHYSX_LIBS} "${CMAKE_CURRENT_SOURCE_DIR}/lib/OpenAL32.lib" Vulkan::Vulkan Boost::pfr)
-target_compile_definitions(PlazaEngine PUBLIC  PX_PHYSX_STATIC_LIB)
-target_compile_definitions(PlazaEngine PUBLIC  EDITOR_MODE)
-target_compile_options(PlazaEngine PUBLIC  /WX-)
+target_compile_definitions(PlazaEngine PUBLIC PX_PHYSX_STATIC_LIB)
+target_compile_definitions(PlazaEngine PUBLIC EDITOR_MODE)
+#target_compile_options(PlazaEngine PUBLIC /WX-)
 target_compile_definitions(PlazaEngine PUBLIC ENGINE_EXPORT)
 
-target_compile_definitions(PlazaShippingGame PUBLIC  GAME_MODE)
-target_compile_definitions(PlazaShippingGame PUBLIC  PX_PHYSX_STATIC_LIB)
-target_compile_options(PlazaShippingGame PUBLIC  /WX-)
+target_compile_definitions(PlazaShippingGame PUBLIC GAME_MODE)
+target_compile_definitions(PlazaShippingGame PUBLIC PX_PHYSX_STATIC_LIB)
+#target_compile_options(PlazaShippingGame PUBLIC /WX-)
 #target_compile_definitions(PlazaShippingGame PRIVATE ENGINE_EXPORT)
 
 target_precompile_headers(PlazaEngine PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/PreCompiledHeaders.h")
@@ -295,11 +375,11 @@ target_precompile_headers(PlazaEngineCore PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/En
 target_precompile_headers(PlazaShippingGame PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/PreCompiledHeaders.h")
 
 if(MSVC)
-  target_compile_options(PlazaEngine PUBLIC "/ZI")
-  target_link_options(PlazaEngine PUBLIC "/INCREMENTAL")
+    target_compile_options(PlazaEngine PUBLIC "/ZI")
+    target_link_options(PlazaEngine PUBLIC "/INCREMENTAL")
 
-  target_compile_options(PlazaShippingGame PUBLIC "/ZI")
-  target_link_options(PlazaShippingGame PUBLIC "/INCREMENTAL")
+    target_compile_options(PlazaShippingGame PUBLIC "/ZI")
+    target_link_options(PlazaShippingGame PUBLIC "/INCREMENTAL")
 endif()
 
 link_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib")
@@ -311,10 +391,13 @@ target_link_libraries(PlazaEngine PRIVATE PlazaEngineCore)
 target_link_libraries(PlazaShippingGame PRIVATE PlazaEngineCore)
 
 # Copy the PlazaEngineCore.lib to game project folder (if found)
-set(JSON_FILE_PATH "$ENV{APPDATA}/PlazaEngine/cache.plzcache")
-file(READ "${JSON_FILE_PATH}" json_content)
-string(REGEX MATCH "\"value0\"[ \t\r\n]*:[ \t\r\n]*\"([^\"]+)\"" matched_value0 ${json_content})
-if (matched_value0)
+
+set(JSON_FILE_PATH "${EDITOR_CONFIG_DIRECTORY}/PlazaEngine/cache.plzcache")
+if(NOT EXISTS "${JSON_FILE_PATH}")
+    message("Failed to find project path in JSON file.")
+elseif(matched_value0)
+    file(READ "${JSON_FILE_PATH}" json_content)
+    string(REGEX MATCH "\"value0\"[ \t\r\n]*:[ \t\r\n]*\"([^\"]+)\"" matched_value0 ${json_content})
     string(REGEX REPLACE ".*\"([^\"]*)\".*" "\\1" project_path ${matched_value0})
     get_filename_component(parent_path "${project_path}" DIRECTORY)
     set(target_path "${parent_path}/bin/")
@@ -322,8 +405,6 @@ if (matched_value0)
         POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_LINKER_FILE:PlazaEngineCore> ${target_path}
         COMMENT "Copying PlazaEngineCore.lib to game project folder")
-else()
-    message("Failed to find project path in JSON file.")
 endif()
 
 #set(LOCAL_INSTALL_DIR "${CMAKE_BINARY_DIR}/install")

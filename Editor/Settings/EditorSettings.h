@@ -1,7 +1,7 @@
 #pragma once
 
 namespace Plaza {
-	enum RendererAPI;
+	enum class RendererAPI;
 }
 namespace Plaza::Editor{
 

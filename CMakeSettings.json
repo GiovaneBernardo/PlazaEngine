@@ -4,12 +4,15 @@
       "name": "x64-Debug",
       "generator": "Ninja",
       "configurationType": "Debug",
-      "inheritEnvironments": [ "msvc_x64_x64" ],
       "buildRoot": "${projectDir}\\out\\build\\${name}",
       "installRoot": "${projectDir}\\out\\install\\${name}",
       "cmakeCommandArgs": "",
       "buildCommandArgs": "",
       "ctestCommandArgs": "",
+      "cacheVariables":{
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMADS": "YES"
+      },
       "variables": [
         {
           "name": "PX_CMAKE_SUPPRESS_REGENERATION",
@@ -29,11 +32,6 @@
         {
           "name": "USE_EDITOR",
           "value": "True",
-          "type": "BOOL"
-        },
-        {
-          "name": "ASSIMP_WARNINGS_AS_ERRORS",
-          "value": "False",
           "type": "BOOL"
         }
       ]
@@ -42,12 +40,15 @@
       "name": "x64-Release",
       "generator": "Ninja",
       "configurationType": "Release",
-      "inheritEnvironments": [ "msvc_x64_x64" ],
       "buildRoot": "${projectDir}\\out\\build\\${name}",
       "installRoot": "${projectDir}\\out\\install\\${name}",
       "cmakeCommandArgs": "",
       "buildCommandArgs": "",
       "ctestCommandArgs": "",
+      "cacheVariables":{
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMADS": "YES"
+      },
       "variables": [
         {
           "name": "PX_CMAKE_SUPPRESS_REGENERATION",
@@ -67,11 +68,6 @@
         {
           "name": "USE_EDITOR",
           "value": "True",
-          "type": "BOOL"
-        },
-        {
-          "name": "ASSIMP_WARNINGS_AS_ERRORS",
-          "value": "False",
           "type": "BOOL"
         }
       ]
@@ -83,7 +79,10 @@
       "buildRoot": "${projectDir}\\out\\build\\${name}",
       "installRoot": "${projectDir}\\out\\install\\${name}",
       "ctestCommandArgs": "",
-      "inheritEnvironments": [ "msvc_x64_x64" ]
+      "cacheVariables":{
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMADS": "YES"
+      }
     }
   ]
 }

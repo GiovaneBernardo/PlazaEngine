@@ -2,7 +2,9 @@
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
+#ifdef WIN32
 #include <Windows.h>
+#endif
 #include "ThirdParty/glad/glad.h"
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -21,7 +23,13 @@
 
 #include <ThirdParty/imgui/ImGuizmo.h>
 #include "Engine/Utils/binaryUtils.h"
+#ifdef WIN32
 #define VK_USE_PLATFORM_WIN32_KHR
+#elif __linux__
+#define VK_USE_PLATFORM_XCB_KHR
+#elif __APPLE__
+#define VK_USE_PLATFORM_MACOS_KHR
+#endif
 #include "ThirdParty/vulkan/vulkan/vulkan.h"
 #include "Engine/Core/Debugging/Log.h"
 
@@ -41,7 +49,7 @@
 #include <random>
 #include <unordered_map>
 #include <filesystem>
-#include "ThirdParty/filesystem/filesys.h"
+//#include "ThirdParty/filesystem/filesys.h"
 #include <list>
 #include <string>
 #include <chrono>

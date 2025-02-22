@@ -10,8 +10,6 @@
 #include <limits>
 
 namespace Plaza {
-
-	enum RendererAPI;
 	enum MeshType {
 		Triangle = 0,
 		HeightField
@@ -237,7 +235,6 @@ namespace Plaza {
 
 	class PLAZA_API Mesh {
 	public:
-		RendererAPI api;
 		BoundingBox mBoundingBox{};
 
 		MeshType meshType = MeshType::Triangle;

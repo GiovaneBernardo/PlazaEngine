@@ -1,17 +1,20 @@
 #pragma once
 //#include "Engine/Core/ModelLoader/Model.h"
 
-#ifdef ENGINE_EXPORT
-#define PLAZA_API __declspec(dllexport)
-#define GAME_API __declspec(dllimport)
-#define MONO_DLL_EXPORT
-#elif ENGINE_IMPORT
-#define PLAZA_API  __declspec(dllimport)
-#define GAME_API __declspec(dllexport)
-#define MONO_DLL_IMPORT
+#ifdef _WIN32
+    #ifdef ENGINE_EXPORT
+        #define PLAZA_API __declspec(dllexport)
+        #define GAME_API __declspec(dllimport)
+    #elif ENGINE_IMPORT
+        #define PLAZA_API __declspec(dllimport)
+        #define GAME_API __declspec(dllexport)
+    #else
+        #define PLAZA_API 
+        #define GAME_API 
+    #endif
 #else
-#define PLAZA_API 
-#define GAME_API 
+    #define PLAZA_API __attribute__((visibility("default")))
+    #define GAME_API __attribute__((visibility("default")))
 #endif
 
 #include <ThirdParty/cereal/cereal/archives/json.hpp>

@@ -15,6 +15,7 @@
 #include "EngineSettings.h"
 
 namespace Plaza {
+	enum class RendererAPI;
 	class Camera;
 	class Window;
 	class Renderer;

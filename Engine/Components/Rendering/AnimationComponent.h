@@ -1,13 +1,13 @@
 #pragma once
-#include <Engine\Core\AssetsManager\Asset.h>
-#include <Engine\Core\Engine.h>
+#include <Engine/Core/AssetsManager/Asset.h>
+#include <Engine/Core/Engine.h>
 #include <cstdint>
 #include <map>
 #include <string>
 #include <vector>
-#include <Engine\Components\Component.h>
-#include <Engine\Core\Renderer\Mesh.h>
-#include <cereal\types\base_class.hpp>
+#include <Engine/Components/Component.h>
+#include <Engine/Core/Renderer/Mesh.h>
+#include <cereal/types/base_class.hpp>
 
 namespace Plaza {
 	class PLAZA_API Animation : public Asset {

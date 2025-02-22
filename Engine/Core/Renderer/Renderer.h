@@ -12,7 +12,7 @@
 
 namespace Plaza {
 
-	enum RendererAPI {
+	enum class RendererAPI {
 		Vulkan
 	};
 
