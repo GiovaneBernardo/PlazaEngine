@@ -67,18 +67,40 @@ namespace Plaza {
 	void FilesManager::CreateFileWithData(const std::filesystem::path& path, const char* data) {
 		std::ofstream file(path);
 		if (file.is_open()) {
-			// Convert data to a string
 			std::string content(data);
-
-			// Replace any occurrences of "\r\n" with "\n"
 			content = std::regex_replace(content, std::regex("\r\n"), "\n");
-
-			// Write to file
 			file << content;
 			file.close();
 		}
 		else {
 			PL_CORE_ERROR("Failed to open file");
 		}
+	}
+
+	void FilesManager::OpenFile(const std::filesystem::path& path) {
+#ifdef WIN32
+		ShellExecuteA(NULL, "open", path.c_str(), NULL, NULL, SW_SHOWDEFAULT);
+#elif __linux__
+		std::string command = "xdg-open" + path.string() + " &";
+		std::system(command.c_str());
+#endif
+
+	}
+
+	void FilesManager::OpenFileParentFolder(const std::filesystem::path& filePath) {
+		FilesManager::OpenFolder(std::string("\"" + filePath.parent_path().string() + "\"").c_str());
+	}
+
+	void FilesManager::OpenFolder(const std::filesystem::path& path) {
+#ifdef WIN32
+		ShellExecuteA(NULL, "open", path.c_str(), NULL, NULL, SW_SHOWDEFAULT);
+#elif __linux__
+		std::string command = "xdg-open" + path.string() + " &";
+		std::system(command.c_str());
+#endif
+	}
+
+	void FilesManager::SaveFile(const std::filesystem::path& path, void* data, size_t size) {
+
 	}
 }

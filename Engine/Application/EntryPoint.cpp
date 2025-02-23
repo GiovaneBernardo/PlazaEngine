@@ -19,7 +19,9 @@ using namespace Plaza;
 #include "Editor/Settings/SettingsSerializer.h"
 #include "Engine/Core/Scripting/CppScriptFactory.h"
 
+#ifdef WIN32
 #include <windows.h>
+#endif
 #include <codecvt> 
 
 //#include "Embed.h"
@@ -31,6 +33,7 @@ int main() {
 	return 0;
 }
 
+#ifdef WIN32
 int CALLBACK WinMain(
 	_In_ HINSTANCE hInstance,
 	_In_ HINSTANCE hPrevInstance,
@@ -39,3 +42,4 @@ int CALLBACK WinMain(
 ) {
 	main();
 }
+#endif

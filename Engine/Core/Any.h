@@ -12,7 +12,7 @@ namespace Plaza {
 	public:
 		Any() noexcept
 			: mType(&typeid(void)) {
-			//mTypeRawName = mType->raw_name();
+			//mTypeRawName = mType->name();
 		}
 
 		~Any() {
@@ -28,7 +28,7 @@ namespace Plaza {
 				//if (mValue)
 				Any::RegisterType<T>();
 				mType = &typeid(T);
-				mTypeRawName = mType->raw_name();
+				mTypeRawName = mType->name();
 			}
 		}
 
@@ -48,12 +48,12 @@ namespace Plaza {
 		void SetType() {
 			Any::RegisterType<T>();
 			mType = &typeid(T);
-			mTypeRawName = mType->raw_name();
+			mTypeRawName = mType->name();
 		}
 
 		void SetType(const type_info& type) {
 			mType = &type;
-			mTypeRawName = mType->raw_name();
+			mTypeRawName = mType->name();
 		}
 
 		template<typename T>
@@ -86,7 +86,7 @@ namespace Plaza {
 			//	delete mValue; // Type-safe deletion
 			mValue = nullptr;
 			mType = &typeid(void);
-			mTypeRawName = mType->raw_name();
+			mTypeRawName = mType->name();
 		}
 
 		void* mValue = nullptr;
@@ -108,7 +108,7 @@ namespace Plaza {
 						return;
 
 					if (EnumReflection::sEnumNamesByTypeRawName.find(mTypeRawName) != EnumReflection::sEnumNamesByTypeRawName.end())
-						sJsonSerializeByRawName[typeid(int).raw_name()](archive, *this);
+						sJsonSerializeByRawName[typeid(int).name()](archive, *this);
 					else
 						sJsonSerializeByRawName[mTypeRawName](archive, *this);
 				}
@@ -116,7 +116,7 @@ namespace Plaza {
 					// JSON deserialization
 					// Example: archive(value);
 					if (EnumReflection::sEnumNamesByTypeRawName.find(mTypeRawName) != EnumReflection::sEnumNamesByTypeRawName.end())
-						sJsonDeSerializeByRawName[typeid(int).raw_name()](archive, *this);
+						sJsonDeSerializeByRawName[typeid(int).name()](archive, *this);
 					else if (sJsonDeSerializeByRawName.find(mTypeRawName) != sJsonDeSerializeByRawName.end())
 						sJsonDeSerializeByRawName[mTypeRawName](archive, *this);
 				}
@@ -130,7 +130,7 @@ namespace Plaza {
 					// Binary serialization
 					// Example: archive(value);
 					if (EnumReflection::sEnumNamesByTypeRawName.find(mTypeRawName) != EnumReflection::sEnumNamesByTypeRawName.end())
-						sBinarySerializeByRawName[typeid(int).raw_name()](archive, *this);
+						sBinarySerializeByRawName[typeid(int).name()](archive, *this);
 					else
 						sBinarySerializeByRawName[mTypeRawName](archive, *this);
 				}
@@ -138,7 +138,7 @@ namespace Plaza {
 					// Binary deserialization
 					// Example: archive(value);
 					if (EnumReflection::sEnumNamesByTypeRawName.find(mTypeRawName) != EnumReflection::sEnumNamesByTypeRawName.end())
-						sBinaryDeSerializeByRawName[typeid(int).raw_name()](archive, *this);
+						sBinaryDeSerializeByRawName[typeid(int).name()](archive, *this);
 					else
 						sBinaryDeSerializeByRawName[mTypeRawName](archive, *this);
 				}
@@ -150,8 +150,8 @@ namespace Plaza {
 
 		template<typename T>
 		static void RegisterType() {
-			////mTypeRawName = mType->raw_name();
-			//std::string typeRawName = typeid(T).raw_name();
+			////mTypeRawName = mType->name();
+			//std::string typeRawName = typeid(T).name();
 			//if (sRegisteredRawNames.find(typeRawName) != sRegisteredRawNames.end())
 			//	return;
 			//// Setup serialization

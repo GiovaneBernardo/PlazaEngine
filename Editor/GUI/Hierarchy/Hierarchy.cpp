@@ -123,8 +123,8 @@ namespace Plaza::Editor {
 
 		bool nameChanged = false;
 		if (entity.changingName) {
-			char buf[512];
-			strcpy_s(buf, entity.name.c_str());
+			char buf[1024];
+			strcpy(buf, entity.name.c_str());
 			if (firstFocus) {
 				ImGui::SetKeyboardFocusHere();
 			}
@@ -135,7 +135,7 @@ namespace Plaza::Editor {
 				ImGui::SetCursorPosX(currentIndent + 20);
 
 			ImGui::SetNextWindowSize(ImVec2(50.0f, height));
-			if (ImGui::InputTextEx("##EntityNameInput", "Name", buf, 512, ImVec2(inputTextWidth, 0), ImGuiInputTextFlags_EnterReturnsTrue)) {
+			if (ImGui::InputTextEx("##EntityNameInput", "Name", buf, 1024, ImVec2(inputTextWidth, 0), ImGuiInputTextFlags_EnterReturnsTrue)) {
 				entity.Rename(buf);
 				entity.changingName = false;
 				nameChanged = true;

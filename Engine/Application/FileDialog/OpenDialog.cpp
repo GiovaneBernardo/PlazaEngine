@@ -1,6 +1,8 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "FileDialog.h"
 // Function to open the file dialog and get the selected file path
+
+#ifdef WIN32
 namespace Plaza {
     std::string FileDialog::OpenFileDialog(const char* filter) {
         OPENFILENAMEA  ofn;
@@ -18,6 +20,25 @@ namespace Plaza {
 
         if (GetOpenFileNameA(&ofn) == TRUE) {
             return ofn.lpstrFile;
+        }
+
+        return "";
+    }
+}
+
+#elif __linux__
+#include <stdio.h>
+#include <stdlib.h>
+
+namespace Plaza {
+    std::string FileDialog::OpenFileDialog(const char* filter) {
+        char filename[1024] = {0};
+        FILE* fp = popen("zenity --file-selection", "r");
+        if(fp){
+            fgets(filename, sizeof(filename), fp);
+            pclose(fp);
+            filename[strcspn(filename, "\n")] = 0;
+            return std::string(filename);
         }
 
         return "";

@@ -6,8 +6,8 @@
 #include "Editor/ScriptManager/ScriptManager.h"
 #include "Editor/GUI/FileExplorer/File.h"
 #include "FileExplorerPopup.h"
+#include "Engine/Core/FilesManager.h"
 
-#include <shellapi.h>
 namespace Plaza::Editor {
 	void Popup::FileExplorerFilePopup::UpdateContent(File* file) {
 		if (!Editor::selectedFiles.contains(file->name)) {
@@ -16,11 +16,11 @@ namespace Plaza::Editor {
 		}
 
 		if (ImGui::MenuItem("Open")) {
-			ShellExecuteA(NULL, "open", std::string("\"" + file->directory + "\"").c_str(), NULL, NULL, SW_SHOWDEFAULT);
+			Plaza::FilesManager::OpenFile(std::string("\"" + file->directory + "\"").c_str());
 		}
 
 		if (ImGui::MenuItem("Open in file explorer")) {
-			ShellExecuteA(NULL, "open", std::string("\"" + std::filesystem::path{ file->directory }.parent_path().string() + "\"").c_str(), NULL, NULL, SW_SHOWDEFAULT);
+			FilesManager::OpenFileParentFolder(file->directory);
 		}
 
 		if (ImGui::MenuItem("Rename")) {

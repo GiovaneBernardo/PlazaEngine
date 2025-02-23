@@ -56,7 +56,7 @@ namespace Plaza::Editor {
 		ImGui::PushID(sGuiItemIndex);
 
 		char buf2[512];
-		strcpy_s(buf2, item->mGuiName.c_str());
+		strcpy(buf2, item->mGuiName.c_str());
 		if (ImGui::InputTextEx("Item Name", "Item Name", buf2, 512, ImVec2(0, 0), ImGuiInputTextFlags_EnterReturnsTrue))
 			item->mGuiName = buf2;
 		//ImGui::InputText("Item Name:", item->mGuiName.data(), item->mGuiName.length() + 256);
@@ -72,7 +72,7 @@ namespace Plaza::Editor {
 		switch (item->mGuiType) {
 		case GuiType::PL_GUI_BUTTON:
 			char buf[512];
-			strcpy_s(buf, static_cast<GuiButton*>(item)->mText.c_str());
+			strcpy(buf, static_cast<GuiButton*>(item)->mText.c_str());
 			if (ImGui::InputTextEx("Text", "Text", buf, 512, ImVec2(0, 0), ImGuiInputTextFlags_EnterReturnsTrue))
 				static_cast<GuiButton*>(item)->mText = buf;
 			//ImGui::InputText("Text", buffer, sizeof(buffer));

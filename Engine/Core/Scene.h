@@ -179,7 +179,7 @@ namespace Plaza {
 			if (mComponentPools.size() <= componentId)
 				mComponentPools.resize(componentId + 1, nullptr);
 			if (mComponentPools[componentId] == nullptr) {
-				mComponentPools[componentId] = new ComponentPool(sizeof(T), componentId, typeid(T).raw_name());
+				mComponentPools[componentId] = new ComponentPool(sizeof(T), componentId, typeid(T).name());
 				mComponentPools[componentId]->mInstantiateFactory = [this, componentId](ComponentPool* poolToAddComponent, void* other, uint64_t newUuid) -> void* {
 					T* component = poolToAddComponent->New<T>(newUuid);
 					*component = *static_cast<T*>(other);

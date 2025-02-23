@@ -251,10 +251,10 @@ namespace Plaza::Editor {
 						field = fieldObj;
 					}
 					else if (node.inputs[i].nodes.size() > 1) {
-						field = node.inputs[i].nodes[1]->outputs[0].GetValue<FieldType>();
+						field = node.inputs[i].nodes[1]->outputs[0].template GetValue<FieldType>();
 					}
 					else
-						field = node.inputs[i].GetValue<FieldType>();
+						field = node.inputs[i].template GetValue<FieldType>();
 
 					});
 

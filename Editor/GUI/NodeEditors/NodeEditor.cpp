@@ -230,7 +230,7 @@ namespace Plaza::Editor {
 				sOpenNodeEditorPopup = false;
 			}
 			if (ImGui::BeginPopup("NodeEditorEnumPopup")) {
-				const char* typeRawName = sEnumToShowOnPopup->type().raw_name();
+				const char* typeRawName = sEnumToShowOnPopup->type().name();
 				const std::vector<const char*>& enumNames = EnumReflection::GetEnumNames(typeRawName);
 				int index = 0;
 				for (const char* name : enumNames) {
@@ -298,7 +298,7 @@ namespace Plaza::Editor {
 		for (auto& input : node.inputs) {
 			cursorPos = ImGui::GetWindowPos();
 			if (input.type != PinType::Object || input.isVector) {
-				const char* rawname = input.value.type().raw_name();
+				const char* rawname = input.value.type().name();
 				const char* name = input.value.type().name();
 				ImGui::PushID(uniqueId++);
 				if (input.isVector) {
@@ -431,7 +431,7 @@ namespace Plaza::Editor {
 			return PinType::Vector3;
 		else if (info == typeid(glm::vec4))
 			return PinType::Vector4;
-		else if (EnumReflection::HasTypeRawName(info.raw_name()))
+		else if (EnumReflection::HasTypeRawName(info.name()))
 			return PinType::Enum;
 		else if (std::string(info.name()).starts_with("class"))
 			return PinType::Object;

@@ -13,12 +13,12 @@ namespace Plaza {
 			static_assert(std::is_enum<T>::value, "T must be an enum type.");
 			
 			const int enumSize = magic_enum::enum_count<T>();
-			if (sEnumNamesByTypeRawName.find(typeid(T).raw_name()) == sEnumNamesByTypeRawName.end()) {
+			if (sEnumNamesByTypeRawName.find(typeid(T).name()) == sEnumNamesByTypeRawName.end()) {
 				std::vector<const char*> names = std::vector<const char*>();
 				for (int i = 0; i < enumSize; ++i) {
 					names.push_back(magic_enum::enum_name(T(i)).data());
 				}
-				sEnumNamesByTypeRawName[typeid(T).raw_name()] = names;
+				sEnumNamesByTypeRawName[typeid(T).name()] = names;
 			}
 		}
 
@@ -27,15 +27,15 @@ namespace Plaza {
 			static_assert(std::is_enum<T>::value, "T must be an enum type.");
 
 			const int enumSize = magic_enum::enum_count<T>();
-			if (sEnumNamesByTypeRawName.find(typeid(T).raw_name()) == sEnumNamesByTypeRawName.end()) {
+			if (sEnumNamesByTypeRawName.find(typeid(T).name()) == sEnumNamesByTypeRawName.end()) {
 				std::vector<const char*> names = std::vector<const char*>();
 				for (int i = 0; i < enumSize; ++i) {
 					names.push_back(magic_enum::enum_name(T(1 << i)).data());
 				}
-				sEnumNamesByTypeRawName[std::string(typeid(T).raw_name())] = names;
+				sEnumNamesByTypeRawName[std::string(typeid(T).name())] = names;
 			}
 
-			sBitmaskEnums.insert(typeid(T).raw_name());
+			sBitmaskEnums.insert(typeid(T).name());
 		}
 
 		static bool IsBitmask(const char* typeRawName) {

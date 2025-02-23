@@ -4,6 +4,7 @@
 #include "Engine/Core/Engine.h"
 
 namespace Plaza {
+	class VulkanRenderer;
 	class PLAZA_API VulkanMesh : public Mesh {
 	public:
 		struct InstanceBuffer {

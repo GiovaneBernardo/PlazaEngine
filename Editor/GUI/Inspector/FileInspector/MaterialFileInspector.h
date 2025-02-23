@@ -9,11 +9,6 @@
 #include "Engine/Core/AssetsManager/Serializer/AssetsSerializer.h"
 
 namespace Plaza::Editor {
-	static class MaterialFileInspector {
-	public:
-		static Material* material;
-		static File* lastFile;
-
 		std::shared_ptr<Texture> LoadTextureButton(std::string outDirectory = "") {
 			Asset* asset = AssetsManager::GetAssetOrImport(FileDialog::OpenFileDialog(".jpeg"), {}, outDirectory);
 
@@ -23,7 +18,7 @@ namespace Plaza::Editor {
 				return std::shared_ptr<Texture>(AssetsManager::mTextures.find(1)->second);
 		}
 
-		MaterialFileInspector(Material* material) {
+		static void MaterialFileInspector(Material* material) {
 			//if (!material || file->directory != lastFile->directory) {
 			//	if (AssetsManager::GetAsset(file->directory))
 			//	{
@@ -65,8 +60,7 @@ namespace Plaza::Editor {
 
 			//lastFile = file;
 		}
-	};
 }
 
-inline Material* Plaza::Editor::MaterialFileInspector::material = nullptr;
-inline Editor::File* Plaza::Editor::MaterialFileInspector::lastFile = nullptr;
+//inline Material* Plaza::Editor::MaterialFileInspector::material = nullptr;
+//inline Editor::File* Plaza::Editor::MaterialFileInspector::lastFile = nullptr;

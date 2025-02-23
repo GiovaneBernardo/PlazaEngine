@@ -6,7 +6,9 @@
 #include <memory>
 #include <type_traits>
 #include "Script.h"
+#ifdef WIN32
 #include <Windows.h>
+#endif
 #include "Engine/Core/Engine.h"
 #include "Engine/Components/Scripting/CppScriptComponent.h"
 #include "Engine/Core/Scripting/CppScript.h"

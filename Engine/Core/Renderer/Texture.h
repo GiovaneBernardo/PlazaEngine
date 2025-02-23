@@ -6,11 +6,11 @@
 #include <cstdint>
 #include <type_traits>
 #include <unordered_set>
-#include <Engine\Core\UUID.h>
-#include <cereal\types\base_class.hpp>
+#include <Engine/Core/UUID.h>
+#include <cereal/types/base_class.hpp>
 #include <fwd.hpp>
 #include <vulkan_core.h>
-#include <cereal\types\polymorphic.hpp>
+#include <cereal/types/polymorphic.hpp>
 
 namespace Plaza {
 	struct PLAZA_API TextureInfo {

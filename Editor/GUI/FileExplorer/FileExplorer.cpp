@@ -168,8 +168,8 @@ namespace Plaza {
 						startSelected = std::filesystem::path{ file->name }.stem().string().length();
 					}
 
-					char buf[512];
-					strcpy_s(buf, file->name.c_str());
+					char buf[1024];
+					strcpy(buf, file->name.c_str());
 					if (ImGui::InputTextEx("##FileNameInput", "File Name", buf, 512, ImVec2(50, 20), ImGuiInputTextFlags_EnterReturnsTrue, nullptr, nullptr, startSelected)) {
 						file->changingName = "";
 						Utils::Filesystem::ChangeFileName(Editor::Gui::FileExplorer::currentDirectory + "\\" + file->name, Editor::Gui::FileExplorer::currentDirectory + "\\" + buf);

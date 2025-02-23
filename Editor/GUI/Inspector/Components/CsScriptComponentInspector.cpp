@@ -1,10 +1,10 @@
-#pragma once
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "ComponentsInspector.h"
 #include "Engine/Components/Scripting/CsScriptComponent.h"
 #include "Engine/Core/Scripting/FieldManager.h"
 #include "Engine/Core/Scene.h"
 #include "Editor/GUI/Utils/Utils.h"
+#include <string>
 
 void CreateRespectiveInteractor(MonoObject* monoObject, MonoClassField* field, int& sliderIndex, MonoClass* monoClass = nullptr) {
 	int type = mono_type_get_type(mono_field_get_type(field));
@@ -33,7 +33,7 @@ void CreateRespectiveInteractor(MonoObject* monoObject, MonoClassField* field, i
 
 		// Create a non-const character buffer and copy the characters
 		char* charBuffer = new char[stringValue.length() + 1];
-		strcpy_s(charBuffer, stringValue.length() + 1, stringValue.c_str());
+		strcpy(charBuffer, stringValue.c_str());
 		if (ImGui::InputText(fieldId.c_str(), charBuffer, 2048)) {
 			uint64_t result = 0;
 			result = std::strtoull(charBuffer, nullptr, 10);

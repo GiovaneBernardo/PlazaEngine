@@ -41,7 +41,7 @@ namespace Plaza::Editor {
                }
 
                /* Render Graph */
-               if (Utils::ComponentInspectorHeader(nullptr, "RenderGraph", NULL)) {
+               if (Utils::ComponentInspectorHeader(nullptr, "RenderGraph", 0)) {
                        ImGui::BeginTable("Terrain Editor Tool Settings", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg);
                    for (const auto& [key, pass] : VulkanRenderer::GetRenderer()->mRenderGraph->mPasses) {
                        Utils::AddTableSingleString(pass->mName);
@@ -56,13 +56,13 @@ namespace Plaza::Editor {
                }
 
                /* Skybox Render Graph */
-               if (Utils::ComponentInspectorHeader(nullptr, "Skbyox RenderGraph", NULL)) {
+               if (Utils::ComponentInspectorHeader(nullptr, "Skbyox RenderGraph", 0)) {
                    if (ImGui::Button("Build and Run"))
                        VulkanRenderer::GetRenderer()->mRenderGraph->RunSkyboxRenderGraph(VulkanRenderer::GetRenderer()->mRenderGraph->BuildSkyboxRenderGraph());
                }
 
                /* Colors */
-               if (Utils::ComponentInspectorHeader(nullptr, "Colors", NULL)) {
+               if (Utils::ComponentInspectorHeader(nullptr, "Colors", 0)) {
                     int index = 0;
                     for (auto& color : ImGui::GetStyle().Colors) {
                          ImGui::PushID("EditorInspectorlabel" + index);

@@ -33,7 +33,7 @@ elseif(UNIX AND NOT APPLE)
         message(FATAL_ERROR "Clang not found. Please install Clang before building.")
     endif()
 
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unsafe-buffer-usage -fsafe-buffer-usage-suggestions -Wno-switch-default -Wno-invalid-offsetof")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unsafe-buffer-usage -fsafe-buffer-usage-suggestions -Wno-switch-default -Wswitch -Wunused-value -Wno-invalid-offsetof")
 endif()
 
 project(PlazaEngineProject VERSION 0.0.2)
