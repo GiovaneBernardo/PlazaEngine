@@ -3,9 +3,13 @@
 
 #ifdef WIN32
 #include <Commdlg.h>
-#define GLFW_EXPOSE_NATIVE_WIN32
-#include "ThirdParty/GLFW/include/GLFW/glfw3native.h"
 #endif
+#ifdef WIN32
+#define GLFW_EXPOSE_NATIVE_WIN32
+#elif __linux__
+#define GLFW_EXPOSE_NATIVE_X11
+#endif
+#include "ThirdParty/GLFW/include/GLFW/glfw3native.h"
 
 namespace Plaza {
 	class FileDialog {

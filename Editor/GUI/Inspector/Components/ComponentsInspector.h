@@ -9,7 +9,6 @@ namespace Plaza::Editor {
 		static void CameraInspector(Scene* scene, Entity* entity);
 		static void ColliderInspector(Scene* scene, Entity* entity);
 		static void CppScriptComponentInspector(Scene* scene, Entity* entity);
-		static void CsScriptComponentInspector(Scene* scene, Entity* entity);
 		static void GuiComponentInspector(Scene* scene, Entity* entity);
 		static void LightInspector(Scene* scene, Entity* entity);
 		static void MeshRendererInspector(Scene* scene, Entity* entity);

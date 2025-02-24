@@ -3,14 +3,12 @@
 #include "Engine/Core/Input/Input.h"
 #include "Engine/Core/Input/Cursor.h"
 
-using namespace Plaza;
-using namespace Plaza::Editor;
-bool Callbacks::rightClickPressed;
-bool Callbacks::mouseFirstCallback;
-bool Callbacks::firstMouse = true;
+bool Plaza::Callbacks::rightClickPressed;
+bool Plaza::Callbacks::mouseFirstCallback;
+bool Plaza::Callbacks::firstMouse = true;
 
-float Callbacks::lastX = 0;//Application::Get()->appSizes->appSize.x / 2.0f;
-float Callbacks::lastY = 0;//Application::Get()->appSizes->appSize.y / 2.0f;
+float Plaza::Callbacks::lastX = 0;//Application::Get()->appSizes->appSize.x / 2.0f;
+float Plaza::Callbacks::lastY = 0;//Application::Get()->appSizes->appSize.y / 2.0f;
 
 void GetMonitorWorkarea(GLFWwindow* window, int& monitorX, int& monitorY, int& monitorWidth, int& monitorHeight) {
 	int windowX, windowY, windowWidth, windowHeight;
@@ -64,14 +62,14 @@ void HandleMouseWrap(GLFWwindow* window, double& mouseX, double& mouseY, float& 
 	if (wrapped) {
 		glfwSetCursorPos(window, mouseX, mouseY);
 		lastX = (float)mouseX;
-		Input::Cursor::lastX = (float)mouseX;
+		Plaza::Input::Cursor::lastX = (float)mouseX;
 		lastY = (float)mouseY;
-		Input::Cursor::lastY = (float)mouseY;
+		Plaza::Input::Cursor::lastY = (float)mouseY;
 	}
 }
 
 
-void Callbacks::mouseCallback(GLFWwindow* window, double xposIn, double yposIn) {
+void Plaza::Callbacks::mouseCallback(GLFWwindow* window, double xposIn, double yposIn) {
 	float xpos = static_cast<float>(xposIn);
 	float ypos = static_cast<float>(yposIn);
 	if (Application::Get()->focusedMenu == "Editor") {

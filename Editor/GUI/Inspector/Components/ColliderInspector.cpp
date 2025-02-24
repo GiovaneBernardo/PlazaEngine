@@ -8,15 +8,16 @@
 #include <iostream>
 #include "Engine/Core/Scene.h"
 #include "Engine/Core/Physics.h"
-void AddChildrenMeshShape(Scene* scene, Collider* collider, uint64_t parentUuid) {
-	for (uint64_t childUuid : Scene::GetActiveScene()->GetEntity(parentUuid)->childrenUuid) {
-		if (scene->HasComponent<MeshRenderer>(childUuid)) {
-			collider->AddConvexMeshShape(scene->GetComponent<MeshRenderer>(childUuid)->GetMesh());
-		}
-		AddChildrenMeshShape(scene, collider, childUuid);
-	}
-}
 namespace Plaza::Editor {
+	void AddChildrenMeshShape(Scene* scene, Collider* collider, uint64_t parentUuid) {
+		for (uint64_t childUuid : Scene::GetActiveScene()->GetEntity(parentUuid)->childrenUuid) {
+			if (scene->HasComponent<MeshRenderer>(childUuid)) {
+				collider->AddConvexMeshShape(scene->GetComponent<MeshRenderer>(childUuid)->GetMesh());
+			}
+			AddChildrenMeshShape(scene, collider, childUuid);
+		}
+	}
+
 	void ComponentsInspector::ColliderInspector(Scene* scene, Entity* entity) {
 		Collider* collider = scene->GetComponent<Collider>(entity->uuid);
 		ImGui::SetNextItemOpen(true);
@@ -35,8 +36,7 @@ namespace Plaza::Editor {
 			ImGui::PushID("ColliderInspector");
 
 			// Button for opening collider popup
-			if (ImGui::Button("Add Shape"))
-			{
+			if (ImGui::Button("Add Shape")) {
 				ImGui::OpenPopup("AddShapeContexMenu"); // Open the popup when the button is clicked
 			}
 
@@ -45,8 +45,7 @@ namespace Plaza::Editor {
 			}
 
 			// Check if the context menu is open
-			if (ImGui::BeginPopupContextWindow("AddShapeContexMenu"))
-			{
+			if (ImGui::BeginPopupContextWindow("AddShapeContexMenu")) {
 				if (ImGui::IsMouseReleased(1)) // Check if right mouse button was released
 				{
 					ImGui::CloseCurrentPopup(); // Close the context menu on right-click
@@ -56,32 +55,27 @@ namespace Plaza::Editor {
 				// Create a dynamic rigid body
 
 				physx::PxMaterial* defaultMaterial = Physics::defaultMaterial;
-				if (ImGui::MenuItem("Box"))
-				{
+				if (ImGui::MenuItem("Box")) {
 					physx::PxBoxGeometry geometry(transform.mLocalScale.x / 2.1, transform.mLocalScale.y / 2.1, transform.mLocalScale.z / 2.1);
 					physx::PxShape* shape = Physics::m_physics->createShape(geometry, *defaultMaterial);
 					collider->AddShape(new ColliderShape(shape, ColliderShape::ColliderShapeEnum::BOX, 0));
 				}
-				if (ImGui::MenuItem("Plane"))
-				{
+				if (ImGui::MenuItem("Plane")) {
 					physx::PxBoxGeometry geometry(transform.mLocalScale.x / 2.1, 0.001f, transform.mLocalScale.z / 2.1);
 					physx::PxShape* shape = Physics::m_physics->createShape(geometry, *defaultMaterial);
 					collider->AddShape(new ColliderShape(shape, ColliderShape::ColliderShapeEnum::PLANE, 0));
 				}
-				if (ImGui::MenuItem("Sphere"))
-				{
+				if (ImGui::MenuItem("Sphere")) {
 					physx::PxSphereGeometry geometry(1.0f);
 					physx::PxShape* shape = Physics::m_physics->createShape(geometry, *defaultMaterial);
 					collider->AddShape(new ColliderShape(shape, ColliderShape::ColliderShapeEnum::SPHERE, 0));
 				}
-				if (ImGui::MenuItem("Capsule"))
-				{
+				if (ImGui::MenuItem("Capsule")) {
 					physx::PxCapsuleGeometry geometry(0.5f, 1.0f);
 					physx::PxShape* shape = Physics::m_physics->createShape(geometry, *defaultMaterial);
 					collider->AddShape(new ColliderShape(shape, ColliderShape::ColliderShapeEnum::CAPSULE, 0));
 				}
-				if (ImGui::MenuItem("Mesh"))
-				{
+				if (ImGui::MenuItem("Mesh")) {
 					if (scene->HasComponent<MeshRenderer>(collider->mUuid)) {
 						collider->AddMeshShape(scene->GetComponent<MeshRenderer>(collider->mUuid)->GetMesh());
 					}
@@ -90,8 +84,7 @@ namespace Plaza::Editor {
 
 					}
 				}
-				if (ImGui::MenuItem("Convex Mesh"))
-				{
+				if (ImGui::MenuItem("Convex Mesh")) {
 					if (scene->HasComponent<MeshRenderer>(collider->mUuid)) {
 						collider->AddConvexMeshShape(scene->GetComponent<MeshRenderer>(collider->mUuid)->GetMesh());
 					}

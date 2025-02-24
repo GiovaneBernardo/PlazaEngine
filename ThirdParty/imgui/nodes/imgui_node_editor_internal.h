@@ -511,7 +511,7 @@ struct NodeSettings
         , m_WasUsed(false)
         , m_Saved(false)
         , m_IsDirty(false)
-        , m_DirtyReason(SaveReasonFlags::None)
+        , m_DirtyReason(SaveReasonFlags::Unknown)
     {
     }
 
@@ -537,7 +537,7 @@ struct Settings
 
     Settings()
         : m_IsDirty(false)
-        , m_DirtyReason(SaveReasonFlags::None)
+        , m_DirtyReason(SaveReasonFlags::Unknown)
         , m_ViewScroll(0, 0)
         , m_ViewZoom(1.0f)
         , m_VisibleRect()

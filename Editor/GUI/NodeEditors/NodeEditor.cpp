@@ -424,7 +424,7 @@ namespace Plaza::Editor {
 		else if (info == typeid(std::string))
 			return PinType::String;
 		else if (info == typeid(bool))
-			return PinType::Bool;
+			return PinType::BoolType;
 		else if (info == typeid(glm::vec2))
 			return PinType::Vector2;
 		else if (info == typeid(glm::vec3))

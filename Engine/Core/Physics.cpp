@@ -68,10 +68,6 @@ namespace Plaza {
 					//		Mono::CallMethod(value->monoObject, value->methods.find("OnCollide")->second, params);
 					//	}
 					//}
-
-
-					// Place your logic for handling collisions here
-					// You can call your Mono::CallMethod or perform any other required actions
 				}
 			}
 		}

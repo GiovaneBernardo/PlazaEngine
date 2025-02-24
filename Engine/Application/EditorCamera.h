@@ -5,10 +5,6 @@
 #include <vector>
 #include "Engine/Components/Core/Camera.h"
 
-
-using namespace Plaza;
-
-
 namespace Plaza {
 	class EditorCamera {
 	public:

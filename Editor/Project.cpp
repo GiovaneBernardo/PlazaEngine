@@ -2,12 +2,9 @@
 #include "Project.h"
 
 #include "Engine/Core/Scripting/Script.h"
-#include "ThirdParty/mono/include/mono/jit/jit.h"
-#include "ThirdParty/mono/include/mono/metadata/assembly.h"
 #include "Engine/Core/Scripting/Script.h"
 #include "Engine/Application/FileDialog/FileDialog.h"
 #include "Editor/GUI/FileExplorer/FileExplorer.h"
-#include "Engine/Core/Scripting/Mono.h"
 #include "Editor/Filewatcher.h"
 #include "Editor/ScriptManager/ScriptManager.h"
 #include "Editor/DefaultAssets/Models/DefaultModels.h"
@@ -47,9 +44,6 @@ namespace Plaza::Editor {
 		Gui::FileExplorer::currentDirectory = Application::Get()->activeProject->mAssetPath.parent_path().string();
 		Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
 #endif // EDITOR_MODE
-
-		std::cout << "Mono \n";
-		Mono::Init();
 
 		std::cout << "Read Game Folder \n";
 		Scene::ClearEditorScene();

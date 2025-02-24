@@ -13,7 +13,7 @@ namespace Plaza {
 
 		if (extension == ".mp3")  return AudioFileFormat::MP3;
 
-		return AudioFileFormat::None;
+		return AudioFileFormat::Unknown;
 	}
 
 	void AudioSource::OnInstantiate(Scene* scene, uint64_t toInstantiate) {

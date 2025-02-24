@@ -17,7 +17,11 @@ namespace Plaza {
 		static void UnloadCurrentLoadedCppDll();
 	private:
 		static bool LoadCppDll(const std::filesystem::path& path);
+		#ifdef WIN32
 		static inline HMODULE sCurrentLoadedCppDll;
+		#elif __linux__
+		static inline void* sCurrentLoadedCppHandle;
+		#endif
 		static inline int sReloadIndex = 0;
 	};
 }

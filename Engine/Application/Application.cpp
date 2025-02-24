@@ -17,7 +17,6 @@
 
 #include "Engine/Components/Physics/RigidBody.h"
 #include "Engine/Core/Physics.h"
-#include "Engine/Core/Scripting/Mono.h"
 #include "Engine/Core/Scripting/Scripting.h"
 #include "Editor/Filewatcher.h"
 #include "Engine/Core/Input/Input.h"
@@ -26,13 +25,9 @@
 #include "Engine/Core/AssetsManager/Serializer/AssetsSerializer.h"
 #include "Engine/ECS/ECSManager.h"
 
-using namespace Plaza;
 /// ---------------------------------------------------------------------
 
 //std::list<Model> models;
-
-using namespace Plaza::Editor;
-
 #define DEFAULT_GRAPHICAL_API "Vulkan"
 
 namespace Plaza {
@@ -90,8 +85,15 @@ namespace Plaza {
 
 	void Application::GetPaths() {
 		char* appdataValue;
-		size_t len;
-		errno_t err = _dupenv_s(&appdataValue, &len, "APPDATA");
+
+#ifdef _WIN32
+		appdataValue = std::getenv("APPDATA");
+#elif __linux__
+		appdataValue = std::getenv("XDG_CONFIG_HOME");
+		if (!appdataValue) {
+			appdataValue = std::getenv("HOME");
+		}
+#endif
 		std::filesystem::path currentPath(__FILE__);
 		Application::Get()->dllPath = currentPath.parent_path().parent_path().parent_path().string() + "\\dll";
 		Application::Get()->enginePath = currentPath.parent_path().parent_path().string();
@@ -109,7 +111,7 @@ namespace Plaza {
 #else
 
 #endif
-}
+	}
 
 	/*
 
@@ -192,8 +194,8 @@ namespace Plaza {
 		else {
 			Application::Get()->runEngine = false;
 			Application::Get()->runProjectManagerGui = true;
-			Application::Get()->activeProject = std::make_unique<Project>();
-			Cache::Serialize(Application::Get()->enginePathAppData + "\\cache" + Standards::editorCacheExtName);
+			Application::Get()->activeProject = std::make_unique<Editor::Project>();
+			Editor::Cache::Serialize(Application::Get()->enginePathAppData + "\\cache" + Standards::editorCacheExtName);
 			Application::Get()->focusedMenu = "ProjectManager";
 		}
 #endif
@@ -244,7 +246,7 @@ namespace Plaza {
 		Audio::UpdateListener(Scene::GetActiveScene());
 
 		// Update Filewatcher main thread
-		Filewatcher::UpdateOnMainThread();
+		Editor::Filewatcher::UpdateOnMainThread();
 
 		// Update Animations
 		for (auto& [key, value] : Scene::GetActiveScene()->mPlayingAnimations) {
@@ -268,8 +270,8 @@ namespace Plaza {
 
 		// Imgui New Frame (only if running editor)
 #ifdef EDITOR_MODE
-		Gui::NewFrame();
-		Gui::Update();
+		Editor::Gui::NewFrame();
+		Editor::Gui::Update();
 #endif
 
 		Time::drawCalls = 0;
@@ -291,7 +293,7 @@ namespace Plaza {
 		PL_CORE_INFO("Terminate");
 		Scene::Terminate();
 #ifdef EDITOR_MODE
-		Gui::Delete();
+		Editor::Gui::Delete();
 #endif // !GAME_REL
 		glfwTerminate();
 	}

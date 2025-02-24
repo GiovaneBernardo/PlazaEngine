@@ -2,7 +2,6 @@
 #include "VulkanTexture.h"
 #include "Renderer.h"
 #include "ThirdParty/dds_image/dds.hpp"
-#include "ThirdParty/DirectXTex/DirectXTex/DirectXTex.h"
 
 namespace Plaza {
 	/// Takes image with VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL and outputs it with VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
@@ -123,11 +122,9 @@ namespace Plaza {
 		float* pixelsFloat = nullptr;
 		uint32_t pix = 0;
 		VkFormat imageFormat = format;
-		DirectX::TexMetadata metadata;
-		DirectX::ScratchImage scratchImage;
+
 		VkDeviceSize imageSize;
-		if (!isDDS)
-		{
+		if (!isDDS) {
 			if (isHdr)
 				pixelsFloat = stbi_loadf(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 			else
@@ -195,7 +192,7 @@ namespace Plaza {
 		else if (!isDDS && pixelsFloat)
 			stbi_image_free(pixelsFloat);
 		else
-			scratchImage.Release();
+			image.data.clear();
 
 
 		//VulkanRenderer::GetRenderer()->CreateImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mTextureImage, mTextureImageMemory);
@@ -305,8 +302,7 @@ namespace Plaza {
 			mLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 		}
 
-		if (generateMipMaps)
-		{
+		if (generateMipMaps) {
 			GenerateMipmaps(this->mImage, width, height, this->mMipCount, format, layers);
 			mLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		}
@@ -325,11 +321,11 @@ namespace Plaza {
 	}
 
 	unsigned int VulkanTexture::GetTextureID() {
-		return (unsigned int)this->mDescriptorSet;
+		return static_cast<unsigned int>(reinterpret_cast<uintptr_t>(this->mDescriptorSet));
 	}
 
 	ImTextureID VulkanTexture::GetImGuiTextureID() {
-		ImTextureID id = (ImTextureID)this->mDescriptorSet;
+		ImTextureID id = static_cast<ImTextureID>(this->mDescriptorSet);
 		return id;
 	}
 

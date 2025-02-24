@@ -1,4 +1,3 @@
-#pragma once
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "ComponentsInspector.h"
 #include "Engine/Components/Physics/RigidBody.h"
@@ -8,7 +7,6 @@
 #include <iostream>
 #include "Engine/Core/Scene.h"
 
-RigidBody* currentBody = nullptr;
 namespace Plaza::Editor {
 	void UpdateRigidBodyCallbackFloat(float value) {
 		//ECS::RigidBodySystem::UpdateRigidBody(currentBody);
@@ -22,7 +20,6 @@ namespace Plaza::Editor {
 		if (Utils::ComponentInspectorHeader(rigidBody, "Rigid Body")) {
 			ImGui::PushID("RigidBodyInspector");
 
-			currentBody = rigidBody;
 			physx::PxRigidActor& body = *rigidBody->mRigidActor;
 			bool& kinematic = rigidBody->kinematic;
 			glm::vec3& gravity = rigidBody->gravity;

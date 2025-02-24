@@ -1,11 +1,11 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "FileDialog.h"
+
+#ifdef WIN32
 #include <ShlObj.h>
 #include <ShObjIdl.h>
-
-// Function to open the file dialog and get the selected file path
-#ifdef WIN32
 namespace Plaza {
+    // Function to open the file dialog and get the selected file path
     std::string FileDialog::OpenFolderDialog() {
         std::string selectedFolder;
 
@@ -55,7 +55,7 @@ namespace Plaza {
 #include <stdlib.h>
 
 namespace Plaza {
-    std::string FileDialog::OpenFolderDialog(const char* filter) {
+    std::string FileDialog::OpenFolderDialog() {
         char foldername[1024] = {0};
         FILE* fp = popen("zenity --file-selection --directory", "r");
         if(fp){
@@ -68,3 +68,4 @@ namespace Plaza {
         return "";
     }
 }
+#endif

@@ -12,7 +12,6 @@ namespace Plaza {
 			static void Load(const std::string filePath);
 
 			std::map<std::string, Script> scripts;
-			std::map<std::string, MonoObject*> monoObjects;
 
 			static void PasteCmakeFile(const std::filesystem::path& directory);
 			static void PasteGitIgnore(const std::filesystem::path& directory);

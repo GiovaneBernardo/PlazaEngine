@@ -48,19 +48,6 @@ namespace Plaza::Editor {
 				}
 				break;
 			case filewatch::Event::modified:
-				if (fsPath.extension() == ".cs") {
-					// TODO: For now its just recompiling the scripting but not hot reloading
-					if (Filewatcher::mMainThreadQueue.size() <= 0) {
-						Filewatcher::AddToMainThread([finalPath]() {
-							ScriptManager::RecompileDll("", "");
-							std::map<uint64_t, std::map<std::string, std::map<std::string, Field*>>> allFields = FieldManager::GetAllScritpsFields(Scene::GetEditorScene());
-							//Mono::OnStartAll(false);
-							//FieldManager::ApplyAllScritpsFields(allFields);
-							});
-						//Filewatcher::AddToMainThread([finalPath]() {ScriptManager::ReloadSpecificAssembly(finalPath); });
-					}
-					//Filewatcher::AddToMainThread([finalPath]() {ScriptManager::RecompileDll("", ""); });
-				}
 				break;
 			case filewatch::Event::renamed_old: // The file was renamed and this is the old name
 				sLastFileWatchEvent = { finalPath, changeType };

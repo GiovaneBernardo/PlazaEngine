@@ -19,7 +19,7 @@ namespace Plaza {
 			collider->SetFlags(collider, rigidBody->rigidDynamicLockFlags);
 		}
 		else {
-			rigidBody->mRigidActor = Physics::m_physics->createRigidDynamic(*new physx::PxTransform(physx::PxIdentity(1.0f)));
+			rigidBody->mRigidActor = Physics::m_physics->createRigidDynamic(*new physx::PxTransform(physx::PxIdentity));
 		}
 
 		rigidBody->SetRigidBodyFlag(physx::PxRigidBodyFlag::eENABLE_CCD, rigidBody->continuousDetection);

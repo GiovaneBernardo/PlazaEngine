@@ -125,7 +125,7 @@ namespace Plaza::Editor {
 		{
 			Unknown,
 			Flow,
-			Bool,
+			BoolType,
 			Int,
 			Float,
 			String,

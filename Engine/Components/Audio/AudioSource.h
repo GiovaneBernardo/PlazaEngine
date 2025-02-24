@@ -7,7 +7,7 @@
 namespace Plaza {
 	enum class AudioFileFormat
 	{
-		None = 0,
+		Unknown = 0,
 		MP3
 	};
 	class PLAZA_API AudioSource : public Component {

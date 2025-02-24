@@ -9,7 +9,6 @@
 #include "Engine/Core/Scene.h"
 #include "Engine/ECS/ECSManager.h"
 
-Entity* obj = nullptr;
 namespace Plaza::Editor {
 	void HierarchyPopup::Update(Scene* scene, Entity* entity) {
 		if (ImGui::BeginPopupContextWindow("ItemPopup"))
@@ -109,28 +108,6 @@ namespace Plaza::Editor {
 							script->OnStart(scene);
 						}
 						//entity->AddComponent<CppScriptComponent>(component);
-					}
-				}
-
-				ImGui::EndMenu();
-			}
-
-			if (ImGui::BeginMenu("C# Script"))
-			{
-				for (auto& [key, value] : AssetsManager::mScripts) {
-					if (value->GetExtension() != ".cs")
-						continue;
-					//TODO: FIX SCRIPTS WITH INCORRECT NAME AND REMOVE THE BELOW HACK USING THE ASSET
-					Asset* asset = AssetsManager::GetAsset(key);
-					if (ImGui::MenuItem(value->mAssetName.c_str())) {
-						CsScriptComponent* script = scene->NewComponent<CsScriptComponent>(entity->uuid);
-						script->mScriptUuid = value->mAssetUuid;
-						script->Init();
-						if (scene->mRunning) {
-							for (auto& [key, value] : script->scriptClasses) {
-								Mono::OnStart(value->monoObject);
-							}
-						}
 					}
 				}
 

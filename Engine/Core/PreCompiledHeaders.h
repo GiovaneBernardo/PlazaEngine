@@ -40,8 +40,6 @@
 //#include "ThirdParty/physx/vehicle/PxVehicleSDK.h"
 #include <ThirdParty/PhysX/physx/include/PxPhysicsAPI.h>
 #include <ThirdParty/PhysX/physx/include/cooking/Pxc.h>
-#include "ThirdParty/mono/include/mono/jit/jit.h"
-#include "ThirdParty/mono/include/mono/metadata/assembly.h"
 #include <ThirdParty/cereal/cereal/archives/binary.hpp>
 #include <ThirdParty/cereal/cereal/types/polymorphic.hpp>
 

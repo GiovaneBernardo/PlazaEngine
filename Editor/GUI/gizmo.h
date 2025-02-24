@@ -19,8 +19,6 @@
 #include "Engine/Application/ApplicationSizes.h"
 #include "Editor/GUI/TransformOverlay.h"
 
-using namespace Plaza;
-using namespace Plaza::Editor;
 namespace Plaza::Editor {
 	class Gizmo {
 	public:

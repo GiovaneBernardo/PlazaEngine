@@ -127,7 +127,7 @@ namespace Plaza::Editor {
 		this->AddInputPin(renderPassNode, Pin(0, "Multi view count", PinType::Int, PinKind::Constant)).SetValue<int>(0);
 		this->AddInputPin(renderPassNode, Pin(0, "Render Size", PinType::Vector2, PinKind::Constant)).SetValue<glm::vec2>(glm::vec2(1920.0f, 1080.0f));
 		this->AddInputPin(renderPassNode, Pin(0, "Dispatch Size", PinType::Vector3, PinKind::Constant)).SetValue<glm::vec3>(glm::vec3(0.0f));
-		this->AddInputPin(renderPassNode, Pin(0, "Flip Viewport", PinType::Bool, PinKind::Constant)).SetValue(true);
+		this->AddInputPin(renderPassNode, Pin(0, "Flip Viewport", PinType::BoolType, PinKind::Constant)).SetValue(true);
 		this->AddInputPin(renderPassNode, Pin(0, "Input Textures", PinType::Array, PinKind::Input)).SetValue<PlazaTextureBinding>(PlazaTextureBinding());
 		renderPassNode.inputs.back().isVector = true;
 		this->AddInputPin(renderPassNode, Pin(0, "Input Buffers", PinType::Array, PinKind::Input)).SetValue<PlazaBufferBinding>(PlazaBufferBinding());

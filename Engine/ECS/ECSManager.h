@@ -33,8 +33,6 @@ namespace Plaza {
 			ECS::RegisterComponent<CppScriptComponent>();
 			Scene::GetComponentId<AnimationComponent>();
 			ECS::RegisterComponent<AnimationComponent>();
-			Scene::GetComponentId<CsScriptComponent>();
-			ECS::RegisterComponent<CsScriptComponent>();
 		}
 
 		static void InstantiateComponent(ComponentPool* srcPool, ComponentPool* dstPool, uint64_t srcUuid, uint64_t dstUuid);

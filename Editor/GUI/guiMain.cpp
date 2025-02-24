@@ -58,9 +58,9 @@ bool Plaza::Editor::Gui::canUpdateContent = false;
 
 bool windowVisible = true;
 // Update ImGui Windows
-FpsCounter* fpsCounter;
 namespace Plaza {
 	namespace Editor {
+		FpsCounter* fpsCounter;
 		class Hierarchy;
 		string Gui::scenePayloadName = "scenePayloadName";
 

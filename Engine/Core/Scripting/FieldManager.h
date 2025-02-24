@@ -13,9 +13,9 @@ namespace Plaza {
 	};
 	class FieldManager {
 	public:
-		static std::map<std::string, Field*> GetFieldsValues(MonoObject* monoObject, Field* parent = nullptr);
-		static std::any GetFieldValue(MonoClassField* field, MonoObject* monoObject);
-		static void FieldSetValue(int type, std::any& value, MonoObject* monoObject, MonoClassField* monoField, Field* field);
+		static std::map<std::string, Field*> GetFieldsValues(Field* parent = nullptr);
+		static std::any GetFieldValue();
+		static void FieldSetValue(int type, std::any& value, Field* field);
 		static std::map<uint64_t, std::map<std::string, std::map<std::string, Field*>>> GetAllScritpsFields(Scene* scene);
 		static void ApplyAllScritpsFields(Scene* scene, std::map<uint64_t, std::map<std::string, std::map<std::string, Field*>>> allFields);
 	};

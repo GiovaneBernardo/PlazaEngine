@@ -12,7 +12,11 @@
 #define VK_USE_PLATFORM_WIN32_KHR
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#ifdef WIN32
 #define GLFW_EXPOSE_NATIVE_WIN32
+#elif __linux__
+#define GLFW_EXPOSE_NATIVE_X11
+#endif
 #include <GLFW/glfw3native.h>
 
 #include <algorithm>
@@ -375,6 +379,7 @@ namespace Plaza {
 	}
 
 	void VulkanRenderer::InitSurface() {
+#ifdef WIN32
 		VkWin32SurfaceCreateInfoKHR createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
 		createInfo.hwnd = glfwGetWin32Window(Application::Get()->mWindow->glfwWindow);
@@ -384,6 +389,11 @@ namespace Plaza {
 			!= VK_SUCCESS) {
 			throw std::runtime_error("failed to create window surface!");
 		}
+#elif __linux__
+		if (glfwCreateWindowSurface(mVulkanInstance, Application::Get()->mWindow->glfwWindow, nullptr, &mSurface) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create window surface!");
+		}
+#endif
 		// if (glfwCreateWindowSurface(mVulkanInstance,
 		// Application::Get()->Window->glfwWindow, nullptr, &mSurface) != VK_SUCCESS) {
 		// throw
@@ -2801,8 +2811,7 @@ namespace Plaza {
 			else
 				ids[i] = -1;
 
-			if (ids[i] == 0 || (bones.size() > i && this->mBones.find(bones[i]) == this->mBones.end()))
-			{
+			if (ids[i] == 0 || (bones.size() > i && this->mBones.find(bones[i]) == this->mBones.end())) {
 				std::cout << "wtf \n";
 			}
 		}
@@ -3681,5 +3690,5 @@ namespace Plaza {
 	}
 }
 
-PL_SER_REGISTER_TYPE(PlVkPushConstants);
-PL_SER_REGISTER_POLYMORPHIC_RELATION(PlPushConstants, PlVkPushConstants);
+PL_SER_REGISTER_TYPE(Plaza::PlVkPushConstants);
+PL_SER_REGISTER_POLYMORPHIC_RELATION(Plaza::PlPushConstants, Plaza::PlVkPushConstants);

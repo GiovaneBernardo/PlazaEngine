@@ -410,7 +410,7 @@ namespace Plaza {
 		vkDestroyBuffer(VulkanRenderer::GetRenderer()->mDevice, stagingBuffer, nullptr);
 		vkFreeMemory(VulkanRenderer::GetRenderer()->mDevice, stagingBufferMemory, nullptr);
 
-		std::pair<uint32_t, uint32_t> pair = reverseHash(unsigned int(red));
+		std::pair<uint32_t, uint32_t> pair = reverseHash(static_cast<unsigned int>(red));
 		uint32_t uuid1 = red;
 		uint32_t uuid2 = green;
 

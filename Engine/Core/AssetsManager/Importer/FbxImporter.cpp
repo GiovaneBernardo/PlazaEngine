@@ -15,8 +15,10 @@
 #include "Engine/ECS/ECSManager.h"
 
 #include <stdio.h>
+#ifdef WIN32
 #include <d3d11.h>
 #include <tchar.h>
+#endif
 #include <stdio.h>
 #include <inttypes.h>
 #include <vector>

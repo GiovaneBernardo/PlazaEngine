@@ -44,3 +44,4 @@ namespace Plaza {
         return "";
     }
 }
+#endif

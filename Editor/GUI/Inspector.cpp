@@ -62,46 +62,6 @@ namespace Plaza::Editor {
 				components.push_back(static_cast<Component*>(pool->Get(uuid)));
 			}
 		}
-
-		//FIX: Update the components inspector
-		//if (activeScene->transformComponents.contains(uuid))
-		//	components.push_back(&activeScene->transformComponents.at(uuid));
-		//
-		//if (activeScene->meshRendererComponents.contains(uuid))
-		//	components.push_back(&activeScene->meshRendererComponents.at(uuid));
-		//
-		//if (activeScene->cameraComponents.contains(uuid))
-		//	components.push_back(&activeScene->cameraComponents.at(uuid));
-		//
-		//if (activeScene->rigidBodyComponents.contains(uuid))
-		//	components.push_back(&activeScene->rigidBodyComponents.at(uuid));
-		//
-		//if (activeScene->colliderComponents.contains(uuid))
-		//	components.push_back(&activeScene->colliderComponents.at(uuid));
-		//
-		//if (activeScene->cppScriptComponents.contains(uuid))
-		//	components.push_back(&activeScene->cppScriptComponents.at(uuid));
-		//if (activeScene->csScriptComponents.contains(uuid)) {
-		//	auto range = activeScene->csScriptComponents.equal_range(uuid);
-		//	for (auto it = range.first; it != range.second; ++it) {
-		//		components.push_back(&it->second);
-		//	}
-		//}
-		//
-		//if (activeScene->audioSourceComponents.contains(uuid))
-		//	components.push_back(&activeScene->audioSourceComponents.at(uuid));
-		//if (activeScene->audioListenerComponents.contains(uuid))
-		//	components.push_back(&activeScene->audioListenerComponents.at(uuid));
-		//if (activeScene->lightComponents.contains(uuid))
-		//	components.push_back(&activeScene->lightComponents.at(uuid));
-		//if (activeScene->characterControllerComponents.contains(uuid))
-		//	components.push_back(&activeScene->characterControllerComponents.at(uuid));
-		//if (activeScene->UITextRendererComponents.contains(uuid))
-		//	components.push_back(&activeScene->UITextRendererComponents.at(uuid));
-		//if (activeScene->animationComponentComponents.contains(uuid))
-		//	components.push_back(&activeScene->animationComponentComponents.at(uuid));
-		//if (activeScene->guiComponents.contains(uuid))
-		//	components.push_back(&activeScene->guiComponents.at(uuid));
 	}
 
 	void Inspector::ComponentInspector::CreateRespectiveInspector(Scene* scene, Component* component) {
@@ -123,9 +83,6 @@ namespace Plaza::Editor {
 		}
 		else if (CppScriptComponent* cppScriptComponent = dynamic_cast<CppScriptComponent*>(component)) {
 			Plaza::Editor::ComponentsInspector::CppScriptComponentInspector(scene, scene->GetEntity(component->mUuid));
-		}
-		else if (CsScriptComponent* csScriptComponent = dynamic_cast<CsScriptComponent*>(component)) {
-			Plaza::Editor::ComponentsInspector::CsScriptComponentInspector(scene, scene->GetEntity(component->mUuid));
 		}
 		else if (AudioSource* audioSource = dynamic_cast<AudioSource*>(component)) {
 			Plaza::Editor::ComponentsInspector::AudioSourceInspector(scene, scene->GetEntity(component->mUuid));

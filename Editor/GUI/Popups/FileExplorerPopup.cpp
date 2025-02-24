@@ -70,7 +70,6 @@ namespace Plaza::Editor {
 					metaDataPath.replace_extension(Standards::metadataExtName);
 					AssetsReader::ReadAssetAtPath(metaDataPath);
 					//AssetsManager::AddScript();
-					//AssetsSerializer::SerializeFile<CsScriptComponent>();
 				}
 
 				ImGui::EndMenu();

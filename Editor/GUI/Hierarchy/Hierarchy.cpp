@@ -6,7 +6,6 @@
 #include "Editor/DefaultAssets/DefaultAssets.h"
 
 #include "Editor/GUI/Popups/NewEntityPopup.h"
-#include "Engine/Core/Scripting/Mono.h"
 #include "Engine/Core/Scripting/CppScriptFactory.h"
 #include "Engine/Components/Rendering/Material.h"
 #include "Engine/Core/RenderGroup.h"

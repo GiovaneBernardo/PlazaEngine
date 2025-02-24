@@ -1,7 +1,6 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "CallbacksHeader.h"
 #include "Engine/Application/Application.h"
-#include "Editor/Gui/FileExplorer/FileExplorer.h"
 #include "Editor/GUI/guiMain.h"
 #include "Engine/Core/AssetsManager/Importer/AssetsImporter.h"
 #include "Engine/Core/AssetsManager/Loader/AssetsLoader.h"

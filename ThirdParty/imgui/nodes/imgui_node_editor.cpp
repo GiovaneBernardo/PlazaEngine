@@ -1410,7 +1410,7 @@ void ed::EditorContext::End()
     }
 
     // Sort nodes if bounds of node changed
-    if (sortGroups || ((m_Settings.m_DirtyReason & (SaveReasonFlags::Position | SaveReasonFlags::Size)) != SaveReasonFlags::None))
+    if (sortGroups || ((m_Settings.m_DirtyReason & (SaveReasonFlags::Position | SaveReasonFlags::Size)) != SaveReasonFlags::Unknown))
     {
         // Bring all groups before regular nodes
         auto groupsItEnd = std::stable_partition(m_Nodes.begin(), m_Nodes.end(), IsGroup);
@@ -2664,7 +2664,7 @@ void ed::EditorContext::ShowMetrics(const Control& control)
 void ed::NodeSettings::ClearDirty()
 {
     m_IsDirty     = false;
-    m_DirtyReason = SaveReasonFlags::None;
+    m_DirtyReason = SaveReasonFlags::Unknown;
 }
 
 void ed::NodeSettings::MakeDirty(SaveReasonFlags reason)
@@ -2773,7 +2773,7 @@ void ed::Settings::ClearDirty(Node* node)
     else
     {
         m_IsDirty     = false;
-        m_DirtyReason = SaveReasonFlags::None;
+        m_DirtyReason = SaveReasonFlags::Unknown;
 
         for (auto& knownNode : m_Nodes)
             knownNode.ClearDirty();

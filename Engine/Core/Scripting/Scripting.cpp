@@ -1,12 +1,15 @@
 #pragma once
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Scripting.h"
-#include "Mono.h"
 #include "CppScript.h"
 #include "Engine/Components/Scripting/CppScriptComponent.h"
 #include "Engine/Core/Scripting/CppScriptFactory.h"
 #include "Engine/Core/Input/Input.h"
 #include "Engine/Core/Scene.h"
+
+#ifdef __linux
+#include <dlfcn.h>
+#endif
 
 namespace Plaza {
 	void Scripting::LoadProjectCppDll(Scene* scene, const Editor::Project& project) {
@@ -81,7 +84,6 @@ namespace Plaza {
 
 	void Scripting::Update(Scene* scene) {
 		PLAZA_PROFILE_SECTION("Scripting: Update");
-		Mono::Update(scene);
 
 		Input::SetFocusedMenuCheck("Scene");
 
@@ -98,16 +100,25 @@ namespace Plaza {
 			PL_CORE_WARN("Dll not found");
 			return false;
 		}
+
+#ifdef WIN32
 		sCurrentLoadedCppDll = LoadLibrary(path.string().c_str());
 		if (sCurrentLoadedCppDll == NULL) {
 			DWORD errorMessageID = GetLastError();
 			PL_CORE_WARN("Failed to load DLL, error: ${0}", errorMessageID);
 			return false;
 		}
+#elif __linux__
+	sCurrentLoadedCppHandle = dlopen(path.c_str(), RTLD_LAZY);
+#endif
 		return true;
 	}
 
 	void Scripting::UnloadCurrentLoadedCppDll() {
+#ifdef WIN32
 		FreeLibrary(sCurrentLoadedCppDll);
+#elif __linux__
+		dlclose(sCurrentLoadedCppHandle);
+#endif
 	}
 }

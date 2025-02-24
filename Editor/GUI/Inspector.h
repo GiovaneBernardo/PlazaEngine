@@ -1,6 +1,5 @@
 #pragma once
 
-using namespace Plaza::Editor;
 namespace Plaza::Editor {
 	class Inspector {
 	public:

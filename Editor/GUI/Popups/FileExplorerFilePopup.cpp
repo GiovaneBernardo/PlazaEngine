@@ -6,7 +6,6 @@
 #include "Editor/ScriptManager/ScriptManager.h"
 #include "Editor/GUI/FileExplorer/File.h"
 #include "FileExplorerPopup.h"
-#include "Engine/Core/FilesManager.h"
 
 namespace Plaza::Editor {
 	void Popup::FileExplorerFilePopup::UpdateContent(File* file) {

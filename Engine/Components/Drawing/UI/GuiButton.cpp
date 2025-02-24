@@ -3,16 +3,6 @@
 #include "Engine/Core/Scene.h"
 
 namespace Plaza {
-	void GuiButton::CallScriptsCallback() {
-		for (auto& [key, value] : mScriptsFunctionNameToCallWhenClicked) {
-			if (!Scene::GetActiveScene()->HasComponent<CsScriptComponent>(key))
-				continue;
-
-			for (auto& [scriptKey, scriptValue] : Scene::GetActiveScene()->GetComponent<CsScriptComponent>(key)->scriptClasses)
-				Mono::CallMethod(scriptValue->monoObject, value);
-		}
-	}
-
 	bool GuiButton::MouseIsInsideButton(glm::vec2 mousePos) {
 #ifdef EDITOR_MODE
 		mousePos.x -= Application::Get()->appSizes->hierarchySize.x;

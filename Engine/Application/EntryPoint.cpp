@@ -6,13 +6,11 @@
 #include "Engine/Application/Application.h"
 #include "Engine/Core/Time.h"
 #include "Editor/SessionCache/Cache.h"
-using namespace Plaza;
 
 #define TRACY_NO_INVARIANT_CHECK 1
 #include "Editor/DefaultAssets/Models/DefaultModels.h"
 
 #include "Engine/Core/Physics.h"
-#include "Engine/Core/Scripting/Mono.h"
 #include "Editor/Project.h"
 #include "Engine/Core/Scene.h"
 #include "Engine/Core/Audio/Audio.h"
@@ -28,8 +26,8 @@ using namespace Plaza;
 
 int main() {
 	//EmbedResources::Init();
-	Log::Init();
-	Application::Init();
+	Plaza::Log::Init();
+	Plaza::Application::Init();
 	return 0;
 }
 

@@ -24,7 +24,7 @@ namespace Plaza {
 		physx::PxTransform pxTransform = Physics::GetPxTransform(*transform);
 		collider->mRigidActor = Physics::m_physics->createRigidDynamic(pxTransform);
 		if (collider->mRigidActor == nullptr)
-			collider->mRigidActor = Physics::m_physics->createRigidDynamic(physx::PxTransform(physx::PxIdentity(1.0f)));
+			collider->mRigidActor = Physics::m_physics->createRigidDynamic(physx::PxTransform(physx::PxIdentity));
 		if (!collider->material) {
 			collider->material = Physics::defaultMaterial;
 			if (collider->mDynamic && rigidBody) {

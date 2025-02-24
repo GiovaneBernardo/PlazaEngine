@@ -49,5 +49,5 @@ namespace Plaza {
 	}
 }
 
-PL_SER_REGISTER_TYPE(PlVkBuffer);
-PL_SER_REGISTER_POLYMORPHIC_RELATION(PlBuffer, PlVkBuffer);
+PL_SER_REGISTER_TYPE(Plaza::PlVkBuffer);
+PL_SER_REGISTER_POLYMORPHIC_RELATION(Plaza::PlBuffer, Plaza::PlVkBuffer);

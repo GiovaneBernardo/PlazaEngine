@@ -3,7 +3,6 @@
 
 #include "Engine/Application/FileDialog/FileDialog.h"
 #include "Editor/GUI/FileExplorer/FileExplorer.h"
-#include "Engine/Core/Scripting/Mono.h"
 #include "Editor/Filewatcher.h"
 #include "Editor/ScriptManager/ScriptManager.h"
 #include "Editor/DefaultAssets/Models/DefaultModels.h"

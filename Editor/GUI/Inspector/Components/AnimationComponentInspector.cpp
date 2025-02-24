@@ -1,4 +1,3 @@
-#pragma once
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "ComponentsInspector.h"
 #include "Editor/GUI/Utils/Utils.h"
@@ -8,17 +7,17 @@
 #include "Engine/Core/Renderer/Vulkan/Renderer.h"
 #include "Engine/Core/Scene.h"
 
-void BoneParentShipTree(Bone* bone) {
-	if (!bone)
-		return;
-	if (ImGui::TreeNodeEx(bone->mName.c_str(), ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {
-		for (uint64_t childUuid : bone->mChildren)
-			BoneParentShipTree(&VulkanRenderer::GetRenderer()->mBones.at(childUuid));
-		ImGui::TreePop();
-	}
-}
 
 namespace Plaza::Editor {
+	void BoneParentShipTree(Bone* bone) {
+		if (!bone)
+			return;
+		if (ImGui::TreeNodeEx(bone->mName.c_str(), ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen)) {
+			for (uint64_t childUuid : bone->mChildren)
+				BoneParentShipTree(&VulkanRenderer::GetRenderer()->mBones.at(childUuid));
+			ImGui::TreePop();
+		}
+	}
 	void ComponentsInspector::AnimationComponentInspector(Scene* scene, Entity* entity) {
 		AnimationComponent* component = scene->GetComponent<AnimationComponent>(entity->uuid);
 		static int index = 0;
