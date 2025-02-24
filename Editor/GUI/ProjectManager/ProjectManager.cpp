@@ -30,7 +30,7 @@ namespace Plaza {
 				ImGui::InputText("##InputText", name, IM_ARRAYSIZE(name));
 				if (ImGui::Button("Create Project") && std::string(name) != "") {
 					Application::Get()->activeProject->mAssetName = std::string(name);
-					Application::Get()->activeProject->mAssetPath = Application::Get()->activeProject->mAssetPath.string() + "\\" + name + Standards::projectExtName;
+					Application::Get()->activeProject->mAssetPath = Application::Get()->activeProject->mAssetPath.string() + "/" + name + Standards::projectExtName;
 
 					Application::Get()->runEngine = true;
 					Application::Get()->runProjectManagerGui = false;
@@ -38,7 +38,7 @@ namespace Plaza {
 					// Create the main project settings file
 					Gui::FileExplorer::currentDirectory = Application::Get()->activeProject->mAssetPath.parent_path().string();
 					AssetsSerializer::SerializeFile<Project>(*Application::Get()->activeProject, Application::Get()->activeProject->mAssetPath.string(), Application::Get()->mSettings.mProjectSerializationMode);
-					//ProjectSerializer::Serialize(Application::Get()->activeProject->mAssetPath.parent_path().string() + "\\" + Application::Get()->activeProject->mAssetName + Standards::projectExtName);
+					//ProjectSerializer::Serialize(Application::Get()->activeProject->mAssetPath.parent_path().string() + "/" + Application::Get()->activeProject->mAssetName + Standards::projectExtName);
 
 					// Create visual studio solution and project
 					const std::string solutionName = Application::Get()->activeProject->mAssetName;
@@ -49,14 +49,14 @@ namespace Plaza {
 					ProjectGenerator::PasteAllProjectFiles(outputDirectory);
 
 					// Create scripts holder file
-					//ScriptManagerSerializer::Create(Application::Get()->activeProject->directory + "\\Scripts" + Standards::scriptConfigExtName);
-					//ScriptManagerSerializer::DeSerialize(Application::Get()->activeProject->directory + "\\Scripts" + Standards::scriptConfigExtName);
+					//ScriptManagerSerializer::Create(Application::Get()->activeProject->directory + "/Scripts" + Standards::scriptConfigExtName);
+					//ScriptManagerSerializer::DeSerialize(Application::Get()->activeProject->directory + "/Scripts" + Standards::scriptConfigExtName);
 
 					// Update the file explorer content
 					Editor::Gui::FileExplorer::UpdateContent(Application::Get()->activeProject->mAssetPath.parent_path().string());
 
 					Application::Get()->projectPath = Application::Get()->activeProject->mAssetPath.parent_path().string();
-					Cache::Serialize(Application::Get()->enginePathAppData + "\\cache" + Standards::editorCacheExtName);
+					Cache::Serialize(Application::Get()->enginePathAppData + "/cache" + Standards::editorCacheExtName);
 
 					Project::Load(Application::Get()->activeProject->mAssetPath.string());
 
@@ -119,7 +119,7 @@ namespace Plaza {
 			ImGuiWindowFlags containerFlags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoNavFocus;
 			if (ImGui::Begin("Projects Container", nullptr, containerFlags)) {
 				for (unsigned int i = 0; i < 10; i++) {
-					std::unique_ptr<ProjectManagerGui::ProjectItem> guiItem = std::make_unique<ProjectManagerGui::ProjectItem>("nomeFoda" + std::to_string(i), "caminho/caminho2\\caminho3\\caminho4");
+					std::unique_ptr<ProjectManagerGui::ProjectItem> guiItem = std::make_unique<ProjectManagerGui::ProjectItem>("nomeFoda" + std::to_string(i), "caminho/caminho2/caminho3/caminho4");
 				}
 			}
 			ImGui::End();

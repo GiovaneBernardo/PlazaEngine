@@ -47,13 +47,13 @@ namespace Plaza {
 			ImGui::BeginMainMenuBar();
 			if (ImGui::BeginMenu("File")) {
 				if (ImGui::Button("Build")) {
-					std::string devEnv = " \"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\msbuild.exe\" ";
-					std::string outPath = "\"" + Application::Get()->projectPath + "\\..\\" + Application::Get()->activeProject->mAssetName + "build\\\\\"";
-					std::string command = "\"" + devEnv + "\"" + Application::Get()->enginePath + "\\..\\OpenGLEngine.sln\" /p:Configuration=GameRel /t:Build /p:PROJECT_NAME=YourMacroValue /p:OutDir=" + outPath + "\"";
+					std::string devEnv = " \"C:/Program Files/Microsoft Visual Studio/2022/Community/MSBuild/Current/Bin/msbuild.exe\" ";
+					std::string outPath = "\"" + Application::Get()->projectPath + "/../" + Application::Get()->activeProject->mAssetName + "build//\"";
+					std::string command = "\"" + devEnv + "\"" + Application::Get()->enginePath + "/../OpenGLEngine.sln\" /p:Configuration=GameRel /t:Build /p:PROJECT_NAME=YourMacroValue /p:OutDir=" + outPath + "\"";
 					std::cout << command << std::endl;
 					system(command.c_str());
 
-					std::string newMainFolderPath = Application::Get()->projectPath + "\\..\\" + Application::Get()->activeProject->mAssetName + "build\\";
+					std::string newMainFolderPath = Application::Get()->projectPath + "/../" + Application::Get()->activeProject->mAssetName + "build/";
 
 					/* Copy assets and scripts into Content Folder inside build folder */
 					CopyDirectory(Application::Get()->projectPath, newMainFolderPath);
@@ -99,7 +99,7 @@ namespace Plaza {
 					Application::Get()->runEngine = false;
 					Application::Get()->runProjectManagerGui = true;
 					Application::Get()->activeProject = std::make_unique<Project>();
-					Cache::Serialize(Application::Get()->enginePathAppData + "\\cache.yaml");
+					Cache::Serialize(Application::Get()->enginePathAppData + "/cache.yaml");
 					Application::Get()->focusedMenu = "ProjectManager";
 				}
 

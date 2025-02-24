@@ -29,7 +29,7 @@ namespace Plaza {
 
 	void AssetsLoader::LoadMetadata(Asset* asset) {
 		Metadata::MetadataStructure metadata = *AssetsSerializer::DeSerializeFile<Metadata::MetadataStructure>(asset->mAssetPath.string(), Application::Get()->mSettings.mMetaDataSerializationMode).get();
-		std::string metadataContentExtension = std::filesystem::path{ asset->mAssetPath.parent_path().string() + "\\" + metadata.mContentName }.extension().string();
+		std::string metadataContentExtension = std::filesystem::path{ asset->mAssetPath.parent_path().string() + "/" + metadata.mContentName }.extension().string();
 		bool metadataContentExtensionIsSupported = AssetsManager::mAssetTypeByExtension.find(metadataContentExtension) != AssetsManager::mAssetTypeByExtension.end();
 		if (!metadataContentExtensionIsSupported)
 			return;

@@ -29,7 +29,7 @@ namespace Plaza::Editor {
         const char* ProjectName = projectName.c_str();
         std::string PlazaRootDir = (Application::Get()->enginePath + "/../").c_str();
         for (size_t i = 0; i < PlazaRootDir.length(); ++i) {
-            if (PlazaRootDir[i] == '\\') {
+            if (PlazaRootDir[i] == '/') {
                 PlazaRootDir[i] = '/';
             }
         }
@@ -87,13 +87,13 @@ namespace Plaza::Editor {
         projectFile << "        <ProjectGuid>{SOME_GUID}</ProjectGuid>\n";
         projectFile << "        <Keyword>Win32Proj</Keyword>\n";
         projectFile << "    </PropertyGroup>\n";
-        projectFile << "    <Import Project=\"$(VCTargetsPath)\\Microsoft.Cpp.Default.props\" />\n";
+        projectFile << "    <Import Project=\"$(VCTargetsPath)/Microsoft.Cpp.Default.props\" />\n";
         projectFile << "    <PropertyGroup Condition=\"'$(Configuration)|$(Platform)'=='Debug|Win32'\" Label=\"Configuration\">\n";
         projectFile << "        <ConfigurationType>Application</ConfigurationType>\n";
         projectFile << "        <UseDebugLibraries>true</UseDebugLibraries>\n";
         projectFile << "        <CharacterSet>Unicode</CharacterSet>\n";
         projectFile << "    </PropertyGroup>\n";
-        projectFile << "    <Import Project=\"$(VCTargetsPath)\\Microsoft.Cpp.props\" />\n";
+        projectFile << "    <Import Project=\"$(VCTargetsPath)/Microsoft.Cpp.props\" />\n";
         projectFile << "    <ImportGroup Label=\"ExtensionSettings\">\n";
         projectFile << "    </ImportGroup>\n";
         projectFile << "    <ImportGroup Label=\"Shared\">\n";
@@ -112,7 +112,7 @@ namespace Plaza::Editor {
         projectFile << "            <SubSystem>Console</SubSystem>\n";
         projectFile << "        </Link>\n";
         projectFile << "    </ItemDefinitionGroup>\n";
-        projectFile << "    <Import Project=\"$(VCTargetsPath)\\Microsoft.Cpp.targets\" />\n";
+        projectFile << "    <Import Project=\"$(VCTargetsPath)/Microsoft.Cpp.targets\" />\n";
         projectFile << "    <ImportGroup Label=\"ExtensionTargets\">\n";
         projectFile << "    </ImportGroup>\n";
         projectFile << "</Project>\n";

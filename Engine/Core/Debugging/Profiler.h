@@ -93,6 +93,6 @@ namespace Plaza {
 
 /*
 
-	static constexpr tracy::SourceLocationData __tracy_source_location385{ "a", __FUNCTION__, "C:\\Users\\Giovane\\Desktop\\Workspace\\Plaza\\Engine\\Application\\Application.cpp", (uint32_t)385, 0 }; tracy::ScopedZone ___tracy_scoped_zone(&__tracy_source_location385, true)
+	static constexpr tracy::SourceLocationData __tracy_source_location385{ "a", __FUNCTION__, "C:/Users/Giovane/Desktop/Workspace/Plaza/Engine/Application/Application.cpp", (uint32_t)385, 0 }; tracy::ScopedZone ___tracy_scoped_zone(&__tracy_source_location385, true)
 
 */

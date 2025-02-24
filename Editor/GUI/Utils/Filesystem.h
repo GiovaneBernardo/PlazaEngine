@@ -21,7 +21,7 @@ namespace Plaza::Editor::Utils {
 
 			while (true) {
 				std::string newFilename = baseName + " (" + std::to_string(counter) + ")" + extension;
-				if (!std::filesystem::exists(path.parent_path().string() + "\\" + newFilename))
+				if (!std::filesystem::exists(path.parent_path().string() + "/" + newFilename))
 					return newFilename;
 				counter++;
 			}
@@ -29,7 +29,7 @@ namespace Plaza::Editor::Utils {
 
 		static std::string GetUnrepeatedPath(std::string filePath) {
 			std::filesystem::path path(filePath);
-			return path.parent_path().string() + "\\" + GetUnrepeatedName(filePath);
+			return path.parent_path().string() + "/" + GetUnrepeatedName(filePath);
 		}
 
 		static std::string CreateFolder(std::string fullPath) {
@@ -39,7 +39,7 @@ namespace Plaza::Editor::Utils {
 		}
 
 		static void CreateFolder(std::string path, std::string name) {
-			CreateFolder(path + "\\" + name);
+			CreateFolder(path + "/" + name);
 		}
 
 		static std::ofstream GetFileStream(std::string fullPath) {
@@ -60,11 +60,11 @@ namespace Plaza::Editor::Utils {
 		}
 
 		static void CreateNewFile(std::string path, std::string name) {
-			CreateNewFile(path + "\\" + name);
+			CreateNewFile(path + "/" + name);
 		}
 
 		static void CreateNewFile(std::string path, std::string name, std::string extension) {
-			CreateNewFile(path + "\\" + name + "." + extension);
+			CreateNewFile(path + "/" + name + "." + extension);
 		}
 
 		static void ChangeFileName(std::string fullPath, std::string newName) {

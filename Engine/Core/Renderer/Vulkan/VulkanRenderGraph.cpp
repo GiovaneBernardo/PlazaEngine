@@ -76,9 +76,9 @@ namespace Plaza {
 
 		std::string skyboxPath;
 #ifdef EDITOR_MODE
-		skyboxPath = Application::Get()->enginePath + "\\Editor\\DefaultAssets\\Skybox\\";
+		skyboxPath = Application::Get()->enginePath + "/Editor/DefaultAssets/Skybox/";
 #else
-		skyboxPath = Application::Get()->exeDirectory + "\\";
+		skyboxPath = Application::Get()->exeDirectory + "/";
 #endif
 
 		TextureInfo equirectangularInfo = this->GetTexture<VulkanTexture>("EquirectangularTexture")->GetTextureInfo();
@@ -132,8 +132,8 @@ namespace Plaza {
 		this->GetRenderPass("Shadow Pass")->AddPipeline(pl::pipelineCreateInfo(
 			"ShadowMapping",
 			PL_RENDER_PASS_INDIRECT_BUFFER_SHADOW_MAP,
-			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "\\Shaders\\shadows\\cascadedShadowDepthShaders.vert", "main"),
-				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "\\Shaders\\shadows\\cascadedShadowDepthShaders.frag", "main") },
+			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "/Shaders/shadows/cascadedShadowDepthShaders.vert", "main"),
+				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "/Shaders/shadows/cascadedShadowDepthShaders.frag", "main") },
 			{ pl::vertexInputBindingDescription(0, sizeof(Vertex), PL_VERTEX_INPUT_RATE_VERTEX), pl::vertexInputBindingDescription(1, sizeof(glm::vec4) * 4, PL_VERTEX_INPUT_RATE_INSTANCE) },
 			{ pl::vertexInputAttributeDescription(0, 0, PL_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, position)),
 			pl::vertexInputAttributeDescription(5, 1, PL_FORMAT_R32G32B32A32_SFLOAT, 0),
@@ -183,8 +183,8 @@ namespace Plaza {
 		this->GetRenderPass("Deferred Geometry Pass")->AddPipeline(pl::pipelineCreateInfo(
 			"MainShaders",
 			PL_RENDER_PASS_INDIRECT_BUFFER,
-			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "\\Shaders\\Vulkan\\deferred\\geometryPass.vert", "main"),
-				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "\\Shaders\\Vulkan\\deferred\\geometryPass.frag", "main") },
+			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "/Shaders/Vulkan/deferred/geometryPass.vert", "main"),
+				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "/Shaders/Vulkan/deferred/geometryPass.frag", "main") },
 			VertexGetBindingDescription(),
 			VertexGetAttributeDescriptions(),
 			PL_TOPOLOGY_TRIANGLE_LIST,
@@ -201,8 +201,8 @@ namespace Plaza {
 		this->GetRenderPass("Deferred Geometry Pass")->AddPipeline(pl::pipelineCreateInfo(
 			"Skinned",
 			PL_RENDER_PASS_INDIRECT_BUFFER_SKINNED,
-			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "\\Shaders\\Vulkan\\deferred\\geometrySkinnedPass.vert", "main"),
-				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "\\Shaders\\Vulkan\\deferred\\geometryPass.frag", "main") },
+			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "/Shaders/Vulkan/deferred/geometrySkinnedPass.vert", "main"),
+				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "/Shaders/Vulkan/deferred/geometryPass.frag", "main") },
 			VertexGetBindingDescription(),
 			SkinnedVertexGetAttributeDescriptions(),
 			PL_TOPOLOGY_TRIANGLE_LIST,
@@ -229,8 +229,8 @@ namespace Plaza {
 		this->GetRenderPass("Deferred Geometry Pass")->AddPipeline(pl::pipelineCreateInfo(
 			"Skybox",
 			PL_RENDER_PASS_INDIRECT_BUFFER_SPECIFIC_MESH,
-			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\skybox.vert", "main"),
-				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\skybox.frag", "main") },
+			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "/Shaders/Vulkan/skybox/skybox.vert", "main"),
+				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "/Shaders/Vulkan/skybox/skybox.frag", "main") },
 			VertexGetBindingDescription(),
 			VertexGetAttributeDescriptions(),
 			PL_TOPOLOGY_TRIANGLE_LIST,
@@ -301,7 +301,7 @@ namespace Plaza {
 			->AddOutputResource(std::make_shared<VulkanBufferBinding>(1, 1, PL_BUFFER_STORAGE_BUFFER, PL_STAGE_COMPUTE, this->GetSharedBuffer("ClustersBuffer")))
 			->AddOutputResource(std::make_shared<VulkanBufferBinding>(1, 8, PL_BUFFER_STORAGE_BUFFER, PL_STAGE_COMPUTE, this->GetSharedBuffer("TilesDepthBuffer")))
 			->AddPipeline(pl::pipelineCreateInfo("LightSorter", PL_RENDER_PASS_COMPUTE,
-				{ pl::pipelineShaderStageCreateInfo(PL_STAGE_COMPUTE, Application::Get()->enginePath + "\\Shaders\\Vulkan\\lighting\\lightSorter.comp", "main") },
+				{ pl::pipelineShaderStageCreateInfo(PL_STAGE_COMPUTE, Application::Get()->enginePath + "/Shaders/Vulkan/lighting/lightSorter.comp", "main") },
 				{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, { pl::pushConstantRange(PL_STAGE_COMPUTE, 0, sizeof(LightSorterPC)) }));
 
 		this->AddRenderPassCallback("Light Sorter Pass", [&, gPassSize](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass) {
@@ -334,8 +334,8 @@ namespace Plaza {
 		this->GetRenderPass("Deferred Lighting Pass")->AddPipeline(pl::pipelineCreateInfo(
 			"LightingPassShaders",
 			PL_RENDER_PASS_FULL_SCREEN_QUAD,
-			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "\\Shaders\\Vulkan\\lighting\\deferredPass.vert", "main"),
-				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "\\Shaders\\Vulkan\\lighting\\deferredPass.frag", "main") },
+			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "/Shaders/Vulkan/lighting/deferredPass.vert", "main"),
+				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "/Shaders/Vulkan/lighting/deferredPass.frag", "main") },
 			VertexGetBindingDescription(),
 			VertexGetAttributeDescriptions(),
 			PL_TOPOLOGY_TRIANGLE_LIST,
@@ -429,8 +429,8 @@ namespace Plaza {
 			++bloomMipCount;
 		}
 		bool pingPong = true;
-		PlPipelineShaderStageCreateInfo downScaleShaders = pl::pipelineShaderStageCreateInfo(PL_STAGE_COMPUTE, VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\bloom\\bloomDownScale.comp"), "main");
-		PlPipelineShaderStageCreateInfo upScaleShaders = pl::pipelineShaderStageCreateInfo(PL_STAGE_COMPUTE, VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\bloom\\bloomUpScale.comp"), "main");
+		PlPipelineShaderStageCreateInfo downScaleShaders = pl::pipelineShaderStageCreateInfo(PL_STAGE_COMPUTE, VulkanShadersCompiler::Compile(Application::Get()->enginePath + "/Shaders/Vulkan/bloom/bloomDownScale.comp"), "main");
+		PlPipelineShaderStageCreateInfo upScaleShaders = pl::pipelineShaderStageCreateInfo(PL_STAGE_COMPUTE, VulkanShadersCompiler::Compile(Application::Get()->enginePath + "/Shaders/Vulkan/bloom/bloomUpScale.comp"), "main");
 		PlPipelineCreateInfo bloomPipelineCreateInfo = pl::pipelineCreateInfo("BloomShaders", PL_RENDER_PASS_COMPUTE, { downScaleShaders }, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, { pl::pushConstantRange(PL_STAGE_COMPUTE, 0, sizeof(BloomPassPC)) });
 		std::shared_ptr<PlazaPipeline> bloomDownScalePipeline = this->GetRenderPass("Bloom Pass")->AddPipeline(bloomPipelineCreateInfo);
 
@@ -506,8 +506,8 @@ namespace Plaza {
 		this->GetRenderPass("Screen Space Reflections Pass")->AddPipeline(pl::pipelineCreateInfo(
 			"ScreenSpaceReflectionsShaders",
 			PL_RENDER_PASS_FULL_SCREEN_QUAD,
-			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "\\Shaders\\Vulkan\\ssr\\ssr.vert", "main"),
-				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "\\Shaders\\Vulkan\\ssr\\ssr.frag", "main") },
+			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "/Shaders/Vulkan/ssr/ssr.vert", "main"),
+				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "/Shaders/Vulkan/ssr/ssr.frag", "main") },
 			VertexGetBindingDescription(),
 			VertexGetAttributeDescriptions(),
 			PL_TOPOLOGY_TRIANGLE_LIST,
@@ -553,8 +553,8 @@ layout(push_constant) uniform PushConstants {
 		this->GetRenderPass("Final Post Processing Pass")->AddPipeline(pl::pipelineCreateInfo(
 			"FinalShaders",
 			PL_RENDER_PASS_FULL_SCREEN_QUAD,
-			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "\\Shaders\\Vulkan\\swapchainDraw.vert", "main"),
-				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "\\Shaders\\Vulkan\\swapchainDraw.frag", "main") },
+			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "/Shaders/Vulkan/swapchainDraw.vert", "main"),
+				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "/Shaders/Vulkan/swapchainDraw.frag", "main") },
 			VertexGetBindingDescription(),
 			VertexGetAttributeDescriptions(),
 			PL_TOPOLOGY_TRIANGLE_LIST,
@@ -575,8 +575,8 @@ layout(push_constant) uniform PushConstants {
 		PlPipelineCreateInfo guiPipelineInfo = pl::pipelineCreateInfo(
 			"GuiShaders",
 			PL_RENDER_PASS_GUI_RECTANGLE,
-			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "\\Shaders\\Vulkan\\gui\\rectangle.vert", "main"),
-				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "\\Shaders\\Vulkan\\gui\\rectangle.frag", "main") },
+			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "/Shaders/Vulkan/gui/rectangle.vert", "main"),
+				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "/Shaders/Vulkan/gui/rectangle.frag", "main") },
 			VertexGetBindingDescription(),
 			VertexGetAttributeDescriptions(),
 			PL_TOPOLOGY_TRIANGLE_LIST,
@@ -592,8 +592,8 @@ layout(push_constant) uniform PushConstants {
 		);
 		this->GetRenderPass("Final Post Processing Pass")->AddPipeline(guiPipelineInfo);
 		guiPipelineInfo.renderMethod = PL_RENDER_PASS_GUI_BUTTON;
-		guiPipelineInfo.shaderStages = { pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "\\Shaders\\Vulkan\\gui\\button.vert", "main"),
-				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "\\Shaders\\Vulkan\\gui\\button.frag", "main") };
+		guiPipelineInfo.shaderStages = { pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "/Shaders/Vulkan/gui/button.vert", "main"),
+				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "/Shaders/Vulkan/gui/button.frag", "main") };
 		this->GetRenderPass("Final Post Processing Pass")->AddPipeline(guiPipelineInfo);
 
 		guiPipelineInfo.depthStencilState = pl::pipelineDepthStencilStateCreateInfo(false, false, PL_COMPARE_OP_ALWAYS);
@@ -602,8 +602,8 @@ layout(push_constant) uniform PushConstants {
 		guiPipelineInfo.vertexAttributeDescriptions = { pl::vertexInputAttributeDescription(0, 0, PL_FORMAT_R32G32_SFLOAT, 0), pl::vertexInputAttributeDescription(1, 1
 			, PL_FORMAT_R32G32_SFLOAT, sizeof(glm::vec2)) };
 		guiPipelineInfo.renderMethod = PL_RENDER_PASS_GUI_TEXT;
-		guiPipelineInfo.shaderStages = { pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "\\Shaders\\Vulkan\\gui\\text.vert", "main"),
-		pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "\\Shaders\\Vulkan\\gui\\text.frag", "main") };
+		guiPipelineInfo.shaderStages = { pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "/Shaders/Vulkan/gui/text.vert", "main"),
+		pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "/Shaders/Vulkan/gui/text.frag", "main") };
 		this->GetRenderPass("Final Post Processing Pass")->AddPipeline(guiPipelineInfo);
 
 		this->AddRenderPassCallback("Final Post Processing Pass", [&](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass) {
@@ -662,8 +662,8 @@ layout(push_constant) uniform PushConstants {
 		PlPipelineCreateInfo outlinePipelineInfo = pl::pipelineCreateInfo(
 			"Outline",
 			PL_RENDER_PASS_INDIRECT_BUFFER_SPECIFIC_ENTITY,
-			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "\\Shaders\\Vulkan\\outline\\outline.vert", "main"),
-				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "\\Shaders\\Vulkan\\outline\\outline.frag", "main") },
+			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "/Shaders/Vulkan/outline/outline.vert", "main"),
+				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "/Shaders/Vulkan/outline/outline.frag", "main") },
 			VertexGetBindingDescription(),
 			VertexGetAttributeDescriptions(),
 			PL_TOPOLOGY_TRIANGLE_LIST,
@@ -680,8 +680,8 @@ layout(push_constant) uniform PushConstants {
 
 		/*
 		PL_RENDER_PASS_INDIRECT_BUFFER_SHADOW_MAP,
-		{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "\\Shaders\\shadows\\cascadedShadowDepthShaders.vert", "main"),
-			pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "\\Shaders\\shadows\\cascadedShadowDepthShaders.frag", "main") },
+		{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "/Shaders/shadows/cascadedShadowDepthShaders.vert", "main"),
+			pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "/Shaders/shadows/cascadedShadowDepthShaders.frag", "main") },
 		{ pl::vertexInputBindingDescription(0, sizeof(Vertex), PL_VERTEX_INPUT_RATE_VERTEX), pl::vertexInputBindingDescription(1, sizeof(glm::vec4) * 4, PL_VERTEX_INPUT_RATE_INSTANCE) },
 		{ pl::vertexInputAttributeDescription(0, 0, PL_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, position)),
 		pl::vertexInputAttributeDescription(5, 1, PL_FORMAT_R32G32B32A32_SFLOAT, 0),
@@ -700,8 +700,8 @@ layout(push_constant) uniform PushConstants {
 		this->GetRenderPass("Deferred Geometry Pass")->AddPipeline(pl::pipelineCreateInfo(
 			"MainShaders",
 			PL_RENDER_PASS_INDIRECT_BUFFER,
-			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "\\Shaders\\Vulkan\\deferred\\geometryPass.vert", "main"),
-				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "\\Shaders\\Vulkan\\deferred\\geometryPass.frag", "main") },
+			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "/Shaders/Vulkan/deferred/geometryPass.vert", "main"),
+				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "/Shaders/Vulkan/deferred/geometryPass.frag", "main") },
 			VertexGetBindingDescription(),
 			VertexGetAttributeDescriptions(),
 			PL_TOPOLOGY_TRIANGLE_LIST,
@@ -736,8 +736,8 @@ layout(push_constant) uniform PushConstants {
 		outlinePipelineInfo.pipelineName = "OutlineBlurPass";
 		outlinePipelineInfo.renderMethod = PL_RENDER_PASS_FULL_SCREEN_QUAD;
 		outlinePipelineInfo.shaderStages = {
-			pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "\\Shaders\\Vulkan\\fullScreenQuad.vert", "main"),
-			pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "\\Shaders\\Vulkan\\outline\\outlineBlur.frag", "main") };
+			pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "/Shaders/Vulkan/fullScreenQuad.vert", "main"),
+			pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "/Shaders/Vulkan/outline/outlineBlur.frag", "main") };
 
 		this->AddRenderPass(std::make_shared<VulkanRenderPass>("OutlineBlurPass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_PASS_FULL_SCREEN_QUAD, gPassSize, false))
 			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("OutlineTexture")))
@@ -746,8 +746,8 @@ layout(push_constant) uniform PushConstants {
 
 		outlinePipelineInfo.depthStencilState = pl::pipelineDepthStencilStateCreateInfo(true, false, PL_COMPARE_OP_LESS_OR_EQUAL, false, false);
 		outlinePipelineInfo.shaderStages = {
-			pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "\\Shaders\\Vulkan\\fullScreenQuad.vert", "main"),
-			pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "\\Shaders\\Vulkan\\outline\\outlineSceneMerge.frag", "main") };
+			pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "/Shaders/Vulkan/fullScreenQuad.vert", "main"),
+			pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "/Shaders/Vulkan/outline/outlineSceneMerge.frag", "main") };
 
 		outlinePipelineInfo.pipelineName = "OutlineSceneMergePass";
 		this->AddRenderPass(std::make_shared<VulkanRenderPass>("OutlineSceneMergePass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_PASS_FULL_SCREEN_QUAD, gPassSize, false))
@@ -781,8 +781,8 @@ layout(push_constant) uniform PushConstants {
 		PlPipelineCreateInfo pipelineCreateInfo = pl::pipelineCreateInfo(
 			"EquirectangularToCubeMapShaders",
 			PL_RENDER_PASS_CUBE,
-			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\equirectangularToCubemap.vert", "main"),
-				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\equirectangularToCubemap.frag", "main") },
+			{ pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "/Shaders/Vulkan/skybox/equirectangularToCubemap.vert", "main"),
+				pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "/Shaders/Vulkan/skybox/equirectangularToCubemap.frag", "main") },
 			{ },
 			{ },
 			PL_TOPOLOGY_TRIANGLE_LIST,
@@ -804,8 +804,8 @@ layout(push_constant) uniform PushConstants {
 		pipelineCreateInfo.pipelineName = "BrdfGeneratorShaders";
 		pipelineCreateInfo.renderMethod = PL_RENDER_PASS_FULL_SCREEN_QUAD;
 		pipelineCreateInfo.shaderStages = {
-		pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\brdfGenerator.vert", "main"),
-		pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\brdfGenerator.frag", "main") };
+		pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "/Shaders/Vulkan/skybox/brdfGenerator.vert", "main"),
+		pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "/Shaders/Vulkan/skybox/brdfGenerator.frag", "main") };
 		pipelineCreateInfo.pushConstants = {};
 		skyboxRenderGraph->AddRenderPass(std::make_shared<VulkanRenderPass>("BrdfGeneratorPass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_PASS_FULL_SCREEN_QUAD, glm::vec2(brdfSize, brdfSize), true))
 			->AddOutputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 0, 0, this->GetSharedTexture("SamplerBRDFLUT")))
@@ -814,8 +814,8 @@ layout(push_constant) uniform PushConstants {
 		pipelineCreateInfo.pipelineName = "IrradianceGeneratorShaders";
 		pipelineCreateInfo.renderMethod = PL_RENDER_PASS_CUBE;
 		pipelineCreateInfo.shaderStages = {
-		pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\equirectangularToCubemap.vert", "main"),
-		pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\irradianceGenerator.frag", "main") };
+		pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "/Shaders/Vulkan/skybox/equirectangularToCubemap.vert", "main"),
+		pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "/Shaders/Vulkan/skybox/irradianceGenerator.frag", "main") };
 		pipelineCreateInfo.pushConstants = { pl::pushConstantRange(PL_STAGE_ALL, 0, sizeof(EquirectangularToCubeMapPC)) };
 		skyboxRenderGraph->AddRenderPass(std::make_shared<VulkanRenderPass>("IrradianceGeneratorPass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_PASS_CUBE, glm::vec2(irradianceSize, irradianceSize), false))
 			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 2, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("CubeMapTexture")))
@@ -825,8 +825,8 @@ layout(push_constant) uniform PushConstants {
 		pipelineCreateInfo.pipelineName = "PreFilteredGeneratorShaders";
 		pipelineCreateInfo.renderMethod = PL_RENDER_PASS_CUBE;
 		pipelineCreateInfo.shaderStages = {
-		pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\equirectangularToCubemap.vert", "main"),
-		pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\prefilterEnvGenerator.frag", "main") };
+		pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX, Application::Get()->enginePath + "/Shaders/Vulkan/skybox/equirectangularToCubemap.vert", "main"),
+		pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT, Application::Get()->enginePath + "/Shaders/Vulkan/skybox/prefilterEnvGenerator.frag", "main") };
 		pipelineCreateInfo.pushConstants = { pl::pushConstantRange(PL_STAGE_ALL, 0, sizeof(EquirectangularToCubeMapPC)) };
 		skyboxRenderGraph->AddRenderPass(std::make_shared<VulkanRenderPass>("PreFilteredGeneratorPass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_PASS_CUBE, glm::vec2(faceSize, faceSize), false))
 			->AddInputResource(std::make_shared<VulkanTextureBinding>(1, 0, 0, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("CubeMapTexture")))

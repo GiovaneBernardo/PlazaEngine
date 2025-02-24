@@ -101,7 +101,7 @@ namespace Plaza::Editor {
 		DefaultModels::Init();
 		PL_CORE_INFO(Application::Get()->activeProject->mLastSceneUuid);
 		if (Application::Get()->activeProject->mLastSceneUuid != 0 && AssetsManager::GetAsset(Application::Get()->activeProject->mLastSceneUuid)) {
-			const std::string sceneFilePath = AssetsManager::GetAsset(Application::Get()->activeProject->mLastSceneUuid)->mAssetPath.string();//Application::Get()->projectPath + "\\" + AssetsManager::lastActiveScenePath;
+			const std::string sceneFilePath = AssetsManager::GetAsset(Application::Get()->activeProject->mLastSceneUuid)->mAssetPath.string();//Application::Get()->projectPath + "/" + AssetsManager::lastActiveScenePath;
 			bool sceneFileExists = std::filesystem::exists(sceneFilePath);
 			if (sceneFileExists) {
 				Scene* scene = Scene::GetEditorScene();

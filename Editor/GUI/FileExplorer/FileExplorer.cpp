@@ -100,7 +100,7 @@ namespace Plaza {
 			// Back Button
 			std::string currentDirectory = Gui::FileExplorer::currentDirectory;
 			const std::string& currentDirectoryPath = filesystem::path{ currentDirectory }.string();
-			files.push_back(make_unique<BackFile>(".back", currentDirectory + "\\asd.back", ".back"));
+			files.push_back(make_unique<BackFile>(".back", currentDirectory + "/asd.back", ".back"));
 
 			// Loop through all files found and create an icon on the file explorer
 			for (const auto& entry : fs::directory_iterator(folderPath)) {
@@ -172,12 +172,12 @@ namespace Plaza {
 					strcpy(buf, file->name.c_str());
 					if (ImGui::InputTextEx("##FileNameInput", "File Name", buf, 512, ImVec2(50, 20), ImGuiInputTextFlags_EnterReturnsTrue, nullptr, nullptr, startSelected)) {
 						file->changingName = "";
-						Utils::Filesystem::ChangeFileName(Editor::Gui::FileExplorer::currentDirectory + "\\" + file->name, Editor::Gui::FileExplorer::currentDirectory + "\\" + buf);
+						Utils::Filesystem::ChangeFileName(Editor::Gui::FileExplorer::currentDirectory + "/" + file->name, Editor::Gui::FileExplorer::currentDirectory + "/" + buf);
 					}
 
 					if (!ImGui::IsItemActive() && !file->firstFocus) {
 						file->changingName = "";
-						Utils::Filesystem::ChangeFileName(Editor::Gui::FileExplorer::currentDirectory + "\\" + file->name, Editor::Gui::FileExplorer::currentDirectory + "\\" + buf);
+						Utils::Filesystem::ChangeFileName(Editor::Gui::FileExplorer::currentDirectory + "/" + file->name, Editor::Gui::FileExplorer::currentDirectory + "/" + buf);
 						file->name = buf;
 						Gui::FileExplorer::UpdateContent(Editor::Gui::FileExplorer::currentDirectory);
 					}
@@ -238,7 +238,7 @@ namespace Plaza {
 					//	std::string scriptPath = file->directory;
 					//	std::string openCsFileCommand = "\"\"" + devenvPath + "\" \"" + projectPath + "\" \"" + scriptPath + "\"\"";
 					//	for (size_t i = 0; i < openCsFileCommand.length(); ++i) {
-					//		if (openCsFileCommand[i] == '\\') {
+					//		if (openCsFileCommand[i] == '/') {
 					//			openCsFileCommand[i] = '/';
 					//		}
 					//	}

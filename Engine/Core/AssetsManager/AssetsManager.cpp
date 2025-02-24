@@ -306,7 +306,7 @@ namespace Plaza {
 		std::string contentPath = Plaza::Utils::ReadBinaryString(binaryFile);
 		std::string extension = Plaza::Utils::ReadBinaryString(binaryFile);
 
-		std::string assetFinalPath = path.parent_path().string() + "\\" + std::filesystem::path{ contentPath }.filename().string();
+		std::string assetFinalPath = path.parent_path().string() + "/" + std::filesystem::path{ contentPath }.filename().string();
 
 		binaryFile.close();
 

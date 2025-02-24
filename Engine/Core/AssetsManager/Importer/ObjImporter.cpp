@@ -23,7 +23,7 @@ namespace Plaza {
 		Material* material = new Material();
 		material->mAssetName = tinyobjMaterial->name;
 
-		const std::string diffusePath = materialFolderPath + "\\" + tinyobjMaterial->diffuse_texname;
+		const std::string diffusePath = materialFolderPath + "/" + tinyobjMaterial->diffuse_texname;
 		if (!tinyobjMaterial->diffuse_texname.empty() && loadedTextures.find(diffusePath) == loadedTextures.end())
 		{
 			material->diffuse = std::shared_ptr<Texture>(AssetsLoader::LoadTexture(AssetsManager::GetAssetOrImport(diffusePath, Plaza::UUID::NewUUID())));
@@ -32,7 +32,7 @@ namespace Plaza {
 		else if (!tinyobjMaterial->diffuse_texname.empty())
 			material->diffuse = std::shared_ptr<Texture>(AssetsManager::mTextures.at(loadedTextures.at(diffusePath)));
 
-		const std::string normalPath = materialFolderPath + "\\" + tinyobjMaterial->normal_texname;
+		const std::string normalPath = materialFolderPath + "/" + tinyobjMaterial->normal_texname;
 		if (!tinyobjMaterial->normal_texname.empty() && loadedTextures.find(normalPath) == loadedTextures.end())
 		{
 			material->normal = std::shared_ptr<Texture>(AssetsLoader::LoadTexture(AssetsManager::GetAssetOrImport(normalPath, Plaza::UUID::NewUUID())));
@@ -41,7 +41,7 @@ namespace Plaza {
 		else if (!tinyobjMaterial->normal_texname.empty())
 			material->normal = std::shared_ptr<Texture>(AssetsManager::mTextures.at(loadedTextures.at(normalPath)));
 
-		const std::string roughnessPath = materialFolderPath + "\\" + tinyobjMaterial->roughness_texname;
+		const std::string roughnessPath = materialFolderPath + "/" + tinyobjMaterial->roughness_texname;
 		if (!tinyobjMaterial->roughness_texname.empty() && loadedTextures.find(roughnessPath) == loadedTextures.end())
 		{
 			material->roughness = std::shared_ptr<Texture>(AssetsLoader::LoadTexture(AssetsManager::GetAssetOrImport(roughnessPath, Plaza::UUID::NewUUID())));
@@ -50,7 +50,7 @@ namespace Plaza {
 		else if (!tinyobjMaterial->roughness_texname.empty())
 			material->roughness = std::shared_ptr<Texture>(AssetsManager::mTextures.at(loadedTextures.at(roughnessPath)));
 
-		const std::string metalnessPath = materialFolderPath + "\\" + tinyobjMaterial->metallic_texname;
+		const std::string metalnessPath = materialFolderPath + "/" + tinyobjMaterial->metallic_texname;
 		if (!tinyobjMaterial->metallic_texname.empty() && loadedTextures.find(metalnessPath) == loadedTextures.end())
 		{
 			material->metalness = std::shared_ptr<Texture>(AssetsLoader::LoadTexture(AssetsManager::GetAssetOrImport(metalnessPath, Plaza::UUID::NewUUID())));
@@ -156,11 +156,11 @@ namespace Plaza {
 				Material* material = AssetsManager::GetDefaultMaterial();
 				if (shape.mesh.material_ids.size() > 0 && materials.size() >= shape.mesh.material_ids[0]) {
 					tinyobj::material_t tinyobjMaterial = materials.at(shape.mesh.material_ids[0]);
-					std::string diffusePath = parentPath + "\\" + tinyobjMaterial.diffuse_texname;
+					std::string diffusePath = parentPath + "/" + tinyobjMaterial.diffuse_texname;
 
 					material = ObjModelMaterialLoader(&tinyobjMaterial, std::filesystem::path{ asset.mPath }.parent_path().string(), loadedTextures);
 
-					std::filesystem::path materialOutPath = Editor::Gui::FileExplorer::currentDirectory + "\\" + Editor::Utils::Filesystem::GetUnrepeatedName(Editor::Gui::FileExplorer::currentDirectory + "\\" + material->mAssetName) + Standards::materialExtName;
+					std::filesystem::path materialOutPath = Editor::Gui::FileExplorer::currentDirectory + "/" + Editor::Utils::Filesystem::GetUnrepeatedName(Editor::Gui::FileExplorer::currentDirectory + "/" + material->mAssetName) + Standards::materialExtName;
 
 					if (loadedMaterials.find(materialOutPath) == loadedMaterials.end()) {
 						loadedMaterials.emplace(materialOutPath, material->mAssetUuid);

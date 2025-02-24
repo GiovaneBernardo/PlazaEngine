@@ -3,6 +3,10 @@
 #include "Engine/Core/Scene.h"
 
 namespace Plaza {
+	void GuiButton::CallScriptsCallback() {
+		PL_CORE_INFO("GUI Button Callback not implemented with scripting")
+	}
+
 	bool GuiButton::MouseIsInsideButton(glm::vec2 mousePos) {
 #ifdef EDITOR_MODE
 		mousePos.x -= Application::Get()->appSizes->hierarchySize.x;

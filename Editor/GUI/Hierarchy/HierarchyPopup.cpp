@@ -62,7 +62,7 @@ namespace Plaza::Editor {
 			if (ImGui::MenuItem("Text Renderer"))
 			{
 				Plaza::Drawing::UI::TextRenderer* textRenderer = scene->NewComponent<Plaza::Drawing::UI::TextRenderer>(entity->uuid);
-				textRenderer->Init(Application::Get()->activeProject->mAssetPath.parent_path().string() + "\\font.ttf");
+				textRenderer->Init(Application::Get()->activeProject->mAssetPath.parent_path().string() + "/font.ttf");
 				textRenderer->mUuid = entity->uuid;
 			}
 

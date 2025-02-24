@@ -3,7 +3,7 @@
 
 namespace Plaza::Drawing::UI {
 	TextRenderer::TextRenderer() {
-		//Init(Application::Get()->enginePath + "\\Font\\Roboto-Medium.ttf");
+		//Init(Application::Get()->enginePath + "/Font/Roboto-Medium.ttf");
 	}
 
 	void TextRenderer::Init(std::string fontPath) {

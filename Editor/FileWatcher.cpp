@@ -24,7 +24,7 @@ namespace Plaza::Editor {
 		filewatch::FileWatch<std::string>* watch = new filewatch::FileWatch<std::string>(pathToWatch, [pathToWatch](const std::string path, const filewatch::Event changeType) {
 			//std::cout << path << " - ";
 			std::filesystem::path fsPath = std::filesystem::path{ path };
-			std::string finalPath = pathToWatch + "\\" + path;
+			std::string finalPath = pathToWatch + "/" + path;
 			mQueuedEvents.emplace(changeType, finalPath);
 
 			if (finalPath.find("~") != std::string::npos)
@@ -33,7 +33,7 @@ namespace Plaza::Editor {
 			switch (changeType) {
 			case filewatch::Event::added:
 				if (fsPath.extension() == ".cs") {
-					Application::Get()->activeProject->scripts.emplace(pathToWatch + "\\" + path, Script());
+					Application::Get()->activeProject->scripts.emplace(pathToWatch + "/" + path, Script());
 				}
 
 				//if (fsPath.extension().string().starts_with(Standards::engineExtName))
@@ -44,7 +44,7 @@ namespace Plaza::Editor {
 				break;
 			case filewatch::Event::removed:
 				if (fsPath.extension() == ".cs") {
-					Application::Get()->activeProject->scripts.erase(pathToWatch + "\\" + path);
+					Application::Get()->activeProject->scripts.erase(pathToWatch + "/" + path);
 				}
 				break;
 			case filewatch::Event::modified:

@@ -7,8 +7,8 @@
 namespace Plaza {
 	void VulkanGuiRenderer::PreparePipeline()
 	{
-		std::string vertexPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\gui\\text.vert");
-		std::string fragmentPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\gui\\text.frag");
+		std::string vertexPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "/Shaders/Vulkan/gui/text.vert");
+		std::string fragmentPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "/Shaders/Vulkan/gui/text.frag");
 
 		this->mTextPipeline = new VulkanPlazaPipeline();
 		this->mTextPipeline->mShaders = new VulkanShaders(vertexPath, fragmentPath, "");

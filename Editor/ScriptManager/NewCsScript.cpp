@@ -43,7 +43,7 @@ public class )" + className + R"( : Entity
 		script.lastModifiedDate = std::chrono::system_clock::now();
 		Application::Get()->activeProject->scripts.emplace(fullPath, script);
 		std::map<std::string, Script> map = Application::Get()->activeProject->scripts;
-		//ScriptManagerSerializer::Serialize(Application::Get()->activeProject->mAssetPath.parent_path().string() + "\\Scripts" + Standards::scriptConfigExtName, map);
+		//ScriptManagerSerializer::Serialize(Application::Get()->activeProject->mAssetPath.parent_path().string() + "/Scripts" + Standards::scriptConfigExtName, map);
 	}
 }
 

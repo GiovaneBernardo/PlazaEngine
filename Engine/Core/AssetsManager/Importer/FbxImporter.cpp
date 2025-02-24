@@ -35,9 +35,9 @@ namespace Plaza {
 	static std::string GetFbxTexturePath(const ufbx_texture* texture, const std::string& materialFolderPath) {
 		std::string path = texture->filename.data;
 		if (!std::filesystem::exists(path)) {
-			path = std::filesystem::path{ materialFolderPath }.parent_path().string() + "\\" + texture->relative_filename.data;
+			path = std::filesystem::path{ materialFolderPath }.parent_path().string() + "/" + texture->relative_filename.data;
 			if (!std::filesystem::exists(path) || std::filesystem::is_directory(path)) {
-				path = materialFolderPath + "\\" + std::filesystem::path{ texture->absolute_filename.data }.filename().string();
+				path = materialFolderPath + "/" + std::filesystem::path{ texture->absolute_filename.data }.filename().string();
 				if (!std::filesystem::exists(path)) {
 					path = "";
 				}
@@ -426,10 +426,10 @@ namespace Plaza {
 			if (settings.mImportMaterials) {
 				for (ufbx_material* ufbxMaterial : node->materials) {
 
-					std::filesystem::path materialOutPath = Editor::Gui::FileExplorer::currentDirectory + "\\" + Editor::Utils::Filesystem::GetUnrepeatedName(Editor::Gui::FileExplorer::currentDirectory + "\\" + ufbxMaterial->name.data) + Standards::materialExtName;
+					std::filesystem::path materialOutPath = Editor::Gui::FileExplorer::currentDirectory + "/" + Editor::Utils::Filesystem::GetUnrepeatedName(Editor::Gui::FileExplorer::currentDirectory + "/" + ufbxMaterial->name.data) + Standards::materialExtName;
 					bool materialIsNotLoaded = loadedMaterials.find(materialOutPath) == loadedMaterials.end();
 					if (materialIsNotLoaded) {
-						materialOutPath = Editor::Gui::FileExplorer::currentDirectory + "\\" + Editor::Utils::Filesystem::GetUnrepeatedName(Editor::Gui::FileExplorer::currentDirectory + "\\" + ufbxMaterial->name.data) + Standards::materialExtName;
+						materialOutPath = Editor::Gui::FileExplorer::currentDirectory + "/" + Editor::Utils::Filesystem::GetUnrepeatedName(Editor::Gui::FileExplorer::currentDirectory + "/" + ufbxMaterial->name.data) + Standards::materialExtName;
 						Material* material = AssetsImporter::FbxModelMaterialLoader(ufbxMaterial, std::filesystem::path{ asset.mPath }.parent_path().string(), loadedTextures);
 						if (material->mAssetUuid == AssetsManager::GetDefaultMaterial()->mAssetUuid) {
 							loadedMaterials.emplace(materialOutPath, material->mAssetUuid);

@@ -158,8 +158,8 @@ namespace Plaza {
 		VkPipelineMultisampleStateCreateInfo multisampleState = plvk::pipelineMultisampleStateCreateInfo(VK_SAMPLE_COUNT_1_BIT, 0);
 		std::vector<VkDynamicState> dynamicStateEnables = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
 		VkPipelineDynamicStateCreateInfo dynamicState = plvk::pipelineDynamicStateCreateInfo(dynamicStateEnables);
-		irradianceGeneratorPipeline.mShaders->mVertexShaderPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\equirectangularToCubemap.vert");
-		irradianceGeneratorPipeline.mShaders->mFragmentShaderPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\irradianceGenerator.frag");
+		irradianceGeneratorPipeline.mShaders->mVertexShaderPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "/Shaders/Vulkan/skybox/equirectangularToCubemap.vert");
+		irradianceGeneratorPipeline.mShaders->mFragmentShaderPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "/Shaders/Vulkan/skybox/irradianceGenerator.frag");
 		irradianceGeneratorPipeline.mShaders->InitializeFull(VulkanRenderer::GetRenderer()->mDevice, irradianceGeneratorPipelineLayoutInfo, true, 32, 32, {},
 			vertexInputInfo,
 			inputAssemblyState,
@@ -493,8 +493,8 @@ namespace Plaza {
 		depthStencil.depthCompareOp = VK_COMPARE_OP_NOT_EQUAL;
 		depthStencil.depthBoundsTestEnable = VK_FALSE;
 		depthStencil.stencilTestEnable = VK_FALSE;
-		converterPipeline.mShaders->mVertexShaderPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\equirectangularToCubemap.vert");
-		converterPipeline.mShaders->mFragmentShaderPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\equirectangularToCubemap.frag");
+		converterPipeline.mShaders->mVertexShaderPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "/Shaders/Vulkan/skybox/equirectangularToCubemap.vert");
+		converterPipeline.mShaders->mFragmentShaderPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "/Shaders/Vulkan/skybox/equirectangularToCubemap.frag");
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
 		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 		vertexInputInfo.vertexBindingDescriptionCount = 0;
@@ -831,8 +831,8 @@ namespace Plaza {
 		depthStencil.depthCompareOp = VK_COMPARE_OP_NOT_EQUAL;
 		depthStencil.depthBoundsTestEnable = VK_FALSE;
 		depthStencil.stencilTestEnable = VK_FALSE;
-		pipeline.mShaders->mVertexShaderPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\equirectangularToCubemap.vert");
-		pipeline.mShaders->mFragmentShaderPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\prefilterEnvGenerator.frag");
+		pipeline.mShaders->mVertexShaderPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "/Shaders/Vulkan/skybox/equirectangularToCubemap.vert");
+		pipeline.mShaders->mFragmentShaderPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "/Shaders/Vulkan/skybox/prefilterEnvGenerator.frag");
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
 		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 		vertexInputInfo.vertexBindingDescriptionCount = 0;
@@ -1137,8 +1137,8 @@ namespace Plaza {
 		depthStencil.depthCompareOp = VK_COMPARE_OP_NOT_EQUAL;
 		depthStencil.depthBoundsTestEnable = VK_FALSE;
 		depthStencil.stencilTestEnable = VK_FALSE;
-		pipeline.mShaders->mVertexShaderPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\brdfGenerator.vert");
-		pipeline.mShaders->mFragmentShaderPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\brdfGenerator.frag");
+		pipeline.mShaders->mVertexShaderPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "/Shaders/Vulkan/skybox/brdfGenerator.vert");
+		pipeline.mShaders->mFragmentShaderPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "/Shaders/Vulkan/skybox/brdfGenerator.frag");
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
 		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 		vertexInputInfo.vertexBindingDescriptionCount = 0;
@@ -1244,9 +1244,9 @@ namespace Plaza {
 
 		std::string shadersPath;
 #ifdef EDITOR_MODE
-		shadersPath = Application::Get()->enginePath + "\\Editor\\DefaultAssets\\Skybox\\oldskybox\\";
+		shadersPath = Application::Get()->enginePath + "/Editor/DefaultAssets/Skybox/oldskybox/";
 #else
-		shadersPath = Application::Get()->projectPath + "\\";
+		shadersPath = Application::Get()->projectPath + "/";
 #endif
 		this->mSkyboxPaths[0] = shadersPath + "right.jpg";
 		this->mSkyboxPaths[1] = shadersPath + "left.jpg";
@@ -1255,7 +1255,7 @@ namespace Plaza {
 		this->mSkyboxPaths[4] = shadersPath + "front.jpg";
 		this->mSkyboxPaths[5] = shadersPath + "back.jpg";
 
-		this->mSkyboxPaths[0] = Application::Get()->enginePath + "\\Editor\\DefaultAssets\\Skybox\\" + "autumn_field_4k.hdr";
+		this->mSkyboxPaths[0] = Application::Get()->enginePath + "/Editor/DefaultAssets/Skybox/" + "autumn_field_4k.hdr";
 
 		this->mResolution = glm::vec2(4096);//Application::Get()->appSizes->sceneSize;
 		this->InitializeImageSampler();
@@ -1308,8 +1308,8 @@ namespace Plaza {
 		std::vector<VkImageView> attachments{ VulkanRenderer::GetRenderer()->mLighting->mDeferredEndTexture.mImageView, VulkanRenderer::GetRenderer()->mDepthImageView };
 		mSkyboxPostEffect->InitializeFramebuffer(attachments.data(), attachments.size(), this->mScreenSize, 1);
 		//mSkyboxPostEffect->Init(
-		//	VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\skybox.vert"),
-		//	VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\skybox.frag"),
+		//	VulkanShadersCompiler::Compile(Application::Get()->enginePath + "/Shaders/Vulkan/skybox/skybox.vert"),
+		//	VulkanShadersCompiler::Compile(Application::Get()->enginePath + "/Shaders/Vulkan/skybox/skybox.frag"),
 		//	"",
 		//	VulkanRenderer::GetRenderer()->mDevice,
 		//	mScreenSize,
@@ -1323,8 +1323,8 @@ namespace Plaza {
 		depthStencil.depthCompareOp = VK_COMPARE_OP_NOT_EQUAL;
 		depthStencil.depthBoundsTestEnable = VK_FALSE;
 		depthStencil.stencilTestEnable = VK_FALSE;
-		this->mSkyboxPostEffect->mShaders->mVertexShaderPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\skybox.vert");
-		this->mSkyboxPostEffect->mShaders->mFragmentShaderPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\skybox\\skybox.frag");
+		this->mSkyboxPostEffect->mShaders->mVertexShaderPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "/Shaders/Vulkan/skybox/skybox.vert");
+		this->mSkyboxPostEffect->mShaders->mFragmentShaderPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "/Shaders/Vulkan/skybox/skybox.frag");
 		VkPipelineInputAssemblyStateCreateInfo inputAssemblyState = plvk::pipelineInputAssemblyStateCreateInfo(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_FALSE);
 		VkPipelineRasterizationStateCreateInfo rasterizationState = plvk::pipelineRasterizationStateCreateInfo(VK_FALSE, VK_FALSE, VK_POLYGON_MODE_FILL, 1.0f, VK_FALSE, 0.0f, 0.0f, 0.0f, VK_CULL_MODE_NONE, VK_FRONT_FACE_COUNTER_CLOCKWISE);
 		VkPipelineColorBlendAttachmentState blendAttachmentState = plvk::pipelineColorBlendAttachmentState(VK_TRUE);

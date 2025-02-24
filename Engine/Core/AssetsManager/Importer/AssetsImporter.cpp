@@ -23,7 +23,7 @@ namespace Plaza {
 		AssetImported asset = AssetImported({ extension, path });
 
 		std::string outDirectory = settings.outDirectory.empty() ? Editor::Gui::FileExplorer::currentDirectory : settings.outDirectory;
-		std::string outPath = outDirectory + "\\" + Editor::Utils::Filesystem::GetUnrepeatedName(std::filesystem::path{ path }.stem().string());
+		std::string outPath = outDirectory + "/" + Editor::Utils::Filesystem::GetUnrepeatedName(std::filesystem::path{ path }.stem().string());
 
 		Entity* mainEntity;
 		switch (AssetsImporter::mExtensionMapping.at(extension)) {
@@ -118,7 +118,7 @@ namespace Plaza {
 		}
 
 		for (Animation& animation : loadedAnimations) {
-			std::string animationOutPath = Editor::Utils::Filesystem::GetUnrepeatedPath(outFolder.string() + "\\" + animation.mAssetName + Standards::animationExtName);
+			std::string animationOutPath = Editor::Utils::Filesystem::GetUnrepeatedPath(outFolder.string() + "/" + animation.mAssetName + Standards::animationExtName);
 			AssetsSerializer::SerializeAnimation(animation, animationOutPath, Application::Get()->mSettings.mAnimationSerializationMode);
 			AssetsManager::NewAsset<Animation>(AssetType::ANIMATION, animationOutPath);
 			AssetsManager::AddAnimation(animation);
@@ -126,7 +126,7 @@ namespace Plaza {
 	}
 
 	std::string AssetsImporter::ImportTexture(AssetImported importedAsset, uint64_t uuid) {
-		std::string outPath = Editor::Gui::FileExplorer::currentDirectory + "\\" + std::filesystem::path{ importedAsset.mPath }.filename().string();
+		std::string outPath = Editor::Gui::FileExplorer::currentDirectory + "/" + std::filesystem::path{ importedAsset.mPath }.filename().string();
 		outPath = Editor::Utils::Filesystem::GetUnrepeatedPath(outPath);
 
 		std::filesystem::copy(importedAsset.mPath, outPath);

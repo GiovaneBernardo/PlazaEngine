@@ -514,7 +514,7 @@ namespace Plaza {
 		//this->CreateDescriptorSetLayout(VulkanRenderer::GetRenderer()->mDevice);
 		//this->CreateDescriptorSet(VulkanRenderer::GetRenderer()->mDevice);
 		//
-		//mShadowsShader = new VulkanShaders(VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\shadows\\cascadedShadowDepthShaders.vert"), VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\shadows\\cascadedShadowDepthShaders.frag"), VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\shadows\\cascadedShadowDepthShaders.geom"));
+		//mShadowsShader = new VulkanShaders(VulkanShadersCompiler::Compile(Application::Get()->enginePath + "/Shaders/shadows/cascadedShadowDepthShaders.vert"), VulkanShadersCompiler::Compile(Application::Get()->enginePath + "/Shaders/shadows/cascadedShadowDepthShaders.frag"), VulkanShadersCompiler::Compile(Application::Get()->enginePath + "/Shaders/shadows/cascadedShadowDepthShaders.geom"));
 		//
 		//VkPushConstantRange pushConstantRange{};
 		//pushConstantRange.stageFlags = VK_SHADER_STAGE_ALL;
@@ -530,7 +530,7 @@ namespace Plaza {
 		//mShadowsShader->Init(VulkanRenderer::GetRenderer()->mDevice, this->mRenderPass, this->mShadowResolution, this->mShadowResolution, this->mDescriptorSetLayout, pipelineLayoutInfo, std::vector<VkPushConstantRange> { pushConstantRange });
 		//
 		//// Debug
-		//mDepthDebugShaders = new VulkanShaders(VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\shadows\\cascadedShadowDepthDebugShaders.vert"), VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\shadows\\cascadedShadowDepthDebugShaders.frag"), VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\shadows\\cascadedShadowDepthShaders.geom"));
+		//mDepthDebugShaders = new VulkanShaders(VulkanShadersCompiler::Compile(Application::Get()->enginePath + "/Shaders/shadows/cascadedShadowDepthDebugShaders.vert"), VulkanShadersCompiler::Compile(Application::Get()->enginePath + "/Shaders/shadows/cascadedShadowDepthDebugShaders.frag"), VulkanShadersCompiler::Compile(Application::Get()->enginePath + "/Shaders/shadows/cascadedShadowDepthShaders.geom"));
 		//pipelineLayoutInfo.pSetLayouts = &this->mDebugDepthDescriptorLayout;
 		//mDepthDebugShaders->Init(VulkanRenderer::GetRenderer()->mDevice, this->mDepthDebugRenderPass, Application::Get()->appSizes->sceneSize.x, Application::Get()->appSizes->sceneSize.y, this->mDebugDepthDescriptorLayout, pipelineLayoutInfo, std::vector<VkPushConstantRange> { pushConstantRange }, false);
 	}

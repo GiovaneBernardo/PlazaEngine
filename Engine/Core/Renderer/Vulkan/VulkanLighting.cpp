@@ -156,7 +156,7 @@ namespace Plaza {
 		pushConstantRange.size = sizeof(LightSorterPushConstants);
 		pushConstantRange.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
 
-		this->mLightSorterComputeShaders.Init(Application::Get()->enginePath + "\\Shaders\\Vulkan\\lighting\\lightSorter.comp", { pushConstantRange });
+		this->mLightSorterComputeShaders.Init(Application::Get()->enginePath + "/Shaders/Vulkan/lighting/lightSorter.comp", { pushConstantRange });
 
 		/* Initialize Deferred Pass */
 		VkFormat form = VK_FORMAT_R32G32B32A32_SFLOAT;
@@ -245,8 +245,8 @@ namespace Plaza {
 		this->mDeferredEndPassRenderer.InitializeFramebuffer(imageViews.data(), imageViews.size(), this->mScreenSize, 1);
 
 		mDeferredEndPassRenderer.Init(
-			VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\lighting\\deferredPass.vert"),
-			VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\lighting\\deferredPass.frag"),
+			VulkanShadersCompiler::Compile(Application::Get()->enginePath + "/Shaders/Vulkan/lighting/deferredPass.vert"),
+			VulkanShadersCompiler::Compile(Application::Get()->enginePath + "/Shaders/Vulkan/lighting/deferredPass.frag"),
 			"",
 			VulkanRenderer::GetRenderer()->mDevice,
 			this->mScreenSize,

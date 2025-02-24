@@ -16,7 +16,7 @@ namespace Plaza {
 			// If user didnt canceled, loop through all items found on the directory path and check for the first that haves the project extension. 
 			if (filePath != "") {
 				Project::Load(filePath);
-				Cache::Serialize(Application::Get()->enginePathAppData + "\\cache" + Standards::editorCacheExtName);
+				Cache::Serialize(Application::Get()->enginePathAppData + "/cache" + Standards::editorCacheExtName);
 			}
 
 		}

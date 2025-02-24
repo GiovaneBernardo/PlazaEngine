@@ -286,8 +286,8 @@ namespace Plaza {
 		pushConstantRange.offset = 0; // Offset of the push constant block
 		pushConstantRange.size = sizeof(PushConstant); // Size of the push constant block
 
-		this->mComputeShadersScaleDown.Init(Application::Get()->enginePath + "\\Shaders\\Vulkan\\bloom\\bloomDownScale.comp", { pushConstantRange });
-		this->mComputeShadersScaleUp.Init(Application::Get()->enginePath + "\\Shaders\\Vulkan\\bloom\\bloomUpScale.comp", { pushConstantRange });
+		this->mComputeShadersScaleDown.Init(Application::Get()->enginePath + "/Shaders/Vulkan/bloom/bloomDownScale.comp", { pushConstantRange });
+		this->mComputeShadersScaleUp.Init(Application::Get()->enginePath + "/Shaders/Vulkan/bloom/bloomUpScale.comp", { pushConstantRange });
 	}
 
 	void VulkanBloom::UpdateUniformBuffers(glm::vec2 texelSize, unsigned int mipLevel, bool useThreshold) {

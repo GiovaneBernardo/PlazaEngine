@@ -7,12 +7,12 @@ namespace Plaza::Editor {
 
 	std::string CreateFile(std::string path, std::string name) {
 		std::string newPath;
-		if (std::filesystem::exists(path + "\\" + name)) {
+		if (std::filesystem::exists(path + "/" + name)) {
 			int sameNameFilesCount = FileUtils::GetNumberOfSameNameFiles(path, name);
-			if (std::filesystem::exists(path + "\\" + name + " (" + std::to_string(sameNameFilesCount) + ")")) {
+			if (std::filesystem::exists(path + "/" + name + " (" + std::to_string(sameNameFilesCount) + ")")) {
 				sameNameFilesCount += 1;
 			}
-			newPath = path + "\\" + name + " (" + std::to_string(sameNameFilesCount) + ")";
+			newPath = path + "/" + name + " (" + std::to_string(sameNameFilesCount) + ")";
 			std::filesystem::create_directory(newPath);
 		}
 		else {

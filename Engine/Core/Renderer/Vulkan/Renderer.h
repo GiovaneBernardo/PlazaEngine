@@ -248,8 +248,8 @@ namespace Plaza {
 
 		VkDescriptorSetLayout mSwapchainDescriptorSetLayout = VK_NULL_HANDLE;
 
-		const std::string MODEL_PATH = "C:\\Users\\Giovane\\Desktop\\Workspace\\viking_room.obj";
-		const std::string TEXTURE_PATH = "C:\\Users\\Giovane\\Desktop\\Workspace\\viking_room.png";
+		const std::string MODEL_PATH = "C:/Users/Giovane/Desktop/Workspace/viking_room.obj";
+		const std::string TEXTURE_PATH = "C:/Users/Giovane/Desktop/Workspace/viking_room.png";
 
 		uint32_t mCurrentImage;
 		const int MAX_FRAMES_IN_FLIGHT = 2;

@@ -1,5 +1,6 @@
 // #include "Engine/Core/PreCompiledHeaders.h"
 
+#include "Engine/Core/Debugging/Log.h"
 #define VMA_IMPLEMENTATION
 #define VMA_STATIC_VULKAN_FUNCTIONS 1
 #include "ThirdParty/include/VulkanMemoryAllocator/vk_mem_alloc.h"
@@ -2107,8 +2108,8 @@ namespace Plaza {
 		VkPushConstantRange pushConstantRange = plvk::pushConstantRange(VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstants));
 		VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = plvk::pipelineLayoutCreateInfo(1, &this->mGeometryPassRenderer.mShaders->mDescriptorSetLayout, 1, &pushConstantRange);
 
-		this->mGeometryPassRenderer.mShaders->mVertexShaderPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\deferred\\geometryPass.vert");
-		this->mGeometryPassRenderer.mShaders->mFragmentShaderPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\deferred\\geometryPass.frag");
+		this->mGeometryPassRenderer.mShaders->mVertexShaderPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "/Shaders/Vulkan/deferred/geometryPass.vert");
+		this->mGeometryPassRenderer.mShaders->mFragmentShaderPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "/Shaders/Vulkan/deferred/geometryPass.frag");
 		auto bindingsArray = VertexGetBindingDescription();
 		std::vector<VkVertexInputBindingDescription> bindings(std::begin(bindingsArray), std::end(bindingsArray));
 		auto attributesArray = VertexGetAttributeDescriptions();
@@ -2186,11 +2187,25 @@ namespace Plaza {
 
 		this->mGuiRenderer->Init();
 
-		VulkanShadersCompiler::mDefaultOutDirectory = Application::Get()->exeDirectory + "\\CompiledShaders\\";
-		VulkanShadersCompiler::mGlslcExePath = "C:\\VulkanSDK\\1.3.268.0\\Bin\\glslc.exe";
+		const char* vulkanSdkPath = GLSLC_EXECUTABLE;//std::getenv("VULKAN_SDK");
+		if (!vulkanSdkPath) {
+			//PL_CORE_CRITICAL("VULKAN_SDK environment variable not set!");
+			//return;
+		}
 
-		VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\vulkanTriangle.vert");
-		VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\vulkanTriangle.frag");
+		
+
+		VulkanShadersCompiler::mDefaultOutDirectory = Application::Get()->exeDirectory + "/CompiledShaders/";
+		VulkanShadersCompiler::mGlslcExePath = "C:/VulkanSDK/1.3.268.0/Bin/glslc.exe";
+
+		#ifdef _WIN32
+		VulkanShadersCompiler::mGlslcExePath = vulkanSdkPath + "/Bin/glslc.exe";
+		#else
+		VulkanShadersCompiler::mGlslcExePath = std::string(vulkanSdkPath) + "/bin/glslc";
+		#endif
+
+		VulkanShadersCompiler::Compile(Application::Get()->enginePath + "/Shaders/vulkanTriangle.vert");
+		VulkanShadersCompiler::Compile(Application::Get()->enginePath + "/Shaders/vulkanTriangle.frag");
 
 		std::string shadersFolder = VulkanShadersCompiler::mDefaultOutDirectory;
 		std::cout << "Initializing vulkan \n";
@@ -2285,8 +2300,8 @@ namespace Plaza {
 
 		PL_CORE_INFO("Build Default RenderGraph");
 		this->mRenderGraph->BuildDefaultRenderGraph();
-		//AssetsSerializer::SerializeFile<VulkanRenderGraph>(*this->mRenderGraph, "C:\\Users\\Giovane\\Desktop\\Workspace\\PlazaGames\\FPS2\\Assets\\RenderGraphs\\MainGraph.plzgrph", Application::Get()->mSettings.mRenderGraphSerializationMode);
-		//this->mRenderGraph = new VulkanRenderGraph(*AssetsSerializer::DeSerializeFile<VulkanRenderGraph>("C:\\Users\\Giovane\\Desktop\\Workspace\\PlazaGames\\FPS2\\Assets\\RenderGraphs\\MainGraph.plzgrph", Application::Get()->mSettings.mRenderGraphSerializationMode).get());
+		//AssetsSerializer::SerializeFile<VulkanRenderGraph>(*this->mRenderGraph, "C:/Users/Giovane/Desktop/Workspace/PlazaGames/FPS2/Assets/RenderGraphs/MainGraph.plzgrph", Application::Get()->mSettings.mRenderGraphSerializationMode);
+		//this->mRenderGraph = new VulkanRenderGraph(*AssetsSerializer::DeSerializeFile<VulkanRenderGraph>("C:/Users/Giovane/Desktop/Workspace/PlazaGames/FPS2/Assets/RenderGraphs/MainGraph.plzgrph", Application::Get()->mSettings.mRenderGraphSerializationMode).get());
 
 		int index = 0;
 		for (const auto& texture : mRenderGraph->mTextures) {

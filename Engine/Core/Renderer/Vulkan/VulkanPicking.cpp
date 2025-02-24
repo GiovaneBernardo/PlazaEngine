@@ -181,8 +181,8 @@ namespace Plaza {
 	}
 
 	void VulkanPicking::InitializePicking() {
-		const std::string pickingVertexPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\picking\\picking.vert");
-		const std::string pickingFragmentPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "\\Shaders\\Vulkan\\picking\\picking.frag");
+		const std::string pickingVertexPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "/Shaders/Vulkan/picking/picking.vert");
+		const std::string pickingFragmentPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "/Shaders/Vulkan/picking/picking.frag");
 
 		this->mRenderPickingTexturePostEffects = new VulkanPlazaPipeline();
 
@@ -251,8 +251,8 @@ namespace Plaza {
 	}
 
 	void VulkanPicking::InitializeOutline() {
-		//const std::string outlineVertexPath = Application::Get()->enginePath + "\\Shaders\\Vulkan\\picking\\outline.vert";
-		//const std::string outlineFragmentPath = Application::Get()->enginePath + "\\Shaders\\Vulkan\\picking\\outline.frag";
+		//const std::string outlineVertexPath = Application::Get()->enginePath + "/Shaders/Vulkan/picking/outline.vert";
+		//const std::string outlineFragmentPath = Application::Get()->enginePath + "/Shaders/Vulkan/picking/outline.frag";
 		//
 		//this->mRenderPickingTexturePostEffects = new VulkanPostEffects();
 		//

@@ -98,7 +98,7 @@ namespace Plaza {
 			Icon::Init();
 			FpsCounter* fpsCounter = new FpsCounter();
 			// Load Icons
-			playPauseButtonImageId = Utils::LoadImageToImGuiTexture(std::string(Application::Get()->editorPath + "\\Images\\Other\\playPauseButton.png").c_str());
+			playPauseButtonImageId = Utils::LoadImageToImGuiTexture(std::string(Application::Get()->editorPath + "/Images/Other/playPauseButton.png").c_str());
 			sEditorTools.emplace(EditorTool::ToolType::TERRAIN_EDITOR, std::make_unique<TerrainEditorTool>());
 
 			ImGui::SetCurrentContext(mMainProgressBarContext);
@@ -121,8 +121,8 @@ namespace Plaza {
 			ImGuiIO& io = ImGui::GetIO();
 			(void)io;
 
-			const char* iniFilePath = new char[(Application::Get()->enginePath + "\\imgui.ini").size() + 1];
-			strcpy(const_cast<char*>(iniFilePath), (Application::Get()->enginePath + "\\imgui.ini").c_str());
+			const char* iniFilePath = new char[(Application::Get()->enginePath + "/imgui.ini").size() + 1];
+			strcpy(const_cast<char*>(iniFilePath), (Application::Get()->enginePath + "/imgui.ini").c_str());
 			ImGui::GetIO().IniFilename = iniFilePath;
 			io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 			if (Application::Get()->mRenderer->api == RendererAPI::Vulkan)
