@@ -12,7 +12,7 @@
 
 namespace Plaza::Editor {
 	void RenderGraphEditor::Init() {
-
+		return;
 		this->AddNodeToCreateByType<PlTextureType>("Render Graph / Enums");
 		this->AddNodeToCreateByType<PlViewType>("Render Graph / Enums");
 		this->AddNodeToCreateByType<PlBufferType>("Render Graph / Enums");

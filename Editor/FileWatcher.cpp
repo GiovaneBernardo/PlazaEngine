@@ -6,6 +6,7 @@
 #include "Engine/Core/AssetsManager/AssetsManager.h"
 #include "Engine/Core/AssetsManager/Loader/AssetsLoader.h"
 #include "Engine/Core/Scene.h"
+#include <unordered_map>
 
 namespace Plaza::Editor {
 	std::unordered_map<uint64_t, std::function<void()>> Filewatcher::mMainThreadQueue = std::unordered_map<uint64_t, std::function<void()>>();

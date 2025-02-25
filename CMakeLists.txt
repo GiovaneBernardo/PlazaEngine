@@ -46,17 +46,9 @@ set(BUILD_STATIC_LIB ON)
 
 include(FindVulkan)
 if(NOT VULKAN_FOUND)
-    message(FATAL_ERROR "Vulkan SDK not installed!")
+    message(FATAL_ERROR "Vulkan SDK not installed.")
 endif()
 find_package(Vulkan REQUIRED)
-find_program(GLSLC_EXECUTABLE glslc PATHS ${Vulkan_INCLUDE_DIRS}/../../bin)
-if (GLSLC_EXECUTABLE)
-    message(STATUS "Found glslc at ${GLSLC_EXECUTABLE}")
-    add_definitions(-DGLSLC_EXECUTABLE="${GLSLC_EXECUTABLE}")
-else()
-message(FATAL_ERROR "${Vulkan_INCLUDE_DIRS}")
-    message(FATAL_ERROR "glslc not found!")
-endif()
 
 set(PLATFORM_CMAKELISTS "${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/lib")
@@ -393,6 +385,12 @@ endif()
             COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_LINKER_FILE:PlazaEngineCore> ${target_path}
             COMMENT "Copying PlazaEngineCore.lib to game project folder")
     endif()
+
+    add_custom_command(TARGET PlazaEngineCore
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/glslc" "${CMAKE_CURRENT_BINARY_DIR}/ThirdParty/glslc"
+    COMMENT "Copying GLSLC to engine executable folder")
+
 
     #set(LOCAL_INSTALL_DIR "${CMAKE_BINARY_DIR}/install")
     #

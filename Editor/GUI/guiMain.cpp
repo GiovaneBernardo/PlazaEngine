@@ -229,7 +229,7 @@ namespace Plaza {
 
 			FileExplorer::UpdateGui();
 			Application::Get()->mEditor->mGui.mConsole->Update(scene);
-			Application::Get()->mEditor->mGui.mRenderGraphEditor->Update(scene);
+			//Application::Get()->mEditor->mGui.mRenderGraphEditor->Update(scene);
 			Gui::beginEditor(scene, *Application::Get()->activeCamera);
 			ImGui::End();
 

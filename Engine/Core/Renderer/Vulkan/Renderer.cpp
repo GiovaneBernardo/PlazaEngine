@@ -2187,21 +2187,12 @@ namespace Plaza {
 
 		this->mGuiRenderer->Init();
 
-		const char* vulkanSdkPath = GLSLC_EXECUTABLE;//std::getenv("VULKAN_SDK");
-		if (!vulkanSdkPath) {
-			//PL_CORE_CRITICAL("VULKAN_SDK environment variable not set!");
-			//return;
-		}
-
-		
-
 		VulkanShadersCompiler::mDefaultOutDirectory = Application::Get()->exeDirectory + "/CompiledShaders/";
-		VulkanShadersCompiler::mGlslcExePath = "C:/VulkanSDK/1.3.268.0/Bin/glslc.exe";
 
 		#ifdef _WIN32
-		VulkanShadersCompiler::mGlslcExePath = vulkanSdkPath + "/Bin/glslc.exe";
+		VulkanShadersCompiler::mGlslcExePath = Application::Get()->enginePath + "/../ThirdParty/glslc/glslc.exe";
 		#else
-		VulkanShadersCompiler::mGlslcExePath = std::string(vulkanSdkPath) + "/bin/glslc";
+		VulkanShadersCompiler::mGlslcExePath = Application::Get()->enginePath + "/../ThirdParty/glslc/glslc";
 		#endif
 
 		VulkanShadersCompiler::Compile(Application::Get()->enginePath + "/Shaders/vulkanTriangle.vert");
