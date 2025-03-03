@@ -144,6 +144,11 @@ namespace Plaza {
 
 		VulkanRenderGraph* mRenderGraph = nullptr;
 
+		static bool IsFormatDepth(VkFormat format);
+		static bool IsFormatStencil(VkFormat format);
+		static bool IsFormatDepthStencil(VkFormat format);
+		static VkImageAspectFlags GetFormatAspectMask(VkFormat format);
+
 		void ChangeFinalDescriptorImageView(VkImageView newImageView);
 		VkFormat mFinalDeferredFormat = VK_FORMAT_R32G32B32A32_SFLOAT;
 		VkFormat mSwapChainImageFormat;

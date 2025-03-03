@@ -2,6 +2,13 @@
 #include <ThirdParty/glm/common.hpp>
 
 namespace Plaza {
+	enum PlAttachmentOp {
+		PL_ATTACHMENT_OP_AUTO = 0,
+		PL_ATTACHMENT_OP_STORE = 1,
+		PL_ATTACHMENT_OP_LOAD = 2,
+		PL_ATTACHMENT_OP_CLEAR = 3
+	};
+
 	enum PlTextureType {
 		PL_TYPE_1D = 0,
 		PL_TYPE_2D,
@@ -871,7 +878,9 @@ namespace Plaza {
 			bool depthWriteEnable = true,
 			PlCompareOp depthCompareOp = PL_COMPARE_OP_LESS,
 			bool depthBoundsTestEnable = false,
-			bool stencilTestEnable = false
+			bool stencilTestEnable = false,
+			PlStencilOpState front = {},
+			PlStencilOpState back = {}
 		) {
 			PlPipelineDepthStencilStateCreateInfo depthStencil{};
 			depthStencil.depthTestEnable = depthTestEnable;
@@ -881,6 +890,8 @@ namespace Plaza {
 			depthStencil.stencilTestEnable = stencilTestEnable;
 			depthStencil.minDepthBounds = 0.0f;
 			depthStencil.maxDepthBounds = 1.0f;
+			depthStencil.front = front;
+			depthStencil.back = back;
 			return depthStencil;
 		}
 

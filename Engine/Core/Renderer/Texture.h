@@ -18,7 +18,7 @@ namespace Plaza {
 		uint64_t mDescriptorCount = 1;
 		PlTextureType mTextureType = PL_TYPE_2D;
 		PlViewType mViewType = PL_VIEW_TYPE_2D;
-		PlTextureFormat mFormat = PL_FORMAT_R8G8B8A8_UNORM;
+		PlTextureFormat mFormat = PL_FORMAT_R8G8B8A8_UNORM; // Changing it to srgb might give better results
 		PlImageUsage mImageUsage = PL_IMAGE_USAGE_COLOR_ATTACHMENT;
 		uint16_t mLayersCount = 1;
 		PlImageLayout mInitialLayout = PL_IMAGE_LAYOUT_UNDEFINED;
