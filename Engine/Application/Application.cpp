@@ -243,7 +243,12 @@ void Application::UpdateProjectManagerGui() {
 void Application::Loop() {
   PL_CORE_INFO("Starting Loop");
   while (!glfwWindowShouldClose(Application::Get()->mWindow->glfwWindow)) {
-    PLAZA_PROFILE_SECTION("Loop");
+	  PLAZA_PROFILE_SECTION("Loop");
+	{
+		  PLAZA_PROFILE_SECTION("Poll Events");
+		  glfwPollEvents();
+	}
+
     // Run the Engine (Update Time, Shadows, Inputs, Buffers, Rendering, etc.)
     if (Application::Get()->runEngine) {
       Application::Get()->UpdateEngine();
@@ -256,10 +261,6 @@ void Application::Loop() {
     {
       PLAZA_PROFILE_SECTION("Swap Buffers");
       glfwSwapBuffers(Application::Get()->mWindow->glfwWindow);
-    }
-    {
-      PLAZA_PROFILE_SECTION("Poll Events");
-      glfwPollEvents();
     }
   }
 }

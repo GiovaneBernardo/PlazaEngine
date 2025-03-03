@@ -460,6 +460,7 @@ namespace Plaza {
 	VkPresentModeKHR
 		chooseSwapPresentMode(
 			const std::vector<VkPresentModeKHR>& availablePresentModes) {
+				return VK_PRESENT_MODE_MAILBOX_KHR;
 #ifdef GAME_MODE
 		for (const auto& availablePresentMode : availablePresentModes) {
 			if (availablePresentMode == VK_PRESENT_MODE_FIFO_KHR) { //  VK_PRESENT_MODE_FIFO_KHR = Vsync
@@ -475,7 +476,7 @@ namespace Plaza {
 		}
 #endif
 
-		return VK_PRESENT_MODE_FIFO_KHR;
+		return VK_PRESENT_MODE_MAILBOX_KHR;
 	}
 
 	VkSurfaceFormatKHR
@@ -2770,8 +2771,9 @@ namespace Plaza {
 		texture->mIndexHandle = VulkanTexture::mLastBindingIndex.load();
 		VulkanTexture::mLastBindingIndex++;
 		if (std::filesystem::exists(path)) {
-			Application::Get()->mThreadsManager->mAssetsLoadingThread->AddToParallelQueue([texture, path, this]() {
-				SectionProfiler profiler;
+			//Application::Get()->mThreadsManager->mAssetsLoadingThread->AddToParallelQueue([texture, path, this]() {
+				std::cout << "eaeae \n";
+				//SectionProfiler profiler;
 				bool textureCreated = texture->CreateTextureImage(mDevice, path, PlImageFormatToVkFormat(texture->GetTextureInfo().mFormat), true);
 				if (!textureCreated) {
 					UploadBindlessTexture(texture);
@@ -2780,9 +2782,9 @@ namespace Plaza {
 
 				texture->CreateImageView(PlImageFormatToVkFormat(texture->GetTextureInfo().mFormat), VK_IMAGE_ASPECT_COLOR_BIT);
 				UploadBindlessTexture(texture);
-				profiler.Stop();
-				Profiler::GetProfiler("TextureLoading")->AddDuration(profiler.GetDuration());
-				});
+				//profiler.Stop();
+				//Profiler::GetProfiler("TextureLoading")->AddDuration(profiler.GetDuration());
+			//	});
 		}
 		return texture;
 	}

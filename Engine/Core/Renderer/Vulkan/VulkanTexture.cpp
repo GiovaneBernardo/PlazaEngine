@@ -111,6 +111,28 @@ namespace Plaza {
 		delete[] tempRow;
 	}
 
+	std::vector<unsigned char> read_file(const std::string& filename) {
+		std::ifstream file(filename, std::ios::binary | std::ios::ate);
+		if (!file.is_open()) {
+			throw std::runtime_error("Failed to open file: " + filename);
+		}
+		
+		std::streamsize file_size = file.tellg();
+		if (file_size <= 0) {
+			throw std::runtime_error("File is empty or size could not be determined: " + filename);
+		}
+		
+		std::vector<unsigned char> buffer(static_cast<size_t>(file_size));
+		file.seekg(0, std::ios::beg);
+		file.read(reinterpret_cast<char*>(buffer.data()), file_size);
+		
+		if (!file) {
+			throw std::runtime_error("Failed to read file: " + filename);
+		}
+	
+		return buffer;
+	}
+
 	bool VulkanTexture::CreateTextureImage(VkDevice& device, std::string path, VkFormat format, bool generateMipMaps, bool isHdr, VkImageUsageFlags imageUsage) {
 		//this->SetFormat(format);
 
@@ -124,11 +146,17 @@ namespace Plaza {
 		VkFormat imageFormat = format;
 
 		VkDeviceSize imageSize;
+		auto datae = read_file(path.c_str());
 		if (!isDDS) {
 			if (isHdr)
 				pixelsFloat = stbi_loadf(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-			else
-				pixels = stbi_load(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+			else{
+				pixels = stbi_load_from_memory(datae.data(), datae.size(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+				for (size_t i = 0; i < datae.size() && i < 100; ++i) {
+					std::cout << std::hex << static_cast<int>(datae[i]) << " ";
+				}
+				std::cout << std::endl;
+			}
 			imageSize = texWidth * texHeight * 4;
 			if (isHdr)
 				imageSize *= 4;
