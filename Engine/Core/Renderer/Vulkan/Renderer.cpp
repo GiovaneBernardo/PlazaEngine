@@ -2226,7 +2226,7 @@ namespace Plaza {
 		vmaCreateAllocator(&allocatorInfo, &mVmaAllocator);
 
 		/* Initialize buffers */
-		mMainVertexBuffer->CreateBuffer(1024 * 1024 * 24 * sizeof(Vertex), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VMA_MEMORY_USAGE_AUTO, 0);
+		mMainVertexBuffer->CreateBuffer(1024 * 1024 * 16 * sizeof(Vertex), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VMA_MEMORY_USAGE_AUTO, 0);
 		mSkinnedVertexBuffer->CreateBuffer(1024 * 128 * sizeof(SkinnedVertex), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VMA_MEMORY_USAGE_AUTO, 0);
 		mMainIndexBuffer->CreateBuffer(1024 * 1024 * 32 * sizeof(unsigned int), VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VMA_MEMORY_USAGE_AUTO, 0);
 
@@ -3594,49 +3594,59 @@ namespace Plaza {
 		if (Application::Get()->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
 			PLAZA_PROFILE_SECTION("Copy Indirect Data");
 			VkDeviceSize bufferSize = sizeof(VkDrawIndexedIndirectCommand) * mIndirectCommands.size();
-			void* data;
-			vkMapMemory(this->mDevice, mIndirectBufferMemories[mCurrentFrame], 0, bufferSize, 0, &data);
-			memcpy(data, mIndirectCommands.data(), static_cast<size_t>(bufferSize));
-			vkUnmapMemory(this->mDevice, mIndirectBufferMemories[mCurrentFrame]);
+			if (bufferSize > 0) {
+				void* data;
+				vkMapMemory(this->mDevice, mIndirectBufferMemories[mCurrentFrame], 0, bufferSize, 0, &data);
+				memcpy(data, mIndirectCommands.data(), static_cast<size_t>(bufferSize));
+				vkUnmapMemory(this->mDevice, mIndirectBufferMemories[mCurrentFrame]);
+			}
 		}
 
 		if (Application::Get()->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
 			PLAZA_PROFILE_SECTION("Copy Data");
 			VkDeviceSize bufferSize = sizeof(glm::mat4) * mInstanceModelMatrices.size();
-			void* data;
-			vkMapMemory(this->mDevice, mMainInstanceMatrixBufferMemories[mCurrentFrame], 0, bufferSize, 0, &data);
-			memcpy(data, mInstanceModelMatrices.data(), static_cast<size_t>(bufferSize));
-			vkUnmapMemory(this->mDevice, mMainInstanceMatrixBufferMemories[mCurrentFrame]);
+			if (bufferSize > 0) {
+				void* data;
+				vkMapMemory(this->mDevice, mMainInstanceMatrixBufferMemories[mCurrentFrame], 0, bufferSize, 0, &data);
+				memcpy(data, mInstanceModelMatrices.data(), static_cast<size_t>(bufferSize));
+				vkUnmapMemory(this->mDevice, mMainInstanceMatrixBufferMemories[mCurrentFrame]);
+			}
 		}
 
 		if (Application::Get()->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
 			PLAZA_PROFILE_SECTION("Bind the instance's materials");
 			PlVkBuffer* buffer = mRenderGraph->GetBuffer<PlVkBuffer>("MaterialsBuffer");
 			VkDeviceSize bufferSize = sizeof(unsigned int) * mInstanceModelMaterialsIndex.size();
-			void* data;
-			vmaMapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame), &data);
-			memcpy(data, mInstanceModelMaterialsIndex.data(), static_cast<size_t>(bufferSize));
-			vmaUnmapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame));
+			if (bufferSize > 0) {
+				void* data;
+				vmaMapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame), &data);
+				memcpy(data, mInstanceModelMaterialsIndex.data(), static_cast<size_t>(bufferSize));
+				vmaUnmapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame));
+			}
 		}
 
 		if (Application::Get()->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
 			PLAZA_PROFILE_SECTION("Bind the instance material offsets");
 			PlVkBuffer* buffer = mRenderGraph->GetBuffer<PlVkBuffer>("RenderGroupMaterialsOffsetsBuffer");
 			VkDeviceSize bufferSize = (sizeof(unsigned int) * renderGroupMaterialsOffsets.size());
-			void* data;
-			vmaMapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame), &data);
-			memcpy(data, renderGroupMaterialsOffsets.data(), sizeof(uint32_t) * renderGroupMaterialsOffsets.size());
-			vmaUnmapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame));
+			if (bufferSize > 0) {
+				void* data;
+				vmaMapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame), &data);
+				memcpy(data, renderGroupMaterialsOffsets.data(), sizeof(uint32_t) * renderGroupMaterialsOffsets.size());
+				vmaUnmapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame));
+			}
 		}
 
 		if (Application::Get()->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
 			PLAZA_PROFILE_SECTION("Bind the instance material offsets 2");
 			PlVkBuffer* buffer = mRenderGraph->GetBuffer<PlVkBuffer>("RenderGroupOffsetsBuffer");
 			VkDeviceSize bufferSize = (sizeof(unsigned int) * renderGroupOffsets.size());
-			void* data;
-			vmaMapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame), &data);
-			memcpy(data, renderGroupOffsets.data(), sizeof(uint32_t) * renderGroupOffsets.size());
-			vmaUnmapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame));
+			if (bufferSize > 0) {
+				void* data;
+				vmaMapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame), &data);
+				memcpy(data, renderGroupOffsets.data(), sizeof(uint32_t) * renderGroupOffsets.size());
+				vmaUnmapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame));
+			}
 		}
 
 		if (Application::Get()->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
@@ -3654,11 +3664,12 @@ namespace Plaza {
 
 			PlVkBuffer* buffer = mRenderGraph->GetBuffer<PlVkBuffer>("BoneMatricesBuffer");
 			VkDeviceSize bufferSize = matrices.size() * sizeof(glm::mat4);
-			void* data;
-			vmaMapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame), &data);
-			memcpy(data, matrices.data(), static_cast<size_t>(bufferSize));
-			vmaUnmapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame));
-
+			if (bufferSize > 0) {
+				void* data;
+				vmaMapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame), &data);
+				memcpy(data, matrices.data(), static_cast<size_t>(bufferSize));
+				vmaUnmapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame));
+			}
 			//VkDeviceSize bufferSize = matrices.size() * sizeof(glm::mat4);//sizeof(glm::mat4) * 1024 * 1024 * 16;
 			//void* data;
 			//vkMapMemory(mDevice, this->mBoneMatricesBufferMemories[mCurrentFrame], 0, bufferSize, 0, &data);
@@ -3675,11 +3686,13 @@ namespace Plaza {
 			//	VulkanRenderer::GetRenderer()->mLighting->mLights.push_back(Lighting::LightStruct{ value.color, value.radius, position, value.intensity, value.cutoff, 0.0f });
 			//}
 
-			void* data;
 			size_t bufferSize = sizeof(Lighting::LightStruct) * mLighting->mLights.size();
-			vmaMapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame), &data);
-			memcpy(data, mLighting->mLights.data(), bufferSize);
-			vmaUnmapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame));
+			if (bufferSize > 0) {
+				void* data;
+				vmaMapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame), &data);
+				memcpy(data, mLighting->mLights.data(), bufferSize);
+				vmaUnmapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame));
+			}
 		}
 	}
 
@@ -3695,6 +3708,40 @@ namespace Plaza {
 		vkQueueSubmit(mGraphicsQueue, 0, nullptr, mInFlightFences[mCurrentFrame]);
 		vkWaitForFences(mDevice, 1, &mInFlightFences[mCurrentFrame], VK_TRUE, UINT64_MAX);
 		//vkDestroyFence(mDevice, mInFlightFences[mCurrentFrame], nullptr);
+	}
+
+	bool VulkanRenderer::IsFormatDepth(VkFormat format) {
+		switch (format) {
+		case VK_FORMAT_D16_UNORM: return true;
+		case VK_FORMAT_D16_UNORM_S8_UINT: return true;
+		case VK_FORMAT_D24_UNORM_S8_UINT: return true;
+		case VK_FORMAT_D32_SFLOAT: return true;
+		case VK_FORMAT_D32_SFLOAT_S8_UINT: return true;
+		default: return false;
+		}
+	}
+	bool VulkanRenderer::IsFormatStencil(VkFormat format) {
+		switch (format) {
+		case VK_FORMAT_S8_UINT: return true;
+		case VK_FORMAT_D16_UNORM_S8_UINT: return true;
+		case VK_FORMAT_D24_UNORM_S8_UINT: return true;
+		case VK_FORMAT_D32_SFLOAT_S8_UINT: return true;
+		default: return false;
+		}
+	}
+	bool VulkanRenderer::IsFormatDepthStencil(VkFormat format) {
+		return IsFormatDepth(format) && IsFormatStencil(format);
+	}
+
+	VkImageAspectFlags VulkanRenderer::GetFormatAspectMask(VkFormat format) {
+		VkImageAspectFlags aspect = 0;
+		if (IsFormatDepth(format))
+			aspect |= VK_IMAGE_ASPECT_DEPTH_BIT;
+		if (IsFormatStencil(format))
+			aspect |= VK_IMAGE_ASPECT_STENCIL_BIT;
+		if (!IsFormatDepth(format) && !IsFormatStencil(format))
+			aspect = VK_IMAGE_ASPECT_COLOR_BIT;
+		return aspect;
 	}
 }
 

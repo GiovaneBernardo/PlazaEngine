@@ -930,8 +930,9 @@ namespace Plaza {
 	public:
 		VulkanTextureBinding() {}
 		VulkanTextureBinding(const VulkanTextureBinding& other) = default;
-		VulkanTextureBinding(uint64_t descriptorCount, uint8_t location, uint8_t binding, PlBufferType bufferType, PlRenderStage renderStage, PlImageLayout initialLayout, uint16_t baseMipLevel, uint16_t baseLayerLevel, std::shared_ptr<Texture> texture)
-			: PlazaTextureBinding(descriptorCount, location, binding, bufferType, renderStage, initialLayout, baseMipLevel, baseLayerLevel, texture) {
+		VulkanTextureBinding(uint64_t descriptorCount, uint8_t location, uint8_t binding, PlBufferType bufferType, PlRenderStage renderStage, PlImageLayout initialLayout, uint16_t baseMipLevel,
+			uint16_t baseLayerLevel, std::shared_ptr<Texture> texture, PlAttachmentOp attachmentOp = PL_ATTACHMENT_OP_AUTO, bool  useAsDepthStencilAttachment = false)
+			: PlazaTextureBinding(descriptorCount, location, binding, bufferType, renderStage, initialLayout, baseMipLevel, baseLayerLevel, texture, attachmentOp, useAsDepthStencilAttachment) {
 			mName = texture->mAssetName;
 		};
 		virtual void Compile(std::set<std::string>& compiledBindings) override;

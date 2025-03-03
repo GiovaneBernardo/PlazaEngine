@@ -326,7 +326,7 @@ namespace Plaza {
 
 		if (transition) {
 
-			VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT, layers, this->mMipCount);
+			VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VulkanRenderer::GetFormatAspectMask(format), layers, this->mMipCount);
 			mLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 		}
 
@@ -335,7 +335,7 @@ namespace Plaza {
 			mLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		}
 		else if (transition) {
-			VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT, layers, this->mMipCount);
+			VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VulkanRenderer::GetFormatAspectMask(format), layers, this->mMipCount);
 			mLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		}
 

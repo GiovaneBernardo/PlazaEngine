@@ -20,6 +20,7 @@ namespace Plaza {
 		PlBindingType mBindingType = PlBindingType::PL_BINDING_UNDEFINED;
 		uint64_t mMaxBindlessResources = 0;
 		std::string mResourceName = "";
+		bool mUseAsDepthStencilAttachment = false;
 
 		virtual void Compile(std::set<std::string>& compiledBindings) {};
 		virtual void Destroy() {};
@@ -91,7 +92,8 @@ namespace Plaza {
 	public:
 		PlazaTextureBinding() {}
 		PlazaTextureBinding(const PlazaTextureBinding& other) = default;
-		PlazaTextureBinding(uint64_t descriptorCount, uint8_t location, uint8_t binding, PlBufferType bufferType, PlRenderStage renderStage, PlImageLayout initialLayout, uint16_t baseMipLevel, uint16_t baseLayerLevel, std::shared_ptr<Texture> texture)
+		PlazaTextureBinding(uint64_t descriptorCount, uint8_t location, uint8_t binding, PlBufferType bufferType, PlRenderStage renderStage, PlImageLayout initialLayout, uint16_t baseMipLevel,
+			uint16_t baseLayerLevel, std::shared_ptr<Texture> texture, PlAttachmentOp attachmentOp = PL_ATTACHMENT_OP_AUTO, bool useAsDepthStencilAttachment = false)
 			: mBufferType(bufferType) {
 			mLocation = location;
 			mBinding = binding;
@@ -102,12 +104,15 @@ namespace Plaza {
 			mInitialLayout = initialLayout;
 			mBaseMipLevel = baseMipLevel;
 			mBaseLayerLevel = baseLayerLevel;
+			mUseAsDepthStencilAttachment = useAsDepthStencilAttachment;
+			mAttachmentOp = attachmentOp;
 		}
 
 		PlBufferType mBufferType = PL_BUFFER_SAMPLER;
 		PlImageLayout mInitialLayout = PL_IMAGE_LAYOUT_UNDEFINED;
 		uint16_t mBaseMipLevel = 0;
 		uint16_t mBaseLayerLevel = 0;
+		PlAttachmentOp mAttachmentOp = PL_ATTACHMENT_OP_AUTO;
 
 		virtual void Compile() {};
 		virtual void Destroy() {};
