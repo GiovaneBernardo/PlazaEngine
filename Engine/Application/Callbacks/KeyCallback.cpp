@@ -10,6 +10,7 @@
 #include "Editor/GUI/NodeEditors/RenderGraphEditor.h"
 #include "Engine/Core/AssetsManager/Serializer/AssetsSerializer.h"
 #include "Engine/ECS/ECSManager.h"
+#include "Engine/stb_image.h"
 
 uint64_t lastUuid;
 
@@ -40,6 +41,28 @@ Plaza::Entity* NewEntity(std::string name, Plaza::Entity* parent, Plaza::Mesh* m
 
 	return obj;
 }
+std::vector<unsigned char> read_fileg(const std::string& filename) {
+	std::ifstream file(filename, std::ios::binary | std::ios::ate);
+	if (!file.is_open()) {
+		throw std::runtime_error("Failed to open file: " + filename);
+	}
+	
+	std::streamsize file_size = file.tellg();
+	if (file_size <= 0) {
+		throw std::runtime_error("File is empty or size could not be determined: " + filename);
+	}
+	
+	std::vector<unsigned char> buffer(static_cast<size_t>(file_size));
+	file.seekg(0, std::ios::beg);
+	file.read(reinterpret_cast<char*>(buffer.data()), file_size);
+	
+	if (!file) {
+		throw std::runtime_error("Failed to read file: " + filename);
+	}
+
+	return buffer;
+}
+
 namespace Plaza {
 	void Callbacks::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 		// FIX: Get a proper scene instead of the active scene
@@ -86,7 +109,24 @@ namespace Plaza {
 
 			VulkanRenderer* vulkanRenderer = (VulkanRenderer*)Application::Get()->mRenderer;
 			if (key == GLFW_KEY_H && action == GLFW_PRESS) {
-				vulkanRenderer->ChangeFinalDescriptorImageView(vulkanRenderer->mShadows->mCascades[cascadeIndexDebug].mImageView);
+				int width = 0;
+				int height = 0;
+
+GLFWimage images[1] = {GLFWimage()};
+//images[0].pixels = static_cast<unsigned char*>(stbi_load(std::string(Application::Get()->editorPath + "/Images/Other/PlazaEngineLogo.png").c_str(), &images[0].width, &images[0].height, &channels, 4)); //rgba channels 
+
+			int channels = 0;
+
+			auto datae = read_fileg(std::string(Application::Get()->editorPath + "/Images/Other/PlazaEngineLogo.png").c_str());
+			
+			//images[0].pixels = static_cast<unsigned char*>(stbi_load_from_memory(datae.data(), datae.size(), &width, &height, &channels, 4));
+			images[0].pixels = stbi_load(std::string(Application::Get()->editorPath + "/Images/Other/PlazaEngineLogo.png").c_str(), &width, &height, &channels, 4);
+
+			//images[0].pixels = static_cast<unsigned char*>(data);
+			images[0].width = width;
+			images[0].height = height;
+			
+  			glfwSetWindowIcon(window, 1, images);
 			}
 			if (key == GLFW_KEY_J && action == GLFW_PRESS) {
 				vulkanRenderer->ChangeFinalDescriptorImageView(vulkanRenderer->mFinalSceneImageView);

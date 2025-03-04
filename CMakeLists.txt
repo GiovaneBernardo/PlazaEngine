@@ -20,7 +20,7 @@ elseif(UNIX)
     set(GLFW_BUILD_X11)
 endif()
     
-    if(MSVC)
+if(MSVC)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE STRING "" FORCE)
     add_compile_options(/MP)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /WX- /W4 /O2")
@@ -121,6 +121,8 @@ option(PX_FLOAT_POINT_PRECISE_MATH "Float point precise math" OFF)
 #include("${PHYSX_ROOT_DIR}/compiler/public/CMakeLists.txt")
 option(PX_BUILDSNIPPETS "Generate the snippets" OFF)
 option(PX_CMAKE_SUPPRESS_REGENERATION "Disable zero_check projects" OFF)
+
+set(GLFW_USE_WAYLAND OFF CACHE BOOL "Disable Wayland and use X11")
 
 set(LIBTYPE STATIC)
 set(BUILD_SHARED_LIBS OFF)

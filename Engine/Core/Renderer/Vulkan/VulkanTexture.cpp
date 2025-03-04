@@ -144,19 +144,13 @@ namespace Plaza {
 		float* pixelsFloat = nullptr;
 		uint32_t pix = 0;
 		VkFormat imageFormat = format;
-
 		VkDeviceSize imageSize;
-		auto datae = read_file(path.c_str());
+
 		if (!isDDS) {
 			if (isHdr)
 				pixelsFloat = stbi_loadf(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-			else{
-				pixels = stbi_load_from_memory(datae.data(), datae.size(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-				for (size_t i = 0; i < datae.size() && i < 100; ++i) {
-					std::cout << std::hex << static_cast<int>(datae[i]) << " ";
-				}
-				std::cout << std::endl;
-			}
+			else
+				pixels = stbi_load(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 			imageSize = texWidth * texHeight * 4;
 			if (isHdr)
 				imageSize *= 4;
