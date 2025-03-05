@@ -20,12 +20,13 @@
 #include "Engine/Core/Debugging/Log.h"
 #include <stb_image.h>
 
-#define PLVK_CHECK_RESULT(x) { \
-	VkResult res = (x); \
-	if (res != VK_SUCCESS) { \
-		assert(x == VK_SUCCESS); \
-	}	\
-}
+#define PLVK_CHECK_RESULT(x)                                                                                           \
+	{                                                                                                                  \
+		VkResult res = (x);                                                                                            \
+		if (res != VK_SUCCESS) {                                                                                       \
+			assert(x == VK_SUCCESS);                                                                                   \
+		}                                                                                                              \
+	}
 
 namespace Plaza {
 	struct SwapChainSupportDetails {
@@ -35,9 +36,11 @@ namespace Plaza {
 	};
 
 	struct PLAZA_API VulkanTrackedImage : public TrackedImage {
-	public:
-		VulkanTrackedImage(const std::string& newName, VkImage image, const TextureInfo& textureInfo, VkSampler textureSampler, VkImageLayout layout) : mImage(image), mSampler(textureSampler), mLayout(layout), TrackedImage(newName, textureInfo) {}
-		VulkanTrackedImage() {};
+	  public:
+		VulkanTrackedImage(const std::string& newName, VkImage image, const TextureInfo& textureInfo,
+						   VkSampler textureSampler, VkImageLayout layout)
+			: mImage(image), mSampler(textureSampler), mLayout(layout), TrackedImage(newName, textureInfo) {}
+		VulkanTrackedImage(){};
 		VkImage mImage = VK_NULL_HANDLE;
 		VkSampler mSampler = VK_NULL_HANDLE;
 		VkImageLayout mLayout = VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL;
@@ -46,8 +49,8 @@ namespace Plaza {
 
 	class VulkanRenderGraph;
 	class PLAZA_API VulkanRenderer : public Renderer {
-	public:
-		VulkanRenderer() {};
+	  public:
+		VulkanRenderer(){};
 		std::array<int, MAX_BONE_INFLUENCE> GetBoneIds(const std::vector<uint64_t>& bones);
 
 		std::map<uint64_t, Bone> mBones = std::map<uint64_t, Bone>();
@@ -64,20 +67,20 @@ namespace Plaza {
 			float metalnessFloat = 0.5f;
 		};
 		struct UniformBufferObject {
-			glm::mat4 projection;                  // 64 bytes
-			glm::mat4 view;                        // 64 bytes
-			glm::mat4 model;                       // 64 bytes
-			int cascadeCount;                      // 4 bytes
-			float farPlane;                        // 4 bytes
-			float nearPlane;                       // 4 bytes
+			glm::mat4 projection;				   // 64 bytes
+			glm::mat4 view;						   // 64 bytes
+			glm::mat4 model;					   // 64 bytes
+			int cascadeCount;					   // 4 bytes
+			float farPlane;						   // 4 bytes
+			float nearPlane;					   // 4 bytes
 			alignas(16) glm::vec4 lightDirection;  // 16 bytes, forced alignment to 16 bytes
-			glm::vec4 viewPos;                     // 16 bytes
-			glm::mat4 lightSpaceMatrices[16];      // 16 * 64 bytes = 1024 bytes
+			glm::vec4 viewPos;					   // 16 bytes
+			glm::mat4 lightSpaceMatrices[16];	   // 16 * 64 bytes = 1024 bytes
 			glm::vec4 cascadePlaneDistances[16];   // 16 * 16 bytes = 256 bytes
-			glm::vec4 directionalLightColor;       // 16 bytes
-			glm::vec4 ambientLightColor;           // 16 bytes
+			glm::vec4 directionalLightColor;	   // 16 bytes
+			glm::vec4 ambientLightColor;		   // 16 bytes
 			alignas(4) uint32_t showCascadeLevels; // 4 bytes, bool aligns to 4 bytes (use uint32_t)
-			float gamma;                           // 4 bytes
+			float gamma;						   // 4 bytes
 		};
 
 		void Init() override;
@@ -99,22 +102,23 @@ namespace Plaza {
 		void UploadBindlessTexture(VulkanTexture* texture, int index = -1);
 		void UpdateInstancesData(Scene* scene);
 
-		VkRenderPass CreateRenderPass(VkAttachmentDescription* attachmentDescs, uint32_t attachmentsCount, VkSubpassDescription* subpasses, uint32_t subpassesCount, VkSubpassDependency* dependencies, uint32_t dependenciesCount, void* next = nullptr);
-		VkFramebuffer CreateFramebuffer(VkRenderPass& renderPass, glm::vec2 size, VkImageView* pAttachmentsData, uint32_t attachmentsCount, uint32_t layers);
+		VkRenderPass CreateRenderPass(VkAttachmentDescription* attachmentDescs, uint32_t attachmentsCount,
+									  VkSubpassDescription* subpasses, uint32_t subpassesCount,
+									  VkSubpassDependency* dependencies, uint32_t dependenciesCount,
+									  void* next = nullptr);
+		VkFramebuffer CreateFramebuffer(VkRenderPass& renderPass, glm::vec2 size, VkImageView* pAttachmentsData,
+										uint32_t attachmentsCount, uint32_t layers);
 
-		void AddTrackerToImage(VkImage image, const std::string& name = "", VkSampler textureSampler = VK_NULL_HANDLE, const TextureInfo& textureInfo = TextureInfo(), VkImageLayout layout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+		void AddTrackerToImage(VkImage image, const std::string& name = "", VkSampler textureSampler = VK_NULL_HANDLE,
+							   const TextureInfo& textureInfo = TextureInfo(),
+							   VkImageLayout layout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 		ImTextureID GetTrackedImageID(TrackedImage* tracked) override;
 
-		Mesh* CreateNewMesh(
-			const std::vector<glm::vec3>& vertices,
-			const std::vector<glm::vec3>& normals,
-			const std::vector<glm::vec2>& uvs,
-			const std::vector<glm::vec3>& tangent,
-			const std::vector<unsigned int>& indices,
-			const std::vector<unsigned int>& materialsIndices,
-			bool usingNormal,
-			const std::vector<BonesHolder>& bonesHolder = vector<BonesHolder>(),
-			const std::vector<Bone>& uniqueBonesInfo = vector<Bone>()) override;
+		Mesh* CreateNewMesh(const std::vector<glm::vec3>& vertices, const std::vector<glm::vec3>& normals,
+							const std::vector<glm::vec2>& uvs, const std::vector<glm::vec3>& tangent,
+							const std::vector<unsigned int>& indices, const std::vector<unsigned int>& materialsIndices,
+							bool usingNormal, const std::vector<BonesHolder>& bonesHolder = vector<BonesHolder>(),
+							const std::vector<Bone>& uniqueBonesInfo = vector<Bone>()) override;
 		void UpdateMeshVertices(Mesh& mesh);
 		void DeleteMesh(Mesh& mesh) override;
 		Mesh* RestartMesh(Mesh* mesh);
@@ -128,18 +132,31 @@ namespace Plaza {
 		uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties, VkDeviceSize allocationSize = 0);
 		VkFormat FindDepthFormat();
 
-		void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
-		void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, VkImageAspectFlags aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-			unsigned int layerCount = 1, unsigned int mipCount = 1, bool forceSynchronization = true, VkCommandBuffer commandBuffer = VK_NULL_HANDLE, bool createOwnCommandPool = false);
-		void TransitionTextureLayout(VulkanTexture& texture, VkImageLayout newLayout, VkImageAspectFlags aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, unsigned int layerCount = 1, unsigned int mipCount = 1, bool forceSynchronization = true);
+		void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties,
+						  VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+		void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout,
+								   VkImageAspectFlags aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+								   unsigned int layerCount = 1, unsigned int mipCount = 1,
+								   bool forceSynchronization = true, VkCommandBuffer commandBuffer = VK_NULL_HANDLE,
+								   bool createOwnCommandPool = false);
+		void TransitionTextureLayout(VulkanTexture& texture, VkImageLayout newLayout,
+									 VkImageAspectFlags aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+									 unsigned int layerCount = 1, unsigned int mipCount = 1,
+									 bool forceSynchronization = true);
 
-		void CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
-		//VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
-		VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageViewType viewType = VK_IMAGE_VIEW_TYPE_2D, unsigned int layerCount = 1, unsigned int mipCount = 1, unsigned int baseMipLevel = 0);
+		void CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
+						 VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image,
+						 VkDeviceMemory& imageMemory);
+		// VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
+		VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags,
+									VkImageViewType viewType = VK_IMAGE_VIEW_TYPE_2D, unsigned int layerCount = 1,
+									unsigned int mipCount = 1, unsigned int baseMipLevel = 0);
 
-		VkCommandBuffer BeginSingleTimeCommands(bool createOwnCommandPool = false, VkCommandPool* commandPool = nullptr);
+		VkCommandBuffer BeginSingleTimeCommands(bool createOwnCommandPool = false,
+												VkCommandPool* commandPool = nullptr);
 		void EndSingleTimeCommands(VkCommandBuffer commandBuffer, VkCommandPool commandPool = VK_NULL_HANDLE);
-		void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t mipLevel = 0, unsigned int arrayLayerCount = 1, bool createOwnCommandPool = false);
+		void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t mipLevel = 0,
+							   unsigned int arrayLayerCount = 1, bool createOwnCommandPool = false);
 		VkCommandBuffer* mActiveCommandBuffer;
 
 		VulkanRenderGraph* mRenderGraph = nullptr;
@@ -169,9 +186,11 @@ namespace Plaza {
 
 		void UpdateMaterials();
 
-		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize offset = 0, bool createOwnCommandPool = false);
+		void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize offset = 0,
+						bool createOwnCommandPool = false);
 		void CopyImage(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize offset = 0);
-		void CopyTexture(VulkanTexture* srcTexture, VkImageLayout srcLayout, VulkanTexture* dstTexture, VkImageLayout dstLayout, VkCommandBuffer commandBuffer = VK_NULL_HANDLE);
+		void CopyTexture(VulkanTexture* srcTexture, VkImageLayout srcLayout, VulkanTexture* dstTexture,
+						 VkImageLayout dstLayout, VkCommandBuffer commandBuffer = VK_NULL_HANDLE);
 		VkSampler mImGuiTextureSampler;
 		VkSampler mTextureSampler;
 		std::vector<VkFence> mComputeInFlightFences;
@@ -181,7 +200,6 @@ namespace Plaza {
 		std::vector<VkImage> mSwapChainImages;
 		std::vector<VkImageView> mSwapChainImageViews;
 		std::vector<VkFramebuffer> mSwapChainFramebuffers;
-
 
 		RendererAPI api = RendererAPI::Vulkan;
 		VulkanShadows* mShadows;
@@ -245,7 +263,8 @@ namespace Plaza {
 		std::vector<glm::mat4> mInstanceModelMatrices = std::vector<glm::mat4>();
 
 		void WaitRendererHere();
-	private:
+
+	  private:
 		struct SwapChainPushConstant {
 			float exposure = 1.2f;
 			float gamma = 2.6f;
@@ -261,7 +280,10 @@ namespace Plaza {
 
 		bool mEnableValidationLayers = true;
 		void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
-		VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger);
+		VkResult CreateDebugUtilsMessengerEXT(VkInstance instance,
+											  const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
+											  const VkAllocationCallbacks* pAllocator,
+											  VkDebugUtilsMessengerEXT* pDebugMessenger);
 		SwapChainSupportDetails QuerySwapChainSupport(VkPhysicalDevice device, VkSurfaceKHR surface);
 		VkExtent2D ChooseSwapExtent(VkSurfaceCapabilitiesKHR& capabilities);
 		bool isDeviceSuitable(VkPhysicalDevice device);
@@ -293,15 +315,16 @@ namespace Plaza {
 		bool increasing = true;
 		void CalculateBonesParentship(Bone* bone, glm::mat4 parentTransform, float time, uint64_t boneId);
 		void EarlyAnimationController();
-		void CreateVertexBuffer(vector<Vertex> vertices, VkBuffer& vertexBuffer, VkDeviceMemory& vertexBufferMemory, VkDeviceSize bufferSize = -1);
-		void CreateIndexBuffer(vector<uint32_t> indices, VkBuffer& indicesBuffer, VkDeviceMemory& indicesMemoryBuffer, VkDeviceSize bufferSize = -1);
+		void CreateVertexBuffer(vector<Vertex> vertices, VkBuffer& vertexBuffer, VkDeviceMemory& vertexBufferMemory,
+								VkDeviceSize bufferSize = -1);
+		void CreateIndexBuffer(vector<uint32_t> indices, VkBuffer& indicesBuffer, VkDeviceMemory& indicesMemoryBuffer,
+							   VkDeviceSize bufferSize = -1);
 		void CreateUniformBuffers();
 		void CreateDescriptorPool();
 		void CreateDescriptorSets();
 		void UpdateUniformBuffer(uint32_t currentImage);
 		void CreateDescriptorSetLayout();
 		void InitializeGeometryPassRenderer();
-
 
 		void CreateTextureImage();
 		VkDescriptorSet GetGeometryPassDescriptorSet(unsigned int frame);
@@ -327,15 +350,14 @@ namespace Plaza {
 		std::vector<VkSemaphore> mRenderFinishedSemaphores;
 		std::vector<VkSemaphore> mComputeFinishedSemaphores;
 
-
 		void InitComputeCommandBuffers();
 		void InitComputeSemaphores();
 		void InitComputeInFlightFences();
 
-		//VkBuffer mVertexBuffer;
-		//VkDeviceMemory mVertexBufferMemory;
-		//VkBuffer mIndexBuffer;
-		//VkDeviceMemory mIndexBufferMemory;
+		// VkBuffer mVertexBuffer;
+		// VkDeviceMemory mVertexBufferMemory;
+		// VkBuffer mIndexBuffer;
+		// VkDeviceMemory mIndexBufferMemory;
 		VkDescriptorSetLayout mDescriptorSetLayout;
 		std::vector<VkDescriptorSet> mDescriptorSets;
 		std::vector<VkDescriptorSet> mSwapPassDescriptorSets;
@@ -346,10 +368,10 @@ namespace Plaza {
 
 		VkDescriptorSet mMainSceneDescriptorSet;
 
-		//VkBuffer mMainVertexBuffer = VK_NULL_HANDLE;
-		//VkDeviceMemory mMainVertexBufferMemory = VK_NULL_HANDLE;
-		//VkBuffer mMainIndexBuffer = VK_NULL_HANDLE;
-		//VkDeviceMemory mMainIndexBufferMemory = VK_NULL_HANDLE;
+		// VkBuffer mMainVertexBuffer = VK_NULL_HANDLE;
+		// VkDeviceMemory mMainVertexBufferMemory = VK_NULL_HANDLE;
+		// VkBuffer mMainIndexBuffer = VK_NULL_HANDLE;
+		// VkDeviceMemory mMainIndexBufferMemory = VK_NULL_HANDLE;
 
 		std::vector<VkBuffer> mMainInstanceMaterialBuffers = std::vector<VkBuffer>();
 		std::vector<VkDeviceMemory> mMainInstanceMaterialBufferMemories = std::vector<VkDeviceMemory>();
@@ -378,24 +400,37 @@ namespace Plaza {
 		VkPipelineLayout mImguiPipelineLayout;
 		VkImage mImguiImage;
 
-
 		VkImage mDepthImage;
 		VkDeviceMemory mDepthImageMemory;
 		void CreateDepthResources();
-		VkFormat FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+		VkFormat FindSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling,
+									 VkFormatFeatureFlags features);
 		bool HasStencilComponent(VkFormat format);
 
-		static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData) {
+		static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+															VkDebugUtilsMessageTypeFlagsEXT messageType,
+															const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+															void* pUserData) {
 			const std::string RED = "\033[1;31m";
 			const std::string YELLOW = "\033[1;33m";
 			const std::string RESET = "\033[0m";
 			std::string color;
 			switch (messageSeverity) {
-			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:color = RESET; break;
-			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:color = RESET; break;
-			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:color = YELLOW; break;
-			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:color = RED; break;
-			default:color = RESET; break;
+				case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
+					color = RESET;
+					break;
+				case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
+					color = RESET;
+					break;
+				case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
+					color = YELLOW;
+					break;
+				case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
+					color = RED;
+					break;
+				default:
+					color = RESET;
+					break;
 			}
 
 			if (pCallbackData->pMessageIdName) {
@@ -405,7 +440,6 @@ namespace Plaza {
 			return VK_FALSE;
 		}
 
-
 		std::vector<Vertex> vertices;
 		std::vector<uint32_t> indices;
 
@@ -413,7 +447,8 @@ namespace Plaza {
 			std::vector<unsigned int> renderGroupOffsets = std::vector<unsigned int>();
 			std::vector<unsigned int> renderGroupMaterialsOffsets = std::vector<unsigned int>();
 		};
-	public:
+
+	  public:
 		static std::array<VkVertexInputBindingDescription, 2> VertexGetBindingDescription() {
 			std::array<VkVertexInputBindingDescription, 2> bindingDescriptions = {};
 			bindingDescriptions[0].binding = 0;
@@ -487,4 +522,4 @@ namespace Plaza {
 		friend class VulkanGuiRenderer;
 		friend class VulkanPicking;
 	};
-}
+} // namespace Plaza

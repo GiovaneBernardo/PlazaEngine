@@ -11,8 +11,7 @@ namespace Plaza::Editor {
 		if (Utils::ComponentInspectorHeader(component, "Audio Listener")) {
 			ImGui::PushID("AudioListenerInspector");
 
-
 			ImGui::PopID();
 		}
 	}
-}
+} // namespace Plaza::Editor

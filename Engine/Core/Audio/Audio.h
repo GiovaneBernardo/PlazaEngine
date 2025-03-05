@@ -5,9 +5,9 @@
 #include <ThirdParty/AL/include/AL/alext.h>
 namespace Plaza {
 	class Audio {
-	public:
+	  public:
 		static ALCdevice* sAudioDevice;
 		static void Init();
 		static void UpdateListener(Scene* scene);
 	};
-}
+} // namespace Plaza

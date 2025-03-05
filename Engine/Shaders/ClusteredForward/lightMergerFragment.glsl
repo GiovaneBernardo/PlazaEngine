@@ -103,23 +103,23 @@ vec4 HeatMap(int clusterIndex, int numLights)
     vec3 color;
     if(numLights <= 0)
     {
-        color = vec3(0.5f, 0.5f, 0.5f);    
+        color = vec3(0.5f, 0.5f, 0.5f);
     }
     else if(numLights < 10)
     {
-        color = vec3(0.2f, 1.0f, 0.0f);    
+        color = vec3(0.2f, 1.0f, 0.0f);
     }
     else if(numLights < 50)
     {
-        color = vec3(0.4f, 0.8f, 0.0f);    
+        color = vec3(0.4f, 0.8f, 0.0f);
     }
     else if(numLights < 100)
     {
-        color = vec3(0.8f, 0.4f, 0.0f);    
+        color = vec3(0.8f, 0.4f, 0.0f);
     }
     else if(numLights >= 100)
     {
-        color = vec3(1.0f, 0.0f, 0.0f);    
+        color = vec3(1.0f, 0.0f, 0.0f);
     }
     return vec4(color, 1.0f);
 }
@@ -141,7 +141,7 @@ int GetIndex(vec2 screenPos, vec2 clusterCount)
 //#define SHOW_HEATMAP
 
 void main()
-{  
+{
     // retrieve data from gbuffer
     vec3 Diffuse = texture(gDiffuse, TexCoords).xyz;
     // then calculate lighting as usual
@@ -181,7 +181,7 @@ void main()
                 vec3 lightDir = normalize(lightPosition - FragPos);
                 vec3 diffuse = max(dot(Normal, lightDir), 0.0) * Diffuse * (lightColor * light.intensity);
                 // specular
-                vec3 halfwayDir = normalize(lightDir + viewDir);  
+                vec3 halfwayDir = normalize(lightDir + viewDir);
                 float spec = pow(max(dot(Normal, halfwayDir), 0.0), 16.0);
                 vec3 specular = (lightColor * light.intensity) * spec * Specular;
                 // attenuation
@@ -194,7 +194,7 @@ void main()
                 specular *= attenuation;
                 lighting += (diffuse + specular); //* attenuation;
             }
-        }    
+        }
      }
     //lighting += 1.0f;
     vec3 color;

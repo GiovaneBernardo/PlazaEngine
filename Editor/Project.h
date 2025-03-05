@@ -4,7 +4,7 @@
 namespace Plaza {
 	namespace Editor {
 		class PLAZA_API Project : public Asset {
-		public:
+		  public:
 			uint64_t mLastSceneUuid = 0;
 			std::string creationDate = "";
 			std::string lastModifyDate = "";
@@ -17,10 +17,9 @@ namespace Plaza {
 			static void PasteGitIgnore(const std::filesystem::path& directory);
 			static void PasteAllProjectFiles(const std::filesystem::path& directory);
 
-			template <class Archive>
-			void serialize(Archive& archive) {
+			template <class Archive> void serialize(Archive& archive) {
 				archive(mAssetUuid, mAssetName, creationDate, lastModifyDate, mLastSceneUuid);
 			}
 		};
-	}
-}
+	} // namespace Editor
+} // namespace Plaza

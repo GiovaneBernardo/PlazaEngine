@@ -3,7 +3,7 @@
 
 namespace Plaza {
 	class VulkanComputeShaders {
-	public:
+	  public:
 		VulkanComputeShaders() = default;
 
 		struct Particle {
@@ -40,7 +40,8 @@ namespace Plaza {
 		void Init(std::string shadersPath, std::vector<VkPushConstantRange> pushConstantsRange = {});
 		void RunCompute();
 		void Draw();
-		void Dispatch(int x, int y, int z, void* pushConstantData = nullptr, unsigned int pushConstantSize = 0, VkDescriptorSet descriptorSet = VK_NULL_HANDLE);
+		void Dispatch(int x, int y, int z, void* pushConstantData = nullptr, unsigned int pushConstantSize = 0,
+					  VkDescriptorSet descriptorSet = VK_NULL_HANDLE);
 		void Terminate();
 
 		std::vector<VkBuffer> mShaderStorageBuffers = std::vector<VkBuffer>();
@@ -50,10 +51,10 @@ namespace Plaza {
 		std::vector<VkDescriptorSet> mComputeDescriptorSets = std::vector<VkDescriptorSet>();
 		VkPipelineLayout mComputePipelineLayout = VK_NULL_HANDLE;
 		VkPipeline mComputePipeline = VK_NULL_HANDLE;
-	private:
 
+	  private:
 		std::vector<VkBuffer> mUniformBuffers = std::vector<VkBuffer>();
 		std::vector<VkDeviceMemory> mUniformBuffersMemory = std::vector<VkDeviceMemory>();
 		std::vector<void*> mUniformBuffersMapped = std::vector<void*>();
 	};
-}
+} // namespace Plaza

@@ -34,11 +34,10 @@ namespace Plaza::Editor {
 		}
 	}
 	void Popup::FileExplorerFilePopup::Update(File* file) {
-		if (ImGui::BeginPopupContextWindow("FileExplorerFilePopup"))
-		{
+		if (ImGui::BeginPopupContextWindow("FileExplorerFilePopup")) {
 			UpdateContent(file);
-			//FileExplorerPopup::UpdateContent();
+			// FileExplorerPopup::UpdateContent();
 			ImGui::EndPopup();
 		}
 	}
-}
+} // namespace Plaza::Editor

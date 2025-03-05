@@ -4,8 +4,10 @@
 #include "ThirdParty/dds_image/dds.hpp"
 
 namespace Plaza {
-	/// Takes image with VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL and outputs it with VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-	void VulkanTexture::GenerateMipmaps(VkImage image, int32_t texWidth, int32_t texHeight, uint32_t mipLevels, VkFormat format, uint32_t layerCount) {
+	/// Takes image with VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL and outputs it with
+	/// VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+	void VulkanTexture::GenerateMipmaps(VkImage image, int32_t texWidth, int32_t texHeight, uint32_t mipLevels,
+										VkFormat format, uint32_t layerCount) {
 		// Check if image format supports linear blitting
 		VkFormatProperties formatProperties;
 		vkGetPhysicalDeviceFormatProperties(VulkanRenderer::GetRenderer()->mPhysicalDevice, format, &formatProperties);
@@ -36,45 +38,38 @@ namespace Plaza {
 			barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 			barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
 
-			vkCmdPipelineBarrier(commandBuffer,
-				VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0,
-				0, nullptr,
-				0, nullptr,
-				1, &barrier);
+			vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0,
+								 nullptr, 0, nullptr, 1, &barrier);
 
 			VkImageBlit blit{};
-			blit.srcOffsets[0] = { 0, 0, 0 };
-			blit.srcOffsets[1] = { mipWidth, mipHeight, 1 };
+			blit.srcOffsets[0] = {0, 0, 0};
+			blit.srcOffsets[1] = {mipWidth, mipHeight, 1};
 			blit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 			blit.srcSubresource.mipLevel = i - 1;
 			blit.srcSubresource.baseArrayLayer = 0;
 			blit.srcSubresource.layerCount = layerCount;
-			blit.dstOffsets[0] = { 0, 0, 0 };
-			blit.dstOffsets[1] = { mipWidth > 1 ? mipWidth / 2 : 1, mipHeight > 1 ? mipHeight / 2 : 1, 1 };
+			blit.dstOffsets[0] = {0, 0, 0};
+			blit.dstOffsets[1] = {mipWidth > 1 ? mipWidth / 2 : 1, mipHeight > 1 ? mipHeight / 2 : 1, 1};
 			blit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 			blit.dstSubresource.mipLevel = i;
 			blit.dstSubresource.baseArrayLayer = 0;
 			blit.dstSubresource.layerCount = layerCount;
 
-			vkCmdBlitImage(commandBuffer,
-				image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-				image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-				1, &blit,
-				VK_FILTER_LINEAR);
+			vkCmdBlitImage(commandBuffer, image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, image,
+						   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &blit, VK_FILTER_LINEAR);
 
 			barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
 			barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 			barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
 			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
-			vkCmdPipelineBarrier(commandBuffer,
-				VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0,
-				0, nullptr,
-				0, nullptr,
-				1, &barrier);
+			vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+								 0, 0, nullptr, 0, nullptr, 1, &barrier);
 
-			if (mipWidth > 1) mipWidth /= 2;
-			if (mipHeight > 1) mipHeight /= 2;
+			if (mipWidth > 1)
+				mipWidth /= 2;
+			if (mipHeight > 1)
+				mipHeight /= 2;
 		}
 
 		barrier.subresourceRange.baseMipLevel = mipLevels - 1;
@@ -83,11 +78,8 @@ namespace Plaza {
 		barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 		barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
-		vkCmdPipelineBarrier(commandBuffer,
-			VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0,
-			0, nullptr,
-			0, nullptr,
-			1, &barrier);
+		vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0,
+							 nullptr, 0, nullptr, 1, &barrier);
 
 		this->mLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		VulkanRenderer::GetRenderer()->EndSingleTimeCommands(commandBuffer);
@@ -116,27 +108,28 @@ namespace Plaza {
 		if (!file.is_open()) {
 			throw std::runtime_error("Failed to open file: " + filename);
 		}
-		
+
 		std::streamsize file_size = file.tellg();
 		if (file_size <= 0) {
 			throw std::runtime_error("File is empty or size could not be determined: " + filename);
 		}
-		
+
 		std::vector<unsigned char> buffer(static_cast<size_t>(file_size));
 		file.seekg(0, std::ios::beg);
 		file.read(reinterpret_cast<char*>(buffer.data()), file_size);
-		
+
 		if (!file) {
 			throw std::runtime_error("Failed to read file: " + filename);
 		}
-	
+
 		return buffer;
 	}
 
-	bool VulkanTexture::CreateTextureImage(VkDevice& device, std::string path, VkFormat format, bool generateMipMaps, bool isHdr, VkImageUsageFlags imageUsage) {
-		//this->SetFormat(format);
+	bool VulkanTexture::CreateTextureImage(VkDevice& device, std::string path, VkFormat format, bool generateMipMaps,
+										   bool isHdr, VkImageUsageFlags imageUsage) {
+		// this->SetFormat(format);
 
-		bool isDDS = std::filesystem::path{ path }.extension() == ".dds";
+		bool isDDS = std::filesystem::path{path}.extension() == ".dds";
 		dds::Image image;
 
 		int texWidth, texHeight, texChannels;
@@ -171,16 +164,16 @@ namespace Plaza {
 			// Convert std::string to std::wstring
 			std::wstring widestr = std::wstring(path.begin(), path.end());
 			const wchar_t* widecstr = widestr.c_str();
-			//DirectX::LoadFromDDSFile(widecstr, DirectX::DDS_FLAGS_FORCE_RGB, &metadata, scratchImage);
+			// DirectX::LoadFromDDSFile(widecstr, DirectX::DDS_FLAGS_FORCE_RGB, &metadata, scratchImage);
 
-			//texWidth = metadata.width;
-			//texHeight = metadata.height;
-			//texChannels = 4;
+			// texWidth = metadata.width;
+			// texHeight = metadata.height;
+			// texChannels = 4;
 
-			// Access image data			
-			//const DirectX::Image* image2 = scratchImage.GetImage(0, 0, 0);
+			// Access image data
+			// const DirectX::Image* image2 = scratchImage.GetImage(0, 0, 0);
 			pixels = static_cast<stbi_uc*>(image.data.data());
-			//FlipYCoordinates(pixels, texWidth, texHeight, 3);
+			// FlipYCoordinates(pixels, texWidth, texHeight, 3);
 
 			imageSize = image.data.size();
 		}
@@ -199,7 +192,10 @@ namespace Plaza {
 			PL_CORE_CRITICAL("Path: " + path);
 			throw std::runtime_error("failed to load texture image!");
 		}
-		VulkanRenderer::GetRenderer()->CreateBuffer(format == VK_FORMAT_R32G32B32A32_SFLOAT ? imageSize * 4 : imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mStagingBuffer, mStagingBufferMemory);
+		VulkanRenderer::GetRenderer()->CreateBuffer(
+			format == VK_FORMAT_R32G32B32A32_SFLOAT ? imageSize * 4 : imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mStagingBuffer,
+			mStagingBufferMemory);
 
 		void* data;
 		vkMapMemory(device, mStagingBufferMemory, 0, imageSize, 0, &data);
@@ -216,8 +212,9 @@ namespace Plaza {
 		else
 			image.data.clear();
 
-
-		//VulkanRenderer::GetRenderer()->CreateImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mTextureImage, mTextureImageMemory);
+		// VulkanRenderer::GetRenderer()->CreateImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_SRGB,
+		// VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+		// VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mTextureImage, mTextureImageMemory);
 		VkImageCreateInfo imageInfo{};
 		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 		imageInfo.imageType = VK_IMAGE_TYPE_2D;
@@ -229,7 +226,10 @@ namespace Plaza {
 		imageInfo.format = imageFormat;
 		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		imageInfo.usage = imageUsage == VK_IMAGE_USAGE_FLAG_BITS_MAX_ENUM ? VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT : imageUsage;
+		imageInfo.usage =
+			imageUsage == VK_IMAGE_USAGE_FLAG_BITS_MAX_ENUM
+				? VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT
+				: imageUsage;
 		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		imageInfo.flags = VK_IMAGE_CREATE_MUTABLE_FORMAT_BIT;
@@ -244,7 +244,8 @@ namespace Plaza {
 		VkMemoryAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 		allocInfo.allocationSize = memRequirements.size;
-		allocInfo.memoryTypeIndex = VulkanRenderer::GetRenderer()->FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+		allocInfo.memoryTypeIndex = VulkanRenderer::GetRenderer()->FindMemoryType(memRequirements.memoryTypeBits,
+																				  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 		VkResult result = vkAllocateMemory(device, &allocInfo, nullptr, &mImageMemory);
 		if (result != VK_SUCCESS) {
@@ -254,19 +255,23 @@ namespace Plaza {
 			vkDestroyBuffer(device, mStagingBuffer, nullptr);
 			vkFreeMemory(device, mStagingBufferMemory, nullptr);
 			return false;
-			//throw std::runtime_error("failed to allocate image memory!");
+			// throw std::runtime_error("failed to allocate image memory!");
 		}
 		else {
-
 			vkBindImageMemory(device, mImage, mImageMemory, 0);
 
-			VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, imageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1U, 1, this->mMipCount, true, VK_NULL_HANDLE, true);
-			VulkanRenderer::GetRenderer()->CopyBufferToImage(mStagingBuffer, mImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight), 0, 1, true);
-			//TODO: FIX VALIDATION ERROR WHEN GENERATING MIP MAP
+			VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, imageFormat, VK_IMAGE_LAYOUT_UNDEFINED,
+																 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1U, 1,
+																 this->mMipCount, true, VK_NULL_HANDLE, true);
+			VulkanRenderer::GetRenderer()->CopyBufferToImage(mStagingBuffer, mImage, static_cast<uint32_t>(texWidth),
+															 static_cast<uint32_t>(texHeight), 0, 1, true);
+			// TODO: FIX VALIDATION ERROR WHEN GENERATING MIP MAP
 			if (generateMipMaps)
 				GenerateMipmaps(this->mImage, texWidth, texHeight, this->mMipCount, imageFormat, 1);
 			else
-				VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, imageFormat, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 1U, 1, this->mMipCount, true, VK_NULL_HANDLE, true);
+				VulkanRenderer::GetRenderer()->TransitionImageLayout(
+					mImage, imageFormat, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+					1U, 1, this->mMipCount, true, VK_NULL_HANDLE, true);
 			mLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 			vkDestroyBuffer(device, mStagingBuffer, nullptr);
 			vkFreeMemory(device, mStagingBufferMemory, nullptr);
@@ -274,10 +279,13 @@ namespace Plaza {
 		return true;
 	}
 
-	bool VulkanTexture::CreateTextureImage(VkDevice device, VkFormat format, int width, int height, bool generateMipMaps, VkImageUsageFlags usageFlags, VkImageType imageType, VkImageTiling tiling, VkImageLayout initialLayout,
-		unsigned int layers, VkImageUsageFlags flags, bool transition, VkSharingMode sharingMode, bool calculateMips) {
+	bool VulkanTexture::CreateTextureImage(VkDevice device, VkFormat format, int width, int height,
+										   bool generateMipMaps, VkImageUsageFlags usageFlags, VkImageType imageType,
+										   VkImageTiling tiling, VkImageLayout initialLayout, unsigned int layers,
+										   VkImageUsageFlags flags, bool transition, VkSharingMode sharingMode,
+										   bool calculateMips) {
 		//		mLayersCount = layers;
-				//this->SetFormat(format);
+		// this->SetFormat(format);
 		this->mMipCount = static_cast<uint32_t>(std::floor(std::log2(std::max(width, height)))) + 1;
 		if (!generateMipMaps && !calculateMips)
 			this->mMipCount = 1;
@@ -296,7 +304,8 @@ namespace Plaza {
 		imageInfo.format = format;
 		imageInfo.tiling = tiling;
 		imageInfo.initialLayout = initialLayout;
-		imageInfo.usage = usageFlags; //VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_STORAGE_BIT;
+		imageInfo.usage = usageFlags; // VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT |
+									  // VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_STORAGE_BIT;
 		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 		imageInfo.sharingMode = sharingMode;
 		imageInfo.flags = flags;
@@ -311,7 +320,8 @@ namespace Plaza {
 		VkMemoryAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 		allocInfo.allocationSize = memRequirements.size;
-		allocInfo.memoryTypeIndex = VulkanRenderer::GetRenderer()->FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+		allocInfo.memoryTypeIndex = VulkanRenderer::GetRenderer()->FindMemoryType(memRequirements.memoryTypeBits,
+																				  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 		if (vkAllocateMemory(device, &allocInfo, nullptr, &mImageMemory) != VK_SUCCESS) {
 			throw std::runtime_error("failed to allocate image memory!");
@@ -319,8 +329,9 @@ namespace Plaza {
 		vkBindImageMemory(device, mImage, mImageMemory, 0);
 
 		if (transition) {
-
-			VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VulkanRenderer::GetFormatAspectMask(format), layers, this->mMipCount);
+			VulkanRenderer::GetRenderer()->TransitionImageLayout(
+				mImage, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+				VulkanRenderer::GetFormatAspectMask(format), layers, this->mMipCount);
 			mLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 		}
 
@@ -329,18 +340,18 @@ namespace Plaza {
 			mLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		}
 		else if (transition) {
-			VulkanRenderer::GetRenderer()->TransitionImageLayout(mImage, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VulkanRenderer::GetFormatAspectMask(format), layers, this->mMipCount);
+			VulkanRenderer::GetRenderer()->TransitionImageLayout(
+				mImage, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+				VulkanRenderer::GetFormatAspectMask(format), layers, this->mMipCount);
 			mLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		}
 
-		//vkDestroyBuffer(device, mStagingBuffer, nullptr);
-		//vkFreeMemory(device, mStagingBufferMemory, nullptr);
+		// vkDestroyBuffer(device, mStagingBuffer, nullptr);
+		// vkFreeMemory(device, mStagingBufferMemory, nullptr);
 		return true;
 	}
 
-	void VulkanTexture::Load(std::string path) {
-
-	}
+	void VulkanTexture::Load(std::string path) {}
 
 	unsigned int VulkanTexture::GetTextureID() {
 		return static_cast<unsigned int>(reinterpret_cast<uintptr_t>(this->mDescriptorSet));
@@ -351,36 +362,35 @@ namespace Plaza {
 		return id;
 	}
 
-	VkImageView VulkanTexture::CreateImageView(VkFormat format, VkImageAspectFlags aspectFlags, VkImageViewType viewType, unsigned int layerCount, unsigned int baseMipLevel) {
+	VkImageView VulkanTexture::CreateImageView(VkFormat format, VkImageAspectFlags aspectFlags,
+											   VkImageViewType viewType, unsigned int layerCount,
+											   unsigned int baseMipLevel) {
 		if (mImageView != VK_NULL_HANDLE)
 			vkDestroyImageView(VulkanRenderer::GetRenderer()->mDevice, mImageView, nullptr);
-		mImageView = VulkanRenderer::GetRenderer()->CreateImageView(mImage, format, aspectFlags, viewType, layerCount, mMipCount, baseMipLevel);
+		mImageView = VulkanRenderer::GetRenderer()->CreateImageView(mImage, format, aspectFlags, viewType, layerCount,
+																	mMipCount, baseMipLevel);
 		return mImageView;
-		//VkImageViewCreateInfo viewInfo{};
-		//viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		//viewInfo.image = this->mImage;
-		//viewInfo.viewType = viewType;
-		//viewInfo.format = format;
-		//viewInfo.subresourceRange.baseMipLevel = baseMipLevel;
-		//viewInfo.subresourceRange.levelCount = this->mMipCount;
-		//viewInfo.subresourceRange.baseArrayLayer = 0;
-		//viewInfo.subresourceRange.layerCount = layerCount;
-		//viewInfo.subresourceRange.aspectMask = aspectFlags;
+		// VkImageViewCreateInfo viewInfo{};
+		// viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		// viewInfo.image = this->mImage;
+		// viewInfo.viewType = viewType;
+		// viewInfo.format = format;
+		// viewInfo.subresourceRange.baseMipLevel = baseMipLevel;
+		// viewInfo.subresourceRange.levelCount = this->mMipCount;
+		// viewInfo.subresourceRange.baseArrayLayer = 0;
+		// viewInfo.subresourceRange.layerCount = layerCount;
+		// viewInfo.subresourceRange.aspectMask = aspectFlags;
 		//
-		//if (vkCreateImageView(VulkanRenderer::GetRenderer()->mDevice, &viewInfo, nullptr, &mImageView) != VK_SUCCESS) {
-		//	throw std::runtime_error("failed to create texture image view!");
-		//}
+		// if (vkCreateImageView(VulkanRenderer::GetRenderer()->mDevice, &viewInfo, nullptr, &mImageView) != VK_SUCCESS)
+		// { 	throw std::runtime_error("failed to create texture image view!");
+		// }
 		//
-		//return mImageView;
+		// return mImageView;
 	}
 
-	VkDescriptorSet VulkanTexture::GetDescriptorSet() {
-		return this->mDescriptorSet;
-	}
+	VkDescriptorSet VulkanTexture::GetDescriptorSet() { return this->mDescriptorSet; }
 
-#define ArraySize(a) \
-  ((sizeof(a) / sizeof(*(a))) / \
-  static_cast<size_t>(!(sizeof(a) % sizeof(*(a)))))
+#define ArraySize(a) ((sizeof(a) / sizeof(*(a))) / static_cast<size_t>(!(sizeof(a) % sizeof(*(a)))))
 
 	void VulkanTexture::InitDescriptorSet() {
 		VkDescriptorImageInfo imageInfo{};
@@ -397,7 +407,8 @@ namespace Plaza {
 			bufferInfo2.range = sizeof(VulkanRenderer::UniformBufferObject);
 
 			descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			descriptorWrites[0].dstSet = VulkanRenderer::GetRenderer()->GetGeometryPassDescriptorSet(i);// VulkanRenderer::GetRenderer()->mDescriptorSets[i];
+			descriptorWrites[0].dstSet = VulkanRenderer::GetRenderer()->GetGeometryPassDescriptorSet(
+				i); // VulkanRenderer::GetRenderer()->mDescriptorSets[i];
 			descriptorWrites[0].dstBinding = 0;
 			descriptorWrites[0].dstArrayElement = 0;
 			descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -433,21 +444,23 @@ namespace Plaza {
 		samplerLayoutBinding.pImmutableSamplers = &mSampler;
 		samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_ALL;
 
-
-		std::array<VkDescriptorSetLayoutBinding, 1> bindings = { samplerLayoutBinding };
+		std::array<VkDescriptorSetLayoutBinding, 1> bindings = {samplerLayoutBinding};
 		VkDescriptorSetLayoutCreateInfo layoutInfo{};
 		layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 		layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
 		layoutInfo.pBindings = bindings.data();
 
-		if (vkCreateDescriptorSetLayout(VulkanRenderer::GetRenderer()->mDevice, &layoutInfo, nullptr, &mDescriptorSetLayout) != VK_SUCCESS) {
+		if (vkCreateDescriptorSetLayout(VulkanRenderer::GetRenderer()->mDevice, &layoutInfo, nullptr,
+										&mDescriptorSetLayout) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create descriptor set layout!");
 		}
 
 		InitDescriptorSet();
 	}
 
-	void VulkanTexture::CreateTextureSampler(VkSamplerAddressMode adressMode, VkSamplerMipmapMode mipMapMode, VkFilter magFilter, VkFilter minFilter, VkBorderColor borderColor, bool useAnisotropy) {
+	void VulkanTexture::CreateTextureSampler(VkSamplerAddressMode adressMode, VkSamplerMipmapMode mipMapMode,
+											 VkFilter magFilter, VkFilter minFilter, VkBorderColor borderColor,
+											 bool useAnisotropy) {
 		VkSamplerCreateInfo samplerInfo{};
 		samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
 		samplerInfo.magFilter = magFilter;
@@ -456,7 +469,7 @@ namespace Plaza {
 		samplerInfo.addressModeV = adressMode;
 		samplerInfo.addressModeW = adressMode;
 		samplerInfo.anisotropyEnable = VK_TRUE;
-		//samplerInfo.maxAnisotropy = 0;
+		// samplerInfo.maxAnisotropy = 0;
 
 		VkPhysicalDeviceProperties properties{};
 		vkGetPhysicalDeviceProperties(VulkanRenderer::GetRenderer()->mPhysicalDevice, &properties);
@@ -475,9 +488,7 @@ namespace Plaza {
 		}
 	}
 
-	VkFormat VulkanTexture::GetFormat() {
-		return PlImageFormatToVkFormat(this->GetTextureInfo().mFormat);
-	}
+	VkFormat VulkanTexture::GetFormat() { return PlImageFormatToVkFormat(this->GetTextureInfo().mFormat); }
 
 	void VulkanTexture::SetFormat(PlTextureFormat newFormat) {
 		TextureInfo info = this->GetTextureInfo();
@@ -485,17 +496,17 @@ namespace Plaza {
 		this->SetTextureInfo(info);
 	}
 
-	glm::vec4 VulkanTexture::ReadTexture(glm::vec2 pos, unsigned int bytesPerPixel, unsigned int channels, VkImageAspectFlags aspect, bool isDepth) {
+	glm::vec4 VulkanTexture::ReadTexture(glm::vec2 pos, unsigned int bytesPerPixel, unsigned int channels,
+										 VkImageAspectFlags aspect, bool isDepth) {
 		if (pos.x >= mWidth || pos.x < 0 || pos.y >= mHeight || pos.y < 0)
 			return glm::vec4(0.0f);
 
 		VkBuffer stagingBuffer;
 		VkDeviceMemory stagingBufferMemory;
-		VulkanRenderer::GetRenderer()->CreateBuffer(mWidth * mHeight * bytesPerPixel,
-			VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-			stagingBuffer,
-			stagingBufferMemory);
+		VulkanRenderer::GetRenderer()->CreateBuffer(mWidth * mHeight * bytesPerPixel, VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+													VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+														VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+													stagingBuffer, stagingBufferMemory);
 
 		VkImageLayout oldLayout = this->GetLayout();
 		VulkanRenderer::GetRenderer()->TransitionTextureLayout(*this, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, aspect);
@@ -512,8 +523,8 @@ namespace Plaza {
 		region.bufferRowLength = 0;
 		region.bufferImageHeight = 0;
 		region.imageSubresource = subResource;
-		region.imageOffset = { 0, 0, 0 };
-		region.imageExtent = { (unsigned int)mWidth, (unsigned int)mHeight, 1 };
+		region.imageOffset = {0, 0, 0};
+		region.imageExtent = {(unsigned int)mWidth, (unsigned int)mHeight, 1};
 
 		vkCmdCopyImageToBuffer(commandBuffer, mImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, stagingBuffer, 1, &region);
 		VulkanRenderer::GetRenderer()->EndSingleTimeCommands(commandBuffer);
@@ -530,17 +541,22 @@ namespace Plaza {
 		float r = 0.0f, g = 0.0f, b = 0.0f, a = 0.0f;
 		if (isDepth) {
 			float* depthValues = reinterpret_cast<float*>(data);
-			uint8_t* stencilValues = reinterpret_cast<uint8_t*>(static_cast<char*>(data) + (mWidth * mHeight * sizeof(float)));
+			uint8_t* stencilValues =
+				reinterpret_cast<uint8_t*>(static_cast<char*>(data) + (mWidth * mHeight * sizeof(float)));
 
 			uint32_t index = pos.y * mWidth + pos.x;
 			r = depthValues[index];
 		}
 		else {
 			if (byteOffset < size) {
-				if (channels >= 1) r = pixelData[byteOffset];
-				if (channels >= 2) g = pixelData[byteOffset + 1];
-				if (channels >= 3) b = pixelData[byteOffset + 2];
-				if (channels >= 4) a = pixelData[byteOffset + 3];
+				if (channels >= 1)
+					r = pixelData[byteOffset];
+				if (channels >= 2)
+					g = pixelData[byteOffset + 1];
+				if (channels >= 3)
+					b = pixelData[byteOffset + 2];
+				if (channels >= 4)
+					a = pixelData[byteOffset + 3];
 			}
 		}
 
@@ -552,4 +568,4 @@ namespace Plaza {
 
 		return glm::vec4(r, g, b, a);
 	}
-}
+} // namespace Plaza

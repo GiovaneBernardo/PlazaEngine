@@ -9,16 +9,17 @@
 namespace Plaza {
 	namespace Editor {
 		class DropFileScene {
-		public:
+		  public:
 			static void Drop(File* file) {
 				if (file->extension == Standards::modelExtName) {
 					AssetsLoader::LoadAsset(AssetsManager::GetAsset(file->directory));
 				}
 				if (file->extension == Standards::prefabExtName) {
-					AssetsManager::GetPrefab(AssetsManager::GetAsset(file->directory)->mAssetUuid)->LoadToScene(Scene::GetActiveScene());
+					AssetsManager::GetPrefab(AssetsManager::GetAsset(file->directory)->mAssetUuid)
+						->LoadToScene(Scene::GetActiveScene());
 					Scene::GetActiveScene()->RecalculateAddedComponents();
 				}
 			}
 		};
-	}
-}
+	} // namespace Editor
+} // namespace Plaza

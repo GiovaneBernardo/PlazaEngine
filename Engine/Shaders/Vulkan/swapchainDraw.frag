@@ -10,7 +10,7 @@ layout(push_constant) uniform PushConstants {
     float exposure; //1.2f
     float gamma; //2.6f
 } pushConstants;
-vec3 gammaCorrect(vec3 color) 
+vec3 gammaCorrect(vec3 color)
 {
     return pow(color, vec3(1.0 / pushConstants.gamma));
 }
@@ -65,7 +65,7 @@ vec3 acesFilm(const vec3 x) {
     return clamp((x * (a * x + b)) / (x * (c * x + d ) + e), 0.0, 1.0);
 }
 
-void main() 
+void main()
 {
     vec4 x = texture(samplerTexture, inUV);
     vec3 color = pushConstants.exposure * x.rgb;
@@ -88,7 +88,7 @@ void main()
     ////// Tone mapping
     ////vec3 color = texture(samplerTexture, inUV).xyz;
 	////color = Uncharted2Tonemap(color * pushConstants.exposure);
-	////color = color * (1.0f / Uncharted2Tonemap(vec3(11.2f)));	
+	////color = color * (1.0f / Uncharted2Tonemap(vec3(11.2f)));
 	////// Gamma correction
 	////color = pow(color, vec3(1.0f / pushConstants.gamma));
 	//outFragcolor = vec4(color, 1.0f);

@@ -2,12 +2,12 @@
 
 namespace Plaza {
 	class DragBase {
-	public:
+	  public:
 		static void Drag(auto& data);
 	};
 
 	class DropBase {
-	public:
+	  public:
 		static void Drop(auto& data);
 	};
-}
+} // namespace Plaza

@@ -53,7 +53,8 @@ namespace Plaza::Editor {
 		ImGuizmo::SetDrawlist();
 		ImVec2 windowSize = ImGui::GetWindowSize();
 		ImVec2 windowPos = ImGui::GetWindowPos();
-		ImGuizmo::SetRect(appSizes.sceneImageStart.x, appSizes.sceneImageStart.y, appSizes.sceneSize.x, appSizes.sceneSize.y);
+		ImGuizmo::SetRect(appSizes.sceneImageStart.x, appSizes.sceneImageStart.y, appSizes.sceneSize.x,
+						  appSizes.sceneSize.y);
 
 		// Get the object transform and camera matrices
 		auto& parentTransform = *scene->GetComponent<TransformComponent>(entity->parentUuid);
@@ -61,11 +62,13 @@ namespace Plaza::Editor {
 
 		glm::mat4 projection = camera.GetProjectionMatrix();
 		glm::mat4 view = camera.GetViewMatrix();
-		glm::mat4 gizmoTransform = transform.mWorldMatrix;//transform.GetTransform(entity->GetComponent<Transform>()->worldPosition);
+		glm::mat4 gizmoTransform =
+			transform.mWorldMatrix; // transform.GetTransform(entity->GetComponent<Transform>()->worldPosition);
 		ImGuizmo::OPERATION activeOperation = Overlay::activeOperation; // Operation is translate, rotate, scale
-		ImGuizmo::MODE activeMode = Overlay::activeMode; // Mode is world or local
+		ImGuizmo::MODE activeMode = Overlay::activeMode;				// Mode is world or local
 
-		ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(projection), activeOperation, activeMode, glm::value_ptr(gizmoTransform));
+		ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(projection), activeOperation, activeMode,
+							 glm::value_ptr(gizmoTransform));
 
 		RigidBody* rigidBody = scene->GetComponent<RigidBody>(entity->uuid);
 		Collider* collider = scene->GetComponent<Collider>(entity->uuid);
@@ -75,43 +78,45 @@ namespace Plaza::Editor {
 		}
 
 		if (collider && !collider->mDynamic && collider->mStaticPxRigidBody) {
-			collider->mRigidActor->is<physx::PxRigidDynamic>()->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, false);
+			collider->mRigidActor->is<physx::PxRigidDynamic>()->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC,
+																				 false);
 		}
 
 		bool isUsing = ImGuizmo::IsUsing();
 		glm::vec3 position, rotation, scale;
-		if (isUsing)
-		{
+		if (isUsing) {
 			DecomposeTransform(gizmoTransform, position, rotation, scale);
 		}
 		if (isUsing && !glm::isnan(position.x)) {
 			// --- Rotation
-			glm::mat4 updatedTransform = glm::inverse(parentTransform.GetWorldMatrix()) * glm::toMat4(glm::quat(rotation));
+			glm::mat4 updatedTransform =
+				glm::inverse(parentTransform.GetWorldMatrix()) * glm::toMat4(glm::quat(rotation));
 
 			glm::vec3 parentPosition, parentRotation, parentScale;
-			DecomposeTransform(parentTransform.mWorldMatrix, parentPosition, parentRotation, parentScale); // The rotation is radians
+			DecomposeTransform(parentTransform.mWorldMatrix, parentPosition, parentRotation,
+							   parentScale); // The rotation is radians
 
 			glm::vec3 updatedPosition, updatedRotation, updatedScale;
-			DecomposeTransform(updatedTransform, updatedPosition, updatedRotation, updatedScale); // The rotation is radians
+			DecomposeTransform(updatedTransform, updatedPosition, updatedRotation,
+							   updatedScale); // The rotation is radians
 
 			glm::mat4 rotationMatrix = glm::inverse(glm::mat4_cast(parentTransform.GetWorldQuaternion()));
 			rotation = updatedRotation;
 
 			// Adding the deltaRotation avoid the gimbal lock
 			glm::vec3 eulerRotation = rotation;
-			glm::quat quaternion = glm::quat_cast(glm::mat3(glm::rotate(glm::mat4(1.0f), rotation.x, glm::vec3(1.0f, 0.0f, 0.0f))
-				* glm::rotate(glm::mat4(1.0f), rotation.y, glm::vec3(0.0f, 1.0f, 0.0f))
-				* glm::rotate(glm::mat4(1.0f), rotation.z, glm::vec3(0.0f, 0.0f, 1.0f))));
+			glm::quat quaternion =
+				glm::quat_cast(glm::mat3(glm::rotate(glm::mat4(1.0f), rotation.x, glm::vec3(1.0f, 0.0f, 0.0f)) *
+										 glm::rotate(glm::mat4(1.0f), rotation.y, glm::vec3(0.0f, 1.0f, 0.0f)) *
+										 glm::rotate(glm::mat4(1.0f), rotation.z, glm::vec3(0.0f, 0.0f, 1.0f))));
 			glm::quat deltaRotation = quaternion - transform.mLocalRotation;
 			transform.mLocalRotation = rotation;
 
 			glm::vec3 parentWorldRotation = parentRotation;
-			rotationMatrix =
-				glm::mat4(1.0f);
+			rotationMatrix = glm::mat4(1.0f);
 			rotationMatrix = glm::rotate(rotationMatrix, -parentWorldRotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
 			rotationMatrix = glm::rotate(rotationMatrix, -parentWorldRotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
 			rotationMatrix = glm::rotate(rotationMatrix, -parentWorldRotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
-
 
 			glm::vec3 localPoint = glm::vec3(rotationMatrix * glm::vec4(position - parentPosition, 1.0f));
 			transform.mLocalPosition = localPoint / parentScale;
@@ -121,14 +126,13 @@ namespace Plaza::Editor {
 				transform.mLocalScale = scale / parentScale;
 			ECS::TransformSystem::UpdateSelfAndChildrenTransform(transform, nullptr, scene, true);
 
-
 			if (collider) {
 				ECS::ColliderSystem::UpdateAllShapesScale(scene, collider->mUuid);
 
-				//if (collider->mDynamic) {
+				// if (collider->mDynamic) {
 				//	collider->mRigidActor->is<physx::PxRigidDynamic>()->setLinearVelocity(physx::PxVec3(0.0f));
 				//	collider->mRigidActor->is<physx::PxRigidDynamic>()->setAngularVelocity(physx::PxVec3(0.0f));
-				//}
+				// }
 			}
 		}
 
@@ -138,13 +142,13 @@ namespace Plaza::Editor {
 		}
 
 		if (collider && !collider->mDynamic && collider->mStaticPxRigidBody) {
-			collider->mRigidActor->is<physx::PxRigidDynamic>()->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC, true);
+			collider->mRigidActor->is<physx::PxRigidDynamic>()->setRigidBodyFlag(physx::PxRigidBodyFlag::eKINEMATIC,
+																				 true);
 		}
 	}
 
-
-	bool Gizmo::DecomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale) {
-
+	bool Gizmo::DecomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation,
+								   glm::vec3& scale) {
 		using namespace glm;
 		using T = float;
 
@@ -153,11 +157,9 @@ namespace Plaza::Editor {
 		if (epsilonEqual(LocalMatrix[3][3], static_cast<float>(0), epsilon<T>()))
 			return false;
 
-		if (
-			epsilonNotEqual(LocalMatrix[0][3], static_cast<T>(0), epsilon<T>()) ||
+		if (epsilonNotEqual(LocalMatrix[0][3], static_cast<T>(0), epsilon<T>()) ||
 			epsilonNotEqual(LocalMatrix[1][3], static_cast<T>(0), epsilon<T>()) ||
-			epsilonNotEqual(LocalMatrix[2][3], static_cast<T>(0), epsilon<T>()))
-		{
+			epsilonNotEqual(LocalMatrix[2][3], static_cast<T>(0), epsilon<T>())) {
 			LocalMatrix[0][3] = LocalMatrix[1][3] = LocalMatrix[2][3] = static_cast<T>(0);
 			LocalMatrix[3][3] = static_cast<T>(1);
 		}
@@ -202,4 +204,4 @@ namespace Plaza::Editor {
 
 		return true;
 	}
-}
+} // namespace Plaza::Editor

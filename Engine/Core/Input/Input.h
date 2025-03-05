@@ -4,7 +4,7 @@
 
 namespace Plaza {
 	class PLAZA_API Input {
-	public:
+	  public:
 		static inline bool isAnyKeyPressed = false;
 		static inline string mCheckFocusedMenu = "";
 		class Cursor;
@@ -13,14 +13,13 @@ namespace Plaza {
 		static bool GetKeyDownOnce();
 		static bool GetKeyReleased();
 		static bool GetKeyReleasedOnce();
-		static void AddFunctionToOnKeyPress(std::function<void()> function, Editor::GuiLayer layer = Editor::GuiLayer::SCENE, Editor::GuiState layerState = Editor::GuiState::FOCUSED) {
-
-		}
+		static void AddFunctionToOnKeyPress(std::function<void()> function,
+											Editor::GuiLayer layer = Editor::GuiLayer::SCENE,
+											Editor::GuiState layerState = Editor::GuiState::FOCUSED) {}
 		static void SetFocusedMenuCheck(const std::string& menu);
 		static bool GetMouseDown(int button);
 		static glm::vec2 GetScreenSize();
 
-	private:
-
+	  private:
 	};
-}
+} // namespace Plaza

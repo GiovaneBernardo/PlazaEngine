@@ -7,8 +7,8 @@ bool Plaza::Callbacks::rightClickPressed;
 bool Plaza::Callbacks::mouseFirstCallback;
 bool Plaza::Callbacks::firstMouse = true;
 
-float Plaza::Callbacks::lastX = 0;//Application::Get()->appSizes->appSize.x / 2.0f;
-float Plaza::Callbacks::lastY = 0;//Application::Get()->appSizes->appSize.y / 2.0f;
+float Plaza::Callbacks::lastX = 0; // Application::Get()->appSizes->appSize.x / 2.0f;
+float Plaza::Callbacks::lastY = 0; // Application::Get()->appSizes->appSize.y / 2.0f;
 
 void GetMonitorWorkarea(GLFWwindow* window, int& monitorX, int& monitorY, int& monitorWidth, int& monitorHeight) {
 	int windowX, windowY, windowWidth, windowHeight;
@@ -23,7 +23,8 @@ void GetMonitorWorkarea(GLFWwindow* window, int& monitorX, int& monitorY, int& m
 		int monitorWorkX, monitorWorkY, monitorWorkWidth, monitorWorkHeight;
 		glfwGetMonitorWorkarea(monitor, &monitorWorkX, &monitorWorkY, &monitorWorkWidth, &monitorWorkHeight);
 
-		bool windowOnThisMonitor = windowX < monitorWorkX + monitorWorkWidth && windowX + windowWidth > monitorWorkX && windowY < monitorWorkY + monitorWorkHeight && windowY + windowHeight > monitorWorkY;
+		bool windowOnThisMonitor = windowX < monitorWorkX + monitorWorkWidth && windowX + windowWidth > monitorWorkX &&
+								   windowY < monitorWorkY + monitorWorkHeight && windowY + windowHeight > monitorWorkY;
 		if (windowOnThisMonitor) {
 			monitorX = monitorWorkX;
 			monitorY = monitorWorkY;
@@ -68,12 +69,10 @@ void HandleMouseWrap(GLFWwindow* window, double& mouseX, double& mouseY, float& 
 	}
 }
 
-
 void Plaza::Callbacks::mouseCallback(GLFWwindow* window, double xposIn, double yposIn) {
 	float xpos = static_cast<float>(xposIn);
 	float ypos = static_cast<float>(yposIn);
 	if (Application::Get()->focusedMenu == "Editor") {
-
 		float xoffset = xpos - lastX;
 		float yoffset = lastY - ypos;
 		// Prevent the camera from roughly moving to mouse position when pressed right button
@@ -92,10 +91,10 @@ void Plaza::Callbacks::mouseCallback(GLFWwindow* window, double xposIn, double y
 		lastY = ypos;
 	}
 
-	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) && !ImGui::IsDragDropActive() && ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) && !ImGui::IsDragDropActive() &&
+		ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
 		double x = xposIn;
 		double y = yposIn;
 		HandleMouseWrap(window, x, y, lastX, lastY);
 	}
 }
-

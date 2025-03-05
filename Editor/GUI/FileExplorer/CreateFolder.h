@@ -23,7 +23,10 @@ namespace Plaza::Editor {
 	std::string CreateFolder(std::string fullPath) {
 		std::string newPath;
 		if (std::filesystem::exists(fullPath)) {
-			newPath = fullPath + "(" + std::to_string(FileUtils::GetNumberOfSameNameFiles(fullPath, std::filesystem::path(fullPath).filename().string())) + ")";
+			newPath = fullPath + "(" +
+					  std::to_string(FileUtils::GetNumberOfSameNameFiles(
+						  fullPath, std::filesystem::path(fullPath).filename().string())) +
+					  ")";
 			std::filesystem::create_directory(newPath);
 		}
 		else {
@@ -33,5 +36,4 @@ namespace Plaza::Editor {
 		return newPath;
 	}
 
-
-}
+} // namespace Plaza::Editor

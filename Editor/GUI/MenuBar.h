@@ -3,8 +3,8 @@
 namespace Plaza {
 	namespace Editor {
 		class Gui::MainMenuBar {
-		public:
+		  public:
 			static void Begin();
 		};
-	}
-}
+	} // namespace Editor
+} // namespace Plaza

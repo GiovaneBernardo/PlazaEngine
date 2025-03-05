@@ -21,17 +21,16 @@
 
 namespace Plaza::Editor {
 	class Gizmo {
-	public:
+	  public:
 		static void Draw(Scene* scene, Entity* entity, Camera camera);
 
 		/// <summary>
-/// Extract translation, rotation and scale from a Matrix 4 
-/// <para> Rotation is returned in radians </para>
-/// </summary>
-		static bool DecomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale);
+		/// Extract translation, rotation and scale from a Matrix 4
+		/// <para> Rotation is returned in radians </para>
+		/// </summary>
+		static bool DecomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation,
+									   glm::vec3& scale);
 
-	private:
-
-
+	  private:
 	};
-}
+} // namespace Plaza::Editor

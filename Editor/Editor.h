@@ -9,12 +9,12 @@
 namespace Plaza {
 	namespace Editor {
 		class EditorClass {
-		public:
+		  public:
 			Gui mGui;
 			std::string directory;
 			Settings mSettings;
 
 			CopyPasteManager* mCopyPasteManager = new CopyPasteManager();
 		};
-	}
-}
+	} // namespace Editor
+} // namespace Plaza

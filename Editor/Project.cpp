@@ -29,7 +29,8 @@ namespace Plaza::Editor {
 
 		Application::Get()->projectPath = projectFile.parent_path().string();
 
-		Application::Get()->activeProject = std::make_unique<Project>(*AssetsSerializer::DeSerializeFile<Project>(filePath, Application::Get()->mSettings.mProjectSerializationMode));
+		Application::Get()->activeProject = std::make_unique<Project>(*AssetsSerializer::DeSerializeFile<Project>(
+			filePath, Application::Get()->mSettings.mProjectSerializationMode));
 		Application::Get()->activeProject->mAssetPath = filePath;
 
 #ifdef EDITOR_MODE
@@ -70,18 +71,20 @@ namespace Plaza::Editor {
 		AssetsManager::ReadFolderContent(path, true);
 		profiler.Stop();
 		Profiler::GetProfiler("ReadGameAssets")->AddDuration(profiler.GetDuration());
-		//for (auto entry = filesystem::recursive_directory_iterator(Application::Get()->activeProject->mAssetPath.parent_path(), filesystem::directory_options::skip_permission_denied); entry != filesystem::end(entry); ++entry) {
-		//	if (entry->is_directory() && entry->path().filename().string().ends_with(".ignore")) {
+		// for (auto entry =
+		// filesystem::recursive_directory_iterator(Application::Get()->activeProject->mAssetPath.parent_path(),
+		// filesystem::directory_options::skip_permission_denied); entry != filesystem::end(entry); ++entry) { 	if
+		//(entry->is_directory() && entry->path().filename().string().ends_with(".ignore")) {
 		//		entry.disable_recursion_pending();
 		//	}
 		//
 		//	AssetsReader::ReadAssetAtPath(entry->path());
-		//}
+		// }
 
 		PL_CORE_INFO("Load materials textures");
 		uint64_t defaultMaterialUuid = AssetsManager::GetDefaultMaterial()->mAssetUuid;
 		for (auto& [key, value] : AssetsManager::mMaterials) {
-			//Application::Get()->mRenderer->LoadTexture(AssetsManager::GetAssetOrImport(FileDialog::OpenFileDialog(".jpeg"))->mPath.string())
+			// Application::Get()->mRenderer->LoadTexture(AssetsManager::GetAssetOrImport(FileDialog::OpenFileDialog(".jpeg"))->mPath.string())
 			if (key == defaultMaterialUuid || key == 0)
 				continue;
 			value->GetDeserializedTextures();
@@ -96,20 +99,25 @@ namespace Plaza::Editor {
 		}
 
 		std::cout << "Deserializing \n";
-		//ProjectSerializer::DeSerialize(filePath);
+		// ProjectSerializer::DeSerialize(filePath);
 
 		DefaultModels::Init();
 		PL_CORE_INFO(Application::Get()->activeProject->mLastSceneUuid);
-		if (Application::Get()->activeProject->mLastSceneUuid != 0 && AssetsManager::GetAsset(Application::Get()->activeProject->mLastSceneUuid)) {
-			const std::string sceneFilePath = AssetsManager::GetAsset(Application::Get()->activeProject->mLastSceneUuid)->mAssetPath.string();//Application::Get()->projectPath + "/" + AssetsManager::lastActiveScenePath;
+		if (Application::Get()->activeProject->mLastSceneUuid != 0 &&
+			AssetsManager::GetAsset(Application::Get()->activeProject->mLastSceneUuid)) {
+			const std::string sceneFilePath =
+				AssetsManager::GetAsset(Application::Get()->activeProject->mLastSceneUuid)
+					->mAssetPath
+					.string(); // Application::Get()->projectPath + "/" + AssetsManager::lastActiveScenePath;
 			bool sceneFileExists = std::filesystem::exists(sceneFilePath);
 			if (sceneFileExists) {
 				Scene* scene = Scene::GetEditorScene();
-				Scene::SetEditorScene(AssetsSerializer::DeSerializeFile<Scene>(sceneFilePath, Application::Get()->mSettings.mSceneSerializationMode));
+				Scene::SetEditorScene(AssetsSerializer::DeSerializeFile<Scene>(
+					sceneFilePath, Application::Get()->mSettings.mSceneSerializationMode));
 				Scene::SetActiveScene(Scene::GetEditorScene());
 				Scene::GetActiveScene()->RecalculateAddedComponents();
 			}
-			//if (sceneFileExists)
+			// if (sceneFileExists)
 			//	Serializer::DeSerialize(sceneFilePath, true);
 		}
 		else {
@@ -122,18 +130,22 @@ namespace Plaza::Editor {
 
 	void Project::PasteCmakeFile(const std::filesystem::path& directory) {
 		std::filesystem::path cmakeFilePath = directory / "CMakeLists.txt";
-		FilesManager::CreateFileWithData(cmakeFilePath, AssetsManager::GetEmbedResource<"Editor/DefaultAssets/NewProject/CMakeLists.txt">());
+		FilesManager::CreateFileWithData(
+			cmakeFilePath, AssetsManager::GetEmbedResource<"Editor/DefaultAssets/NewProject/CMakeLists.txt">());
 		std::filesystem::path cmakePresetsFilePath = directory / "CMakePresets.json";
-		FilesManager::CreateFileWithData(cmakePresetsFilePath, AssetsManager::GetEmbedResource<"Editor/DefaultAssets/NewProject/CMakePresets.json">());
+		FilesManager::CreateFileWithData(
+			cmakePresetsFilePath,
+			AssetsManager::GetEmbedResource<"Editor/DefaultAssets/NewProject/CMakePresets.json">());
 	}
 
 	void Project::PasteGitIgnore(const std::filesystem::path& directory) {
 		std::filesystem::path filePath = directory / ".gitignore";
-		FilesManager::CreateFileWithData(filePath, AssetsManager::GetEmbedResource<"Editor/DefaultAssets/NewProject/.gitignore">());
+		FilesManager::CreateFileWithData(
+			filePath, AssetsManager::GetEmbedResource<"Editor/DefaultAssets/NewProject/.gitignore">());
 	}
 
 	void Project::PasteAllProjectFiles(const std::filesystem::path& directory) {
 		Project::PasteCmakeFile(directory);
 		Project::PasteGitIgnore(directory);
 	}
-}
+} // namespace Plaza::Editor

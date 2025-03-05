@@ -28,35 +28,49 @@ namespace Plaza {
 	}
 
 	void AssetsLoader::LoadMetadata(Asset* asset) {
-		Metadata::MetadataStructure metadata = *AssetsSerializer::DeSerializeFile<Metadata::MetadataStructure>(asset->mAssetPath.string(), Application::Get()->mSettings.mMetaDataSerializationMode).get();
-		std::string metadataContentExtension = std::filesystem::path{ asset->mAssetPath.parent_path().string() + "/" + metadata.mContentName }.extension().string();
-		bool metadataContentExtensionIsSupported = AssetsManager::mAssetTypeByExtension.find(metadataContentExtension) != AssetsManager::mAssetTypeByExtension.end();
+		Metadata::MetadataStructure metadata =
+			*AssetsSerializer::DeSerializeFile<Metadata::MetadataStructure>(
+				 asset->mAssetPath.string(), Application::Get()->mSettings.mMetaDataSerializationMode)
+				 .get();
+		std::string metadataContentExtension =
+			std::filesystem::path{asset->mAssetPath.parent_path().string() + "/" + metadata.mContentName}
+				.extension()
+				.string();
+		bool metadataContentExtensionIsSupported =
+			AssetsManager::mAssetTypeByExtension.find(metadataContentExtension) !=
+			AssetsManager::mAssetTypeByExtension.end();
 		if (!metadataContentExtensionIsSupported)
 			return;
 		AssetType type = AssetsManager::mAssetTypeByExtension.at(metadataContentExtension);
 
 		switch (type) {
-		case AssetType::TEXTURE:
-			AssetsLoader::LoadTexture(AssetsManager::NewAsset<Asset>(std::make_shared<Asset>(Metadata::ConvertMetadataToAsset(metadata))));
-			break;
-		case AssetType::SCRIPT:
-			AssetsLoader::LoadScript(AssetsManager::NewAsset<Asset>(std::make_shared<Asset>(Metadata::ConvertMetadataToAsset(metadata))));
-			break;
-		case AssetType::SHADERS:
-			AssetsManager::AddShaders(AssetsManager::NewAsset<Asset>(std::make_shared<Asset>(Metadata::ConvertMetadataToAsset(metadata))));
-			break;
-		default:
-			AssetsManager::NewAsset<Asset>(std::make_shared<Asset>(Metadata::ConvertMetadataToAsset(metadata)));
-			break;
+			case AssetType::TEXTURE:
+				AssetsLoader::LoadTexture(AssetsManager::NewAsset<Asset>(
+					std::make_shared<Asset>(Metadata::ConvertMetadataToAsset(metadata))));
+				break;
+			case AssetType::SCRIPT:
+				AssetsLoader::LoadScript(AssetsManager::NewAsset<Asset>(
+					std::make_shared<Asset>(Metadata::ConvertMetadataToAsset(metadata))));
+				break;
+			case AssetType::SHADERS:
+				AssetsManager::AddShaders(AssetsManager::NewAsset<Asset>(
+					std::make_shared<Asset>(Metadata::ConvertMetadataToAsset(metadata))));
+				break;
+			default:
+				AssetsManager::NewAsset<Asset>(std::make_shared<Asset>(Metadata::ConvertMetadataToAsset(metadata)));
+				break;
 		}
 	}
 
 	std::shared_ptr<Model> AssetsLoader::LoadModel(Asset* asset) {
-		std::shared_ptr<Model> model = AssetsSerializer::DeSerializeFile<Model>(asset->mAssetPath.string(), Application::Get()->mSettings.mModelSerializationMode);
+		std::shared_ptr<Model> model = AssetsSerializer::DeSerializeFile<Model>(
+			asset->mAssetPath.string(), Application::Get()->mSettings.mModelSerializationMode);
 		AssetsManager::AddModel(model);
 
 		for (auto& [key, mesh] : model->mMeshes) {
-			Mesh* newMesh = VulkanRenderer::GetRenderer()->CreateNewMesh(mesh->vertices, mesh->normals, mesh->uvs, mesh->tangent, mesh->indices, mesh->materialsIndices, mesh->usingNormal, mesh->bonesHolder, {});
+			Mesh* newMesh = VulkanRenderer::GetRenderer()->CreateNewMesh(
+				mesh->vertices, mesh->normals, mesh->uvs, mesh->tangent, mesh->indices, mesh->materialsIndices,
+				mesh->usingNormal, mesh->bonesHolder, {});
 			newMesh->uuid = key;
 			AssetsManager::AddMesh(newMesh);
 		}
@@ -65,7 +79,8 @@ namespace Plaza {
 	}
 
 	std::shared_ptr<Scene> AssetsLoader::LoadScene(Asset* asset, SerializationMode serializationMode) {
-		std::shared_ptr<Scene> scene = AssetsSerializer::DeSerializeFile<Scene>(asset->mAssetPath.string(), serializationMode);
+		std::shared_ptr<Scene> scene =
+			AssetsSerializer::DeSerializeFile<Scene>(asset->mAssetPath.string(), serializationMode);
 		Scene::GetEditorScene()->Copy(scene.get());
 		return scene;
 	}
@@ -73,14 +88,13 @@ namespace Plaza {
 	static std::vector<std::future<void>> futures;
 	void AssetsLoader::LoadPrefab(Asset* asset) {
 		if (!AssetsManager::GetPrefab(asset->mAssetUuid)) {
-			std::shared_ptr<Prefab> prefab = AssetsSerializer::DeSerializeFile<Prefab>(asset->mAssetPath.string(), Application::Get()->mSettings.mPrefabSerializationMode);
+			std::shared_ptr<Prefab> prefab = AssetsSerializer::DeSerializeFile<Prefab>(
+				asset->mAssetPath.string(), Application::Get()->mSettings.mPrefabSerializationMode);
 			AssetsManager::AddPrefab(prefab);
 		}
 	}
 
-	void AssetsLoader::LoadScript(Asset* asset) {
-		AssetsManager::AddScript(static_cast<Script*>(asset));
-	};
+	void AssetsLoader::LoadScript(Asset* asset) { AssetsManager::AddScript(static_cast<Script*>(asset)); };
 	Texture* AssetsLoader::LoadTexture(Asset* asset) {
 		if (!asset)
 			return new Texture();
@@ -92,4 +106,4 @@ namespace Plaza {
 		AssetsManager::mTextures.emplace(asset->mAssetUuid, texture);
 		return texture;
 	}
-}
+} // namespace Plaza

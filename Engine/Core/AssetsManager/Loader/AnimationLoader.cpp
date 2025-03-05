@@ -4,7 +4,8 @@
 
 namespace Plaza {
 	Animation& AssetsLoader::LoadAnimation(Asset* asset, SerializationMode serializationMode) {
-		Animation animation = *AssetsSerializer::DeSerializeFile<Animation>(asset->mAssetPath.string(), serializationMode).get();
+		Animation animation =
+			*AssetsSerializer::DeSerializeFile<Animation>(asset->mAssetPath.string(), serializationMode).get();
 		return AssetsManager::AddAnimation(animation);
 	}
-}
+} // namespace Plaza

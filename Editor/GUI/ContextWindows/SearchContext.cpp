@@ -4,9 +4,7 @@
 #include "Engine/Components/Rendering/Material.h"
 
 namespace Plaza::Editor {
-	void SearchContext::Init() {
-
-	}
+	void SearchContext::Init() {}
 
 	void SearchContext::Update(Scene* scene) {
 		bool wasOpen = mIsOpen;
@@ -41,13 +39,13 @@ namespace Plaza::Editor {
 
 			ImGui::EndChild();
 		}
-		//if (wasOpen && !mIsOpen) {
+		// if (wasOpen && !mIsOpen) {
 		//	ExecuteCallback();
-		//}
+		// }
 		ImGui::End();
 	}
-	//void SearchContext::SetValues(std::vector<std::any&>& values) {
+	// void SearchContext::SetValues(std::vector<std::any&>& values) {
 	void SearchContext::SetValues() {
-		//mValues = values;
+		// mValues = values;
 	}
-}
+} // namespace Plaza::Editor

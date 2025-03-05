@@ -20,24 +20,19 @@
 #ifdef WIN32
 #include <windows.h>
 #endif
-#include <codecvt> 
+#include <codecvt>
 
-//#include "Embed.h"
+// #include "Embed.h"
 
 int main() {
-	//EmbedResources::Init();
+	// EmbedResources::Init();
 	Plaza::Log::Init();
 	Plaza::Application::Init();
 	return 0;
 }
 
 #ifdef WIN32
-int CALLBACK WinMain(
-	_In_ HINSTANCE hInstance,
-	_In_ HINSTANCE hPrevInstance,
-	_In_ LPSTR     lpCmdLine,
-	_In_ int       nCmdShow
-) {
+int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow) {
 	main();
 }
 #endif

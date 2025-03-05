@@ -22,13 +22,13 @@ out vec4 FragColor;
 float attenuate(vec3 lightDirection, float radius) {
     float cutoff = 0.5;
     float distanceToLight = length(lightDirection);
-    
+
     // Adjust attenuation based on the light's radius
     float attenuation = distanceToLight / (radius * 0.5); // Adjust the factor as needed
-    
+
     // Use a smoothstep function for smoother transition
     attenuation = smoothstep(0.0, 1.0, 1.0 - attenuation);
-    
+
     return attenuation;
 }
 

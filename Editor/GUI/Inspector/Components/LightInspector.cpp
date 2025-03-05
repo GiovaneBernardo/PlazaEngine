@@ -21,6 +21,5 @@ namespace Plaza::Editor {
 
 			ImGui::PopID();
 		}
-
 	}
-}
+} // namespace Plaza::Editor

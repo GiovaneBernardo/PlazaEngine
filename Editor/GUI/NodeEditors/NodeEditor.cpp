@@ -12,31 +12,30 @@ namespace Plaza::Editor {
 	void NodeEditor::InitNodeEditor() {
 		ax::NodeEditor::Config config;
 		config.SettingsFile = nullptr;
-		//config.SettingsFile = "Simple.json";
+		// config.SettingsFile = "Simple.json";
 		mContext = ax::NodeEditor::CreateEditor(&config);
 
-		//Node finalNode = Node();
-		//finalNode.name = "Final Node";
-		//this->AddInputPin(finalNode, Pin(0, "In", PinType::Object));
-		//this->AddOutputPin(finalNode, Pin(0, "Out", PinType::Object));
-		//finalNode.processFunction = [](Node& node) {
+		// Node finalNode = Node();
+		// finalNode.name = "Final Node";
+		// this->AddInputPin(finalNode, Pin(0, "In", PinType::Object));
+		// this->AddOutputPin(finalNode, Pin(0, "Out", PinType::Object));
+		// finalNode.processFunction = [](Node& node) {
 		//	Node& previousNode = *node.inputs[0].nodes[1];
-		//	node.outputs[0].value = previousNode.outputs[0].value;//.SetValue(previousNode.outputs[0].GetValue<void*>(), false);
+		//	node.outputs[0].value = previousNode.outputs[0].value;//.SetValue(previousNode.outputs[0].GetValue<void*>(),
+		//false);
 		//	};
-		//this->AddNodeToCreate(finalNode);
+		// this->AddNodeToCreate(finalNode);
 		//
-		//finalNode = this->SpawnNode("Final Node");
-		//mFinalNodeId = finalNode.id;
+		// finalNode = this->SpawnNode("Final Node");
+		// mFinalNodeId = finalNode.id;
 
 		Node emptyNode = Node();
 		emptyNode.name = "Empty Node";
 		this->AddOutputPin(emptyNode, Pin(0, "Out", PinType::Unknown));
-		emptyNode.processFunction = [](Node& node) {
-			};
+		emptyNode.processFunction = [](Node& node) {};
 		this->AddNodeToCreate(emptyNode);
 
 		this->InitMathNodes();
-
 	};
 
 	void NodeEditor::Process() {
@@ -49,10 +48,10 @@ namespace Plaza::Editor {
 			ax::NodeEditor::NodeId nodeId = orderedNodeIds[i];
 			if (GetNode(nodeId.Get()))
 				GetNode(nodeId.Get())->processFunction(*GetNode(nodeId.Get()));
-			//auto it = std::find_if(mNodes.begin(), mNodes.end(), [&](const Node& node) {
+			// auto it = std::find_if(mNodes.begin(), mNodes.end(), [&](const Node& node) {
 			//	return node.id == nodeId.Get();
 			//	});
-			//if (it != mNodes.end())
+			// if (it != mNodes.end())
 			//	std::swap(*it, mNodes[i]);
 		}
 		ax::NodeEditor::SetCurrentEditor(nullptr);
@@ -65,7 +64,7 @@ namespace Plaza::Editor {
 	void NodeEditor::CopyDeSerializedInput(Pin& from, Pin& to) {
 		to.subNodes.clear();
 		for (Node& subNode : from.subNodes) {
-			//pin.subNodes.push_back(subNode);
+			// pin.subNodes.push_back(subNode);
 			SpawnNode(subNode.name, &to, false);
 		}
 
@@ -83,7 +82,8 @@ namespace Plaza::Editor {
 	}
 
 	void NodeEditor::Update(Scene* scene) {
-		ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoNavFocus;
+		ImGuiWindowFlags windowFlags =
+			ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoNavFocus;
 
 		if (ImGui::Begin("Render Graph Editor", &mExpanded, windowFlags)) {
 			ImGui::BeginChild("Selection", ImVec2(300.0f, 0));
@@ -93,14 +93,18 @@ namespace Plaza::Editor {
 			}
 
 			if (ImGui::Button("Serialize Nodes")) {
-				AssetsSerializer::SerializeFile<NodesData>(mNodesData, FileDialog::SaveFileDialog(Standards::plazaRenderGraph.c_str()), Application::Get()->mSettings.mRenderGraphSerializationMode);
-				//Application::Get()->mEditor->mGui.mRenderGraphEditor->LoadRenderGraphNodes(graph);
+				AssetsSerializer::SerializeFile<NodesData>(
+					mNodesData, FileDialog::SaveFileDialog(Standards::plazaRenderGraph.c_str()),
+					Application::Get()->mSettings.mRenderGraphSerializationMode);
+				// Application::Get()->mEditor->mGui.mRenderGraphEditor->LoadRenderGraphNodes(graph);
 			}
 
 			if (ImGui::Button("DeSerialize Nodes")) {
-				std::shared_ptr<NodesData> data = AssetsSerializer::DeSerializeFile<NodesData>(FileDialog::OpenFileDialog(Standards::plazaRenderGraph.c_str()), Application::Get()->mSettings.mRenderGraphSerializationMode);
+				std::shared_ptr<NodesData> data = AssetsSerializer::DeSerializeFile<NodesData>(
+					FileDialog::OpenFileDialog(Standards::plazaRenderGraph.c_str()),
+					Application::Get()->mSettings.mRenderGraphSerializationMode);
 				PL_CORE_INFO(data->mNodes.size());
-				mNodesData = NodesData();//= *data.get();
+				mNodesData = NodesData(); //= *data.get();
 				std::map<uintptr_t, uintptr_t> correctedIds = std::map<uintptr_t, uintptr_t>();
 				for (auto& [key, node] : data->mNodes) {
 					Node& newNode = this->SpawnNode(node.name, nullptr, false);
@@ -109,26 +113,27 @@ namespace Plaza::Editor {
 
 				for (auto& [key, node] : mNodesData.mNodes) {
 					uintptr_t correctedId = correctedIds.at(key);
-					//if (data->mNodes[correctedId].id != key)
+					// if (data->mNodes[correctedId].id != key)
 					//	continue;
 					int index = 0;
 					for (auto& pin : node.inputs) {
-						//pin.subNodes.clear();
-						//for (Node& subNode : data->mNodes[correctedId].inputs[index].subNodes) {
+						// pin.subNodes.clear();
+						// for (Node& subNode : data->mNodes[correctedId].inputs[index].subNodes) {
 						//	//pin.subNodes.push_back(subNode);
 						//	SpawnNode(subNode.name, &pin, false);
-						//}
-						//data->mNodes[correctedId].inputs[index].value.mCopyValueFactory = pin.value.mCopyValueFactory;
+						// }
+						// data->mNodes[correctedId].inputs[index].value.mCopyValueFactory =
+						// pin.value.mCopyValueFactory;
 
-						//pin.NewValue();
-						//pin.value.SetValuePtr(data->mNodes[correctedId].inputs[index].value.CopyValue(), false);
+						// pin.NewValue();
+						// pin.value.SetValuePtr(data->mNodes[correctedId].inputs[index].value.CopyValue(), false);
 						CopyDeSerializedInput(data->mNodes[correctedId].inputs[index], pin);
 						index++;
 					}
 				}
 
 				SpawnLockedNodes();
-				//Application::Get()->mEditor->mGui.mRenderGraphEditor->LoadRenderGraphNodes(graph);
+				// Application::Get()->mEditor->mGui.mRenderGraphEditor->LoadRenderGraphNodes(graph);
 			}
 
 			for (const auto& [key, value] : mTemplateNodes) {
@@ -157,12 +162,16 @@ namespace Plaza::Editor {
 			}
 
 			static ax::NodeEditor::PinId draggedPinId;
-			//draggedPinId = {};
+			// draggedPinId = {};
 			if (ax::NodeEditor::BeginCreate()) {
 				ax::NodeEditor::PinId inputPinId, outputPinId;
 				if (ax::NodeEditor::QueryNewLink(&inputPinId, &outputPinId)) {
-					Pin* inputPin = GetPin(inputPinId.Get());//mNodesData.mPins.find(inputPinId.Get()) != mNodesData.mPins.end() ? mNodesData.mPins[inputPinId.Get()] : nullptr;
-					Pin* outputPin = GetPin(outputPinId.Get());//mNodesData.mPins.find(outputPinId.Get()) != mNodesData.mPins.end() ? mNodesData.mPins[outputPinId.Get()] : nullptr;
+					Pin* inputPin =
+						GetPin(inputPinId.Get()); // mNodesData.mPins.find(inputPinId.Get()) != mNodesData.mPins.end() ?
+												  // mNodesData.mPins[inputPinId.Get()] : nullptr;
+					Pin* outputPin =
+						GetPin(outputPinId.Get()); // mNodesData.mPins.find(outputPinId.Get()) != mNodesData.mPins.end()
+												   // ? mNodesData.mPins[outputPinId.Get()] : nullptr;
 					// QueryNewLink returns true if editor want to create new link between pins.
 					//
 					// Link can be created only for two valid pins, it is up to you to
@@ -184,37 +193,40 @@ namespace Plaza::Editor {
 						draggedPinId = outputPinId; // Track the pin being dragged
 					}
 
-					if (inputPinId && outputPinId) { // both are valid, let's accept link 
+					if (inputPinId && outputPinId) { // both are valid, let's accept link
 						// ed::AcceptNewItem() return true when user release mouse button.
 						if (ax::NodeEditor::AcceptNewItem()) {
 							// Since we accepted new link, lets add one to our list of links.
-							mNodesData.mLinks.push_back({ ax::NodeEditor::LinkId(mNextLinkId++), inputPinId, outputPinId });
+							mNodesData.mLinks.push_back(
+								{ax::NodeEditor::LinkId(mNextLinkId++), inputPinId, outputPinId});
 
 							outputPin->nodes.push_back(inputPin->nodes[0]);
 
 							// Draw new link.
-							ax::NodeEditor::Link(mNodesData.mLinks.back().id, mNodesData.mLinks.back().startPinID, mNodesData.mLinks.back().endPinID);
+							ax::NodeEditor::Link(mNodesData.mLinks.back().id, mNodesData.mLinks.back().startPinID,
+												 mNodesData.mLinks.back().endPinID);
 						}
-
 
 						// You may choose to reject connection between these nodes
 						// by calling ed::RejectNewItem(). This will allow editor to give
 						// visual feedback by changing link thickness and color.
 					}
 					else if (outputPinId && !inputPinId) {
-
 					}
 				}
 				else if (ax::NodeEditor::AcceptNewItem()) {
 					// Dropped link on an empty space
-					Pin* draggedPin = mNodesData.mPins.find(draggedPinId.Get()) != mNodesData.mPins.end() ? mNodesData.mPins[draggedPinId.Get()] : nullptr;
+					Pin* draggedPin = mNodesData.mPins.find(draggedPinId.Get()) != mNodesData.mPins.end()
+										  ? mNodesData.mPins[draggedPinId.Get()]
+										  : nullptr;
 					if (draggedPin && draggedPin->name != "Out") {
 						Node& newNode = this->SpawnNode(draggedPin->value.type().name());
-						mNodesData.mLinks.push_back({ ax::NodeEditor::LinkId(mNextLinkId++), newNode.outputs[0].id, draggedPin->id });
+						mNodesData.mLinks.push_back(
+							{ax::NodeEditor::LinkId(mNextLinkId++), newNode.outputs[0].id, draggedPin->id});
 						draggedPin->nodes.push_back(newNode.outputs[0].nodes[0]);
-						ax::NodeEditor::Link(mNodesData.mLinks.back().id, mNodesData.mLinks.back().startPinID, mNodesData.mLinks.back().endPinID);
+						ax::NodeEditor::Link(mNodesData.mLinks.back().id, mNodesData.mLinks.back().startPinID,
+											 mNodesData.mLinks.back().endPinID);
 					}
-
 				}
 			}
 			ax::NodeEditor::EndCreate();
@@ -237,7 +249,6 @@ namespace Plaza::Editor {
 					bool selected = EnumReflection::GetEnumName(typeRawName, index);
 					bool clicked = ImGui::Selectable(name, &selected);
 
-
 					sEnumToShowOnPopup->SetValue<int>(index, false);
 					if (clicked) {
 						sEnumToShowOnPopup = nullptr;
@@ -246,10 +257,10 @@ namespace Plaza::Editor {
 					index++;
 				}
 
-				//if (sEnumToShowOnPopup)
+				// if (sEnumToShowOnPopup)
 				//	PrimitivesInspector::InspectAny(*sEnumToShowOnPopup);
 
-				//for (int i = 0; i < items.size(); ++i)
+				// for (int i = 0; i < items.size(); ++i)
 				//{
 				//	bool is_selected = (current_item == i);
 				//	if (ImGui::Selectable(items[i].c_str(), is_selected))
@@ -260,7 +271,7 @@ namespace Plaza::Editor {
 				//
 				//	if (is_selected)
 				//		ImGui::SetItemDefaultFocus(); // Focus on the currently selected item
-				//}
+				// }
 				ImGui::EndPopup();
 			}
 			else
@@ -270,7 +281,7 @@ namespace Plaza::Editor {
 			ax::NodeEditor::End();
 
 			ax::NodeEditor::SetCurrentEditor(nullptr);
-			//if (ImGui::BeginPopup("EnumPopup"))
+			// if (ImGui::BeginPopup("EnumPopup"))
 			//{
 			//	for (int i = 0; i < IM_ARRAYSIZE(formats); ++i) {
 			//		bool isSelected = (currentFormat == formats[i]);
@@ -280,9 +291,8 @@ namespace Plaza::Editor {
 			//	}
 			//
 			//	ImGui::EndPopup();
-			//}
+			// }
 		}
-
 
 		ImGui::End();
 	};
@@ -305,7 +315,7 @@ namespace Plaza::Editor {
 					ImGui::Text(input.name.c_str());
 					ImGui::SameLine();
 					if (ImGui::Button("+")) {
-						//input.value.GetValue<std::vector<std::any>>()->push_back({});
+						// input.value.GetValue<std::vector<std::any>>()->push_back({});
 						this->SpawnNode(input.value.type().name(), &input, false);
 					}
 					for (Node& subNode : input.subNodes) {
@@ -353,12 +363,11 @@ namespace Plaza::Editor {
 			pinHolder->subNodes.push_back(nodeToCopy);
 			nodePtr = &pinHolder->subNodes.back();
 		}
-		else
-		{
+		else {
 			mNodesData.mNodes.emplace(newId, nodeToCopy);
 			nodePtr = &mNodesData.mNodes.at(newId);
 		}
-		Node& newNode = *nodePtr;//mNodes.at(newId);
+		Node& newNode = *nodePtr; // mNodes.at(newId);
 		newNode.id = newId;
 		newNode.inputs.clear();
 		newNode.outputs.clear();
@@ -370,7 +379,7 @@ namespace Plaza::Editor {
 			newInput.value.SetType(oldInfo);
 			newInput.id = GetNextId();
 			newInput.nodes.clear();
-			//newInput.value = Any();
+			// newInput.value = Any();
 			if (useDefaultValue)
 				newInput.NewValue();
 			this->AddInputPin(newNode, newInput);
@@ -391,11 +400,11 @@ namespace Plaza::Editor {
 
 	void NodeEditor::AddNodeToCreate(const Node& newNode) {
 		mTemplateNodes.emplace(newNode.name, newNode);
-		//mNodes.emplace_back(GetNextId(), "Branch");
-		//mNodes.back().Inputs.emplace_back(GetNextId(), "", PinType::Flow);
-		//mNodes.back().Inputs.emplace_back(GetNextId(), "Condition", PinType::Bool);
-		//mNodes.back().Outputs.emplace_back(GetNextId(), "True", PinType::Flow);
-		//mNodes.back().Outputs.emplace_back(GetNextId(), "False", PinType::Flow);
+		// mNodes.emplace_back(GetNextId(), "Branch");
+		// mNodes.back().Inputs.emplace_back(GetNextId(), "", PinType::Flow);
+		// mNodes.back().Inputs.emplace_back(GetNextId(), "Condition", PinType::Bool);
+		// mNodes.back().Outputs.emplace_back(GetNextId(), "True", PinType::Flow);
+		// mNodes.back().Outputs.emplace_back(GetNextId(), "False", PinType::Flow);
 	}
 
 	NodeEditor::PinType NodeEditor::ChoosePinType(const std::type_info& info) {
@@ -475,8 +484,7 @@ namespace Plaza::Editor {
 		return order;
 	}
 
-	bool NodeEditor::BeginNodeCombo(const char* label, const char* preview_value, ImGuiComboFlags flags)
-	{
+	bool NodeEditor::BeginNodeCombo(const char* label, const char* preview_value, ImGuiComboFlags flags) {
 		using namespace ImGui;
 
 		ImGuiContext& g = *GImGui;
@@ -487,7 +495,8 @@ namespace Plaza::Editor {
 		if (window->SkipItems)
 			return false;
 
-		IM_ASSERT((flags & (ImGuiComboFlags_NoArrowButton | ImGuiComboFlags_NoPreview)) != (ImGuiComboFlags_NoArrowButton | ImGuiComboFlags_NoPreview));
+		IM_ASSERT((flags & (ImGuiComboFlags_NoArrowButton | ImGuiComboFlags_NoPreview)) !=
+				  (ImGuiComboFlags_NoArrowButton | ImGuiComboFlags_NoPreview));
 
 		const ImGuiStyle& style = g.Style;
 		const ImGuiID id = window->GetID(label);
@@ -496,8 +505,11 @@ namespace Plaza::Editor {
 		const ImVec2 label_size = CalcTextSize(label, NULL, true);
 		const float expected_w = CalcItemWidth();
 		const float w = (flags & ImGuiComboFlags_NoPreview) ? arrow_size : expected_w;
-		const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y * 2.0f));
-		const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0.0f));
+		const ImRect frame_bb(window->DC.CursorPos,
+							  window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y * 2.0f));
+		const ImRect total_bb(frame_bb.Min,
+							  frame_bb.Max +
+								  ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0.0f));
 		ItemSize(total_bb, style.FramePadding.y);
 		if (!ItemAdd(total_bb, id, &frame_bb))
 			return false;
@@ -510,23 +522,27 @@ namespace Plaza::Editor {
 		const float value_x2 = ImMax(frame_bb.Min.x, frame_bb.Max.x - arrow_size);
 		RenderNavHighlight(frame_bb, id);
 		if (!(flags & ImGuiComboFlags_NoPreview))
-			window->DrawList->AddRectFilled(frame_bb.Min, ImVec2(value_x2, frame_bb.Max.y), frame_col, style.FrameRounding, (flags & ImGuiComboFlags_NoArrowButton) ? ImDrawCornerFlags_All : ImDrawCornerFlags_Left);
-		if (!(flags & ImGuiComboFlags_NoArrowButton))
-		{
+			window->DrawList->AddRectFilled(
+				frame_bb.Min, ImVec2(value_x2, frame_bb.Max.y), frame_col, style.FrameRounding,
+				(flags & ImGuiComboFlags_NoArrowButton) ? ImDrawCornerFlags_All : ImDrawCornerFlags_Left);
+		if (!(flags & ImGuiComboFlags_NoArrowButton)) {
 			ImU32 bg_col = GetColorU32((popup_open || hovered) ? ImGuiCol_ButtonHovered : ImGuiCol_Button);
 			ImU32 text_col = GetColorU32(ImGuiCol_Text);
-			window->DrawList->AddRectFilled(ImVec2(value_x2, frame_bb.Min.y), frame_bb.Max, bg_col, style.FrameRounding, (w <= arrow_size) ? ImDrawCornerFlags_All : ImDrawCornerFlags_Right);
+			window->DrawList->AddRectFilled(ImVec2(value_x2, frame_bb.Min.y), frame_bb.Max, bg_col, style.FrameRounding,
+											(w <= arrow_size) ? ImDrawCornerFlags_All : ImDrawCornerFlags_Right);
 			if (value_x2 + arrow_size - style.FramePadding.x <= frame_bb.Max.x)
-				RenderArrow(window->DrawList, ImVec2(value_x2 + style.FramePadding.y, frame_bb.Min.y + style.FramePadding.y), text_col, ImGuiDir_Down, 1.0f);
+				RenderArrow(window->DrawList,
+							ImVec2(value_x2 + style.FramePadding.y, frame_bb.Min.y + style.FramePadding.y), text_col,
+							ImGuiDir_Down, 1.0f);
 		}
 		RenderFrameBorder(frame_bb.Min, frame_bb.Max, style.FrameRounding);
 		if (preview_value != NULL && !(flags & ImGuiComboFlags_NoPreview))
-			RenderTextClipped(frame_bb.Min + style.FramePadding, ImVec2(value_x2, frame_bb.Max.y), preview_value, NULL, NULL, ImVec2(0.0f, 0.0f));
+			RenderTextClipped(frame_bb.Min + style.FramePadding, ImVec2(value_x2, frame_bb.Max.y), preview_value, NULL,
+							  NULL, ImVec2(0.0f, 0.0f));
 		if (label_size.x > 0)
 			RenderText(ImVec2(frame_bb.Max.x + style.ItemInnerSpacing.x, frame_bb.Min.y + style.FramePadding.y), label);
 
-		if ((pressed || g.NavActivateId == id) && !popup_open)
-		{
+		if ((pressed || g.NavActivateId == id) && !popup_open) {
 			if (window->DC.NavLayerCurrent == 0)
 				window->NavLastIds[0] = id;
 			OpenPopupEx(id, ImGuiPopupFlags_None);
@@ -536,21 +552,23 @@ namespace Plaza::Editor {
 		if (!popup_open)
 			return false;
 
-		if (has_window_size_constraint)
-		{
+		if (has_window_size_constraint) {
 			g.NextWindowData.Flags |= ImGuiNextWindowDataFlags_HasSizeConstraint;
 			g.NextWindowData.SizeConstraintRect.Min.x = ImMax(g.NextWindowData.SizeConstraintRect.Min.x, w);
 		}
-		else
-		{
+		else {
 			if ((flags & ImGuiComboFlags_HeightMask_) == 0)
 				flags |= ImGuiComboFlags_HeightRegular;
-			IM_ASSERT(ImIsPowerOfTwo(flags & ImGuiComboFlags_HeightMask_));    // Only one
+			IM_ASSERT(ImIsPowerOfTwo(flags & ImGuiComboFlags_HeightMask_)); // Only one
 			int popup_max_height_in_items = -1;
-			if (flags & ImGuiComboFlags_HeightRegular)     popup_max_height_in_items = 8;
-			else if (flags & ImGuiComboFlags_HeightSmall)  popup_max_height_in_items = 4;
-			else if (flags & ImGuiComboFlags_HeightLarge)  popup_max_height_in_items = 20;
-			SetNextWindowSizeConstraints(ImVec2(w, 0.0f), ImVec2(FLT_MAX, CalcMaxPopupHeightFromItemCount(popup_max_height_in_items)));
+			if (flags & ImGuiComboFlags_HeightRegular)
+				popup_max_height_in_items = 8;
+			else if (flags & ImGuiComboFlags_HeightSmall)
+				popup_max_height_in_items = 4;
+			else if (flags & ImGuiComboFlags_HeightLarge)
+				popup_max_height_in_items = 20;
+			SetNextWindowSizeConstraints(ImVec2(w, 0.0f),
+										 ImVec2(FLT_MAX, CalcMaxPopupHeightFromItemCount(popup_max_height_in_items)));
 		}
 
 		char name[16];
@@ -566,7 +584,9 @@ namespace Plaza::Editor {
 		pos = ax::NodeEditor::CanvasToScreen(pos);
 
 		// Move ed::Suspend and ed::Resume here
-		ImGuiWindowFlags window_flags = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_Popup | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoMove;
+		ImGuiWindowFlags window_flags = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_Popup |
+										ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+										ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoMove;
 
 		ax::NodeEditor::Suspend();
 		PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(style.FramePadding.x, style.WindowPadding.y));
@@ -575,8 +595,7 @@ namespace Plaza::Editor {
 
 		PopStyleVar();
 
-		if (!ret)
-		{
+		if (!ret) {
 			EndPopup();
 			IM_ASSERT(0);
 			return false;
@@ -588,6 +607,6 @@ namespace Plaza::Editor {
 		ImGui::EndPopup();
 
 		ax::NodeEditor::Resume();
-		//ImGui::SetWindowPos(ImVec2(500.0f, 200.0f));
+		// ImGui::SetWindowPos(ImVec2(500.0f, 200.0f));
 	}
-}
+} // namespace Plaza::Editor

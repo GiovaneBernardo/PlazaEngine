@@ -2,14 +2,15 @@
 
 namespace Plaza::Editor {
 	class SearchContext : public GuiWindow {
-	public:
+	  public:
 		std::function<void(uint64_t)> mCallback;
-		SearchContext(std::string name, GuiLayer layer = GuiLayer::UNKNOWN, bool startOpen = true) : mName(name), GuiWindow(layer, startOpen) {
+		SearchContext(std::string name, GuiLayer layer = GuiLayer::UNKNOWN, bool startOpen = true)
+			: mName(name), GuiWindow(layer, startOpen) {
 			this->SetOpen(false);
 		};
 		std::string mName;
 		char mSearchBuffer[512] = "";
-		//std::vector<std::any&> mValues;
+		// std::vector<std::any&> mValues;
 		void Init() override;
 		void Update(Scene* scene) override;
 		void SetValues();
@@ -18,6 +19,6 @@ namespace Plaza::Editor {
 			mCallback(uuid);
 			this->SetOpen(false);
 		}
-		//void SetValues(std::vector<std::any&>& values);
+		// void SetValues(std::vector<std::any&>& values);
 	};
-}
+} // namespace Plaza::Editor

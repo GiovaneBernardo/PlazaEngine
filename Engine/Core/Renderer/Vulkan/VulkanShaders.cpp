@@ -18,7 +18,6 @@ namespace Plaza {
 		return shaderModule;
 	}
 
-
 	std::vector<char> VulkanShaders::ReadFile(const std::string& filename) {
 		std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
@@ -66,17 +65,20 @@ namespace Plaza {
 		return attributeDescriptions;
 	}
 
-	void VulkanShaders::InitializeDefaultValues(VkDevice device, VkRenderPass renderPass, int width, int height, VkDescriptorSetLayout descriptorSetLayout, VkPipelineLayoutCreateInfo pipelineLayoutInfo, std::vector<VkPushConstantRange> pushConstantRanges, bool useVertexInputInfo) {
+	void VulkanShaders::InitializeDefaultValues(VkDevice device, VkRenderPass renderPass, int width, int height,
+												VkDescriptorSetLayout descriptorSetLayout,
+												VkPipelineLayoutCreateInfo pipelineLayoutInfo,
+												std::vector<VkPushConstantRange> pushConstantRanges,
+												bool useVertexInputInfo) {
 		auto vertShaderCode = ReadFile(mVertexShaderPath);
 		auto fragShaderCode = ReadFile(mFragmentShaderPath);
-		//auto geomShaderCode = readFile(mGeometryShaderPath);
+		// auto geomShaderCode = readFile(mGeometryShaderPath);
 
 		vertShaderModule = CreateShaderModule(vertShaderCode, device);
 		fragShaderModule = CreateShaderModule(fragShaderCode, device);
-		//VkShaderModule geomShaderModule = createShaderModule(geomShaderCode, device);
+		// VkShaderModule geomShaderModule = createShaderModule(geomShaderCode, device);
 
-		if (!mVertexShaderPath.empty())
-		{
+		if (!mVertexShaderPath.empty()) {
 			VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
 			vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 			vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
@@ -85,8 +87,7 @@ namespace Plaza {
 			mShaderStages.push_back(vertShaderStageInfo);
 		}
 
-		if (!mFragmentShaderPath.empty())
-		{
+		if (!mFragmentShaderPath.empty()) {
 			VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
 			fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 			fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
@@ -95,7 +96,7 @@ namespace Plaza {
 			mShaderStages.push_back(fragShaderStageInfo);
 		}
 
-		//f (!mGeometryShaderPath.empty())
+		// f (!mGeometryShaderPath.empty())
 		//
 		//	VkPipelineShaderStageCreateInfo geomShaderStageInfo{};
 		//	geomShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -124,7 +125,7 @@ namespace Plaza {
 		viewport.maxDepth = 1.0f;
 
 		VkRect2D scissor{};
-		scissor.offset = { 0, 0 };
+		scissor.offset = {0, 0};
 		scissor.extent.width = (float)width;
 		scissor.extent.height = (float)height;
 
@@ -139,8 +140,7 @@ namespace Plaza {
 		mRasterizer.lineWidth = 1.0f;
 		mRasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
 		mRasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
-		if (!useVertexInputInfo)
-		{
+		if (!useVertexInputInfo) {
 			mRasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 		}
 
@@ -148,10 +148,9 @@ namespace Plaza {
 		mMultisampling.sampleShadingEnable = VK_FALSE;
 		mMultisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
 
-
-
 		VkPipelineColorBlendAttachmentState colorBlendAttachment{};
-		colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+		colorBlendAttachment.colorWriteMask =
+			VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 		colorBlendAttachment.blendEnable = VK_TRUE;
 		colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
 		colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
@@ -165,22 +164,19 @@ namespace Plaza {
 		mColorBlending.attachmentCount = 1;
 		mColorBlending.pAttachments = &colorBlendAttachment;
 
-		std::vector<VkDynamicState> dynamicStates = {
-	VK_DYNAMIC_STATE_VIEWPORT,
-	VK_DYNAMIC_STATE_SCISSOR
-		};
+		std::vector<VkDynamicState> dynamicStates = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
 
 		mDynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
 		mDynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
 		mDynamicState.pDynamicStates = dynamicStates.data();
 
-		if (useVertexInputInfo)
-		{
+		if (useVertexInputInfo) {
 			// Populate VkVertexInputBindingDescription (if needed)
 			VkVertexInputBindingDescription bindingDescription = {};
-			bindingDescription.binding = 0; // Assuming the binding is 0
+			bindingDescription.binding = 0;				   // Assuming the binding is 0
 			bindingDescription.stride = sizeof(glm::vec3); // Adjust the stride based on your vertex data structure
-			bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX; // or VK_VERTEX_INPUT_RATE_INSTANCE if using instancing
+			bindingDescription.inputRate =
+				VK_VERTEX_INPUT_RATE_VERTEX; // or VK_VERTEX_INPUT_RATE_INSTANCE if using instancing
 
 			std::array<VkVertexInputBindingDescription, 2> bindingDescriptions = {};
 			bindingDescriptions[0].binding = 0;
@@ -221,8 +217,7 @@ namespace Plaza {
 			mVertexInputInfo.vertexAttributeDescriptionCount = attributeDescriptions.size();
 			mVertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 		}
-		else
-		{
+		else {
 			mVertexInputInfo.vertexBindingDescriptionCount = 0;
 			mVertexInputInfo.vertexAttributeDescriptionCount = 0;
 		}
@@ -237,44 +232,37 @@ namespace Plaza {
 		mDepthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
 		mDepthStencil.depthTestEnable = VK_TRUE;
 		mDepthStencil.depthWriteEnable = VK_TRUE;
-		//mDepthStencil.depthWriteEnable = VK_FALSE;
+		// mDepthStencil.depthWriteEnable = VK_FALSE;
 		mDepthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
 		mDepthStencil.depthBoundsTestEnable = VK_FALSE;
 		mDepthStencil.stencilTestEnable = VK_FALSE;
-
 	}
 
-	void VulkanShaders::Init(VkDevice device, VkRenderPass renderPass, int width, int height, VkDescriptorSetLayout descriptorSetLayout, VkPipelineLayoutCreateInfo pipelineLayoutInfo, std::vector<VkPushConstantRange> pushConstantRanges, bool useVertexInputInfo) {
-		//InitializeDefaultValues(device, renderPass, width, height, descriptorSetLayout, pipelineLayoutInfo, pushConstantRanges, useVertexInputInfo);
+	void VulkanShaders::Init(VkDevice device, VkRenderPass renderPass, int width, int height,
+							 VkDescriptorSetLayout descriptorSetLayout, VkPipelineLayoutCreateInfo pipelineLayoutInfo,
+							 std::vector<VkPushConstantRange> pushConstantRanges, bool useVertexInputInfo) {
+		// InitializeDefaultValues(device, renderPass, width, height, descriptorSetLayout, pipelineLayoutInfo,
+		// pushConstantRanges, useVertexInputInfo);
 
-		InitializeFull(device, pipelineLayoutInfo, useVertexInputInfo, width, height, mShaderStages, mVertexInputInfo, mInputAssembly, mViewportState, mRasterizer, mMultisampling, mColorBlending, mDynamicState, renderPass, mDepthStencil);
+		InitializeFull(device, pipelineLayoutInfo, useVertexInputInfo, width, height, mShaderStages, mVertexInputInfo,
+					   mInputAssembly, mViewportState, mRasterizer, mMultisampling, mColorBlending, mDynamicState,
+					   renderPass, mDepthStencil);
 	}
 
 	void VulkanShaders::InitializeFull(
-		VkDevice device,
-		VkPipelineLayoutCreateInfo pipelineLayoutInfo,
-		bool useVertexInputInfo,
-		int width,
-		int height,
-		std::vector<VkPipelineShaderStageCreateInfo> shaderStages,
-		VkPipelineVertexInputStateCreateInfo vertexInputInfo,
-		VkPipelineInputAssemblyStateCreateInfo inputAssembly,
-		VkPipelineViewportStateCreateInfo viewportState,
-		VkPipelineRasterizationStateCreateInfo rasterizer,
-		VkPipelineMultisampleStateCreateInfo multisampling,
-		VkPipelineColorBlendStateCreateInfo colorBlending,
-		VkPipelineDynamicStateCreateInfo dynamicState,
-		VkRenderPass renderPass,
-		VkPipelineDepthStencilStateCreateInfo depthStencil,
+		VkDevice device, VkPipelineLayoutCreateInfo pipelineLayoutInfo, bool useVertexInputInfo, int width, int height,
+		std::vector<VkPipelineShaderStageCreateInfo> shaderStages, VkPipelineVertexInputStateCreateInfo vertexInputInfo,
+		VkPipelineInputAssemblyStateCreateInfo inputAssembly, VkPipelineViewportStateCreateInfo viewportState,
+		VkPipelineRasterizationStateCreateInfo rasterizer, VkPipelineMultisampleStateCreateInfo multisampling,
+		VkPipelineColorBlendStateCreateInfo colorBlending, VkPipelineDynamicStateCreateInfo dynamicState,
+		VkRenderPass renderPass, VkPipelineDepthStencilStateCreateInfo depthStencil,
 		std::vector<VkVertexInputBindingDescription> vertexInputBindings,
-		std::vector<VkVertexInputAttributeDescription> vertexInputAttributes
-	) {
-		//auto geomShaderCode = readFile(mGeometryShaderPath);
+		std::vector<VkVertexInputAttributeDescription> vertexInputAttributes) {
+		// auto geomShaderCode = readFile(mGeometryShaderPath);
 
-		//VkShaderModule geomShaderModule = createShaderModule(geomShaderCode, device);
+		// VkShaderModule geomShaderModule = createShaderModule(geomShaderCode, device);
 
-		if (!mVertexShaderPath.empty())
-		{
+		if (!mVertexShaderPath.empty()) {
 			auto vertShaderCode = ReadFile(mVertexShaderPath);
 			vertShaderModule = CreateShaderModule(vertShaderCode, device);
 			VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
@@ -285,8 +273,7 @@ namespace Plaza {
 			mShaderStages.push_back(vertShaderStageInfo);
 		}
 
-		if (!mFragmentShaderPath.empty())
-		{
+		if (!mFragmentShaderPath.empty()) {
 			auto fragShaderCode = ReadFile(mFragmentShaderPath);
 			fragShaderModule = CreateShaderModule(fragShaderCode, device);
 			VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
@@ -297,7 +284,7 @@ namespace Plaza {
 			mShaderStages.push_back(fragShaderStageInfo);
 		}
 
-		//f (!mGeometryShaderPath.empty())
+		// f (!mGeometryShaderPath.empty())
 		//
 		//	VkPipelineShaderStageCreateInfo geomShaderStageInfo{};
 		//	geomShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -326,7 +313,7 @@ namespace Plaza {
 		viewport.maxDepth = 1.0f;
 
 		VkRect2D scissor{};
-		scissor.offset = { 0, 0 };
+		scissor.offset = {0, 0};
 		scissor.extent.width = (float)width;
 		scissor.extent.height = (float)height;
 
@@ -339,17 +326,16 @@ namespace Plaza {
 
 		mRasterizer.polygonMode = VK_POLYGON_MODE_FILL;
 		mRasterizer.lineWidth = 1.0f;
-		mRasterizer.cullMode = VK_CULL_MODE_NONE;//VK_CULL_MODE_FRONT_BIT;
+		mRasterizer.cullMode = VK_CULL_MODE_NONE; // VK_CULL_MODE_FRONT_BIT;
 		mRasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 
 		mMultisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 
 		mMultisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
 
-
-
 		VkPipelineColorBlendAttachmentState colorBlendAttachment{};
-		colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+		colorBlendAttachment.colorWriteMask =
+			VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 		colorBlendAttachment.blendEnable = VK_TRUE;
 		colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
 		colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
@@ -363,22 +349,19 @@ namespace Plaza {
 		mColorBlending.attachmentCount = 1;
 		mColorBlending.pAttachments = &colorBlendAttachment;
 
-		std::vector<VkDynamicState> dynamicStates = {
-	VK_DYNAMIC_STATE_VIEWPORT,
-	VK_DYNAMIC_STATE_SCISSOR
-		};
+		std::vector<VkDynamicState> dynamicStates = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
 
 		mDynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
 		mDynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
 		mDynamicState.pDynamicStates = dynamicStates.data();
 
-		if (useVertexInputInfo && vertexInputBindings.size() == 0)
-		{
+		if (useVertexInputInfo && vertexInputBindings.size() == 0) {
 			// Populate VkVertexInputBindingDescription (if needed)
 			VkVertexInputBindingDescription bindingDescription = {};
-			bindingDescription.binding = 0; // Assuming the binding is 0
+			bindingDescription.binding = 0;				   // Assuming the binding is 0
 			bindingDescription.stride = sizeof(glm::vec3); // Adjust the stride based on your vertex data structure
-			bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX; // or VK_VERTEX_INPUT_RATE_INSTANCE if using instancing
+			bindingDescription.inputRate =
+				VK_VERTEX_INPUT_RATE_VERTEX; // or VK_VERTEX_INPUT_RATE_INSTANCE if using instancing
 
 			std::array<VkVertexInputBindingDescription, 2> bindingDescriptions = {};
 			bindingDescriptions[0].binding = 0;
@@ -436,8 +419,7 @@ namespace Plaza {
 			mVertexInputInfo.vertexAttributeDescriptionCount = attributeDescriptions.size();
 			mVertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 		}
-		else if (!useVertexInputInfo && vertexInputBindings.size() == 0)
-		{
+		else if (!useVertexInputInfo && vertexInputBindings.size() == 0) {
 			mVertexInputInfo.vertexBindingDescriptionCount = 0;
 			mVertexInputInfo.vertexAttributeDescriptionCount = 0;
 		}
@@ -447,7 +429,6 @@ namespace Plaza {
 			mVertexInputInfo.vertexAttributeDescriptionCount = vertexInputAttributes.size();
 			mVertexInputInfo.pVertexAttributeDescriptions = vertexInputAttributes.data();
 		}
-
 
 		mColorBlending.attachmentCount = useVertexInputInfo ? 1 : 1;
 		mDepthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
@@ -461,7 +442,8 @@ namespace Plaza {
 
 		shaderStages = shaderStages.size() == 0 ? mShaderStages : shaderStages;
 		// VK_STRUCTURE_TYPE_APPLICATION_INFO means the struct hasnt been initialized
-		vertexInputInfo = vertexInputInfo.sType == VK_STRUCTURE_TYPE_APPLICATION_INFO ? mVertexInputInfo : vertexInputInfo;
+		vertexInputInfo =
+			vertexInputInfo.sType == VK_STRUCTURE_TYPE_APPLICATION_INFO ? mVertexInputInfo : vertexInputInfo;
 		inputAssembly = inputAssembly.sType == VK_STRUCTURE_TYPE_APPLICATION_INFO ? mInputAssembly : inputAssembly;
 		viewportState = viewportState.sType == VK_STRUCTURE_TYPE_APPLICATION_INFO ? mViewportState : viewportState;
 		rasterizer = rasterizer.sType == VK_STRUCTURE_TYPE_APPLICATION_INFO ? mRasterizer : rasterizer;
@@ -492,7 +474,8 @@ namespace Plaza {
 		pipelineInfo.basePipelineIndex = -1;
 		pipelineInfo.pDepthStencilState = &depthStencil;
 
-		if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &this->mPipeline) != VK_SUCCESS) {
+		if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &this->mPipeline) !=
+			VK_SUCCESS) {
 			throw std::runtime_error("failed to create graphics pipeline!");
 		}
 
@@ -501,4 +484,4 @@ namespace Plaza {
 		vkDestroyShaderModule(device, fragShaderModule, nullptr);
 		vkDestroyShaderModule(device, vertShaderModule, nullptr);
 	}
-}
+} // namespace Plaza

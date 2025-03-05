@@ -24,19 +24,22 @@ glm::vec3 randomVec3() {
 	return glm::vec3(dis(gen), dis(gen), dis(gen));
 }
 
-Plaza::Entity* NewEntity(std::string name, Plaza::Entity* parent, Plaza::Mesh* mesh, bool instanced = true, bool addToScene = true, Plaza::Scene* scene = nullptr) {
-	Plaza::Entity* obj = scene->NewEntity(name, parent);//new Entity(name, parent, addToScene);
-	Plaza::ECS::TransformSystem::UpdateSelfAndChildrenTransform(*scene->GetComponent<Plaza::TransformComponent>(obj->uuid), nullptr, scene, true);
-	Plaza::MeshRenderer* meshRenderer = scene->NewComponent<Plaza::MeshRenderer>(obj->uuid);//new MeshRenderer(mesh, { AssetsManager::GetDefaultMaterial() }, true);
+Plaza::Entity* NewEntity(std::string name, Plaza::Entity* parent, Plaza::Mesh* mesh, bool instanced = true,
+						 bool addToScene = true, Plaza::Scene* scene = nullptr) {
+	Plaza::Entity* obj = scene->NewEntity(name, parent); // new Entity(name, parent, addToScene);
+	Plaza::ECS::TransformSystem::UpdateSelfAndChildrenTransform(
+		*scene->GetComponent<Plaza::TransformComponent>(obj->uuid), nullptr, scene, true);
+	Plaza::MeshRenderer* meshRenderer = scene->NewComponent<Plaza::MeshRenderer>(
+		obj->uuid); // new MeshRenderer(mesh, { AssetsManager::GetDefaultMaterial() }, true);
 	meshRenderer->ChangeMesh(mesh);
 	meshRenderer->AddMaterial(Plaza::AssetsManager::GetDefaultMaterial());
 	meshRenderer->instanced = true;
 
-	//meshRenderer->mesh = new Mesh(*mesh);
-	//meshRenderer->mMaterials.push_back(AssetsManager::GetDefaultMaterial());
-	//RenderGroup* newRenderGroup = new RenderGroup(meshRenderer->mesh, meshRenderer->mMaterials);
-	//meshRenderer->renderGroup = Scene::GetActiveScene()->AddRenderGroup(newRenderGroup);
-	//meshRenderer->renderGroup->material = make_shared<Material>(*AssetsManager::GetDefaultMaterial());
+	// meshRenderer->mesh = new Mesh(*mesh);
+	// meshRenderer->mMaterials.push_back(AssetsManager::GetDefaultMaterial());
+	// RenderGroup* newRenderGroup = new RenderGroup(meshRenderer->mesh, meshRenderer->mMaterials);
+	// meshRenderer->renderGroup = Scene::GetActiveScene()->AddRenderGroup(newRenderGroup);
+	// meshRenderer->renderGroup->material = make_shared<Material>(*AssetsManager::GetDefaultMaterial());
 	Plaza::Editor::selectedGameObject = obj;
 
 	return obj;
@@ -46,16 +49,16 @@ std::vector<unsigned char> read_fileg(const std::string& filename) {
 	if (!file.is_open()) {
 		throw std::runtime_error("Failed to open file: " + filename);
 	}
-	
+
 	std::streamsize file_size = file.tellg();
 	if (file_size <= 0) {
 		throw std::runtime_error("File is empty or size could not be determined: " + filename);
 	}
-	
+
 	std::vector<unsigned char> buffer(static_cast<size_t>(file_size));
 	file.seekg(0, std::ios::beg);
 	file.read(reinterpret_cast<char*>(buffer.data()), file_size);
-	
+
 	if (!file) {
 		throw std::runtime_error("Failed to read file: " + filename);
 	}
@@ -80,7 +83,6 @@ namespace Plaza {
 		if (Application::Get()->focusedMenu == "Scene")
 			Input::isAnyKeyPressed = true;
 		if (Application::Get()->focusedMenu == "Editor") {
-
 			if (key == GLFW_KEY_K && action == GLFW_PRESS) {
 				for (int i = 0; i < 100; ++i) {
 					Application::Get()->mRenderer->UpdateMainProgressBar(i / 100.0f);
@@ -90,9 +92,11 @@ namespace Plaza {
 
 			if (key == GLFW_KEY_F && action == GLFW_PRESS) {
 				if (Editor::selectedGameObject) {
-					uint64_t newUuid = ECS::EntitySystem::Instantiate(Scene::GetActiveScene(), Editor::selectedGameObject->uuid);
+					uint64_t newUuid =
+						ECS::EntitySystem::Instantiate(Scene::GetActiveScene(), Editor::selectedGameObject->uuid);
 					if (newUuid)
-						ECS::TransformSystem::UpdateSelfAndChildrenTransform(*scene->GetComponent<TransformComponent>(newUuid), nullptr, scene);
+						ECS::TransformSystem::UpdateSelfAndChildrenTransform(
+							*scene->GetComponent<TransformComponent>(newUuid), nullptr, scene);
 					Editor::selectedGameObject = Scene::GetActiveScene()->GetEntity(newUuid);
 				}
 			}
@@ -103,7 +107,8 @@ namespace Plaza {
 					TransformComponent* transform = scene->GetComponent<TransformComponent>(entity->uuid);
 					Plaza::ECS::TransformSystem::SetLocalPosition(*transform, scene, randomVec3());
 					Plaza::Collider* collider = scene->NewComponent<Plaza::Collider>(entity->uuid);
-					Plaza::ECS::ColliderSystem::CreateShape(collider, transform, Plaza::ColliderShape::ColliderShapeEnum::BOX);
+					Plaza::ECS::ColliderSystem::CreateShape(collider, transform,
+															Plaza::ColliderShape::ColliderShapeEnum::BOX);
 				}
 			}
 
@@ -112,21 +117,27 @@ namespace Plaza {
 				int width = 0;
 				int height = 0;
 
-GLFWimage images[1] = {GLFWimage()};
-//images[0].pixels = static_cast<unsigned char*>(stbi_load(std::string(Application::Get()->editorPath + "/Images/Other/PlazaEngineLogo.png").c_str(), &images[0].width, &images[0].height, &channels, 4)); //rgba channels 
+				GLFWimage images[1] = {GLFWimage()};
+				// images[0].pixels = static_cast<unsigned char*>(stbi_load(std::string(Application::Get()->editorPath +
+				// "/Images/Other/PlazaEngineLogo.png").c_str(), &images[0].width, &images[0].height, &channels, 4));
+				// //rgba channels
 
-			int channels = 0;
+				int channels = 0;
 
-			auto datae = read_fileg(std::string(Application::Get()->editorPath + "/Images/Other/PlazaEngineLogo.png").c_str());
-			
-			//images[0].pixels = static_cast<unsigned char*>(stbi_load_from_memory(datae.data(), datae.size(), &width, &height, &channels, 4));
-			images[0].pixels = stbi_load(std::string(Application::Get()->editorPath + "/Images/Other/PlazaEngineLogo.png").c_str(), &width, &height, &channels, 4);
+				auto datae = read_fileg(
+					std::string(Application::Get()->editorPath + "/Images/Other/PlazaEngineLogo.png").c_str());
 
-			//images[0].pixels = static_cast<unsigned char*>(data);
-			images[0].width = width;
-			images[0].height = height;
-			
-  			glfwSetWindowIcon(window, 1, images);
+				// images[0].pixels = static_cast<unsigned char*>(stbi_load_from_memory(datae.data(), datae.size(),
+				// &width, &height, &channels, 4));
+				images[0].pixels =
+					stbi_load(std::string(Application::Get()->editorPath + "/Images/Other/PlazaEngineLogo.png").c_str(),
+							  &width, &height, &channels, 4);
+
+				// images[0].pixels = static_cast<unsigned char*>(data);
+				images[0].width = width;
+				images[0].height = height;
+
+				glfwSetWindowIcon(window, 1, images);
 			}
 			if (key == GLFW_KEY_J && action == GLFW_PRESS) {
 				vulkanRenderer->ChangeFinalDescriptorImageView(vulkanRenderer->mFinalSceneImageView);
@@ -135,26 +146,31 @@ GLFWimage images[1] = {GLFWimage()};
 				cascadeIndexDebug++;
 				if (cascadeIndexDebug > 8)
 					cascadeIndexDebug = 0;
-				vulkanRenderer->ChangeFinalDescriptorImageView(vulkanRenderer->mShadows->mCascades[cascadeIndexDebug].mImageView);
+				vulkanRenderer->ChangeFinalDescriptorImageView(
+					vulkanRenderer->mShadows->mCascades[cascadeIndexDebug].mImageView);
 			}
 			if (key == GLFW_KEY_G && action == GLFW_PRESS)
 				Application::Get()->showCascadeLevels = !Application::Get()->showCascadeLevels;
 
 			if (key == GLFW_KEY_N && action == GLFW_PRESS) {
-				VulkanRenderGraph* graph = new VulkanRenderGraph(*AssetsSerializer::DeSerializeFile<VulkanRenderGraph>(FileDialog::OpenFileDialog(Standards::plazaRenderGraph.c_str()), Application::Get()->mSettings.mRenderGraphSerializationMode).get());
+				VulkanRenderGraph* graph =
+					new VulkanRenderGraph(*AssetsSerializer::DeSerializeFile<VulkanRenderGraph>(
+											   FileDialog::OpenFileDialog(Standards::plazaRenderGraph.c_str()),
+											   Application::Get()->mSettings.mRenderGraphSerializationMode)
+											   .get());
 				Application::Get()->mEditor->mGui.mRenderGraphEditor->LoadRenderGraphNodes(graph);
 			}
-			//if (key == GLFW_KEY_G && action == GLFW_PRESS)
+			// if (key == GLFW_KEY_G && action == GLFW_PRESS)
 			//	Scene::GetActiveScene()->entities[Editor::selectedGameObject->uuid].RemoveComponent<RigidBody>();
 
 			if (key == GLFW_KEY_U && action == GLFW_PRESS)
-				Application::Get()->activeCamera->Position = scene->GetComponent<TransformComponent>(Plaza::Editor::selectedGameObject->uuid)->GetWorldPosition();
+				Application::Get()->activeCamera->Position =
+					scene->GetComponent<TransformComponent>(Plaza::Editor::selectedGameObject->uuid)
+						->GetWorldPosition();
 
 			if (key == GLFW_KEY_END && action == GLFW_PRESS) {
-
 			}
 			if (key == GLFW_KEY_HOME && action == GLFW_PRESS) {
-
 			}
 
 			// Play and Pause
@@ -191,7 +207,5 @@ GLFWimage images[1] = {GLFWimage()};
 		else if (glfwGetKey(window, GLFW_KEY_PAGE_DOWN))
 			glfwSetInputMode(Application::Get()->mWindow->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 #endif
-
-
 	}
-}
+} // namespace Plaza

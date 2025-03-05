@@ -6,7 +6,7 @@ layout(rgba32f, binding = 2) uniform image2D outImage;
 
 uniform float u_exposure = 0.5f;
 uniform float u_gamma = 1.1f;
-vec3 gammaCorrect(vec3 color) 
+vec3 gammaCorrect(vec3 color)
 {
     return pow(color, vec3(1.0/u_gamma));
 }
@@ -38,13 +38,13 @@ layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 void main() {
     ivec2 texelCoords = ivec2(gl_GlobalInvocationID.xy);
     	vec4 x = u_exposure * (imageLoad(blurred, texelCoords) + imageLoad(scene, texelCoords));
-	    
+
     vec3 color = ACESInputMat * x.rgb;
          color = RRTAndODTFit(color);
          color = ACESOutputMat * color;
 
          color = gammaCorrect(color);
          color = clamp(color, 0.0, 1.0);
-    
+
     imageStore(outImage, texelCoords,  vec4(color, 1.0f));
 }

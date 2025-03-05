@@ -1,11 +1,11 @@
 #pragma once
-//#include <vector>
-//#include <variant>
-//#include <unordered_map>
-//#include "Engine/Components/Component.h"
-//#include "Engine/Core/Engine.h"
+// #include <vector>
+// #include <variant>
+// #include <unordered_map>
+// #include "Engine/Components/Component.h"
+// #include "Engine/Core/Engine.h"
 //
-//namespace Plaza {
+// namespace Plaza {
 //	template <typename Key, typename T>
 //	class ComponentMultiMap : public std::unordered_multimap<Key, T> {
 //	public:
@@ -85,4 +85,4 @@
 //			return component;
 //		}
 //	};
-//};
+// };

@@ -1,10 +1,10 @@
-#pragma once	
+#pragma once
 #include <string>
 #include <filesystem>
 #include "Editor/GUI/FileExplorer/FileExplorer.h"
 namespace Plaza::Editor::Utils {
 	class Filesystem {
-	public:
+	  public:
 		/// <summary>
 		/// If theres already a file with this name, includes a (number), so its always unique
 		/// </summary>
@@ -38,9 +38,7 @@ namespace Plaza::Editor::Utils {
 			return name;
 		}
 
-		static void CreateFolder(std::string path, std::string name) {
-			CreateFolder(path + "/" + name);
-		}
+		static void CreateFolder(std::string path, std::string name) { CreateFolder(path + "/" + name); }
 
 		static std::ofstream GetFileStream(std::string fullPath) {
 			std::ofstream file(fullPath);
@@ -59,9 +57,7 @@ namespace Plaza::Editor::Utils {
 			return name;
 		}
 
-		static void CreateNewFile(std::string path, std::string name) {
-			CreateNewFile(path + "/" + name);
-		}
+		static void CreateNewFile(std::string path, std::string name) { CreateNewFile(path + "/" + name); }
 
 		static void CreateNewFile(std::string path, std::string name, std::string extension) {
 			CreateNewFile(path + "/" + name + "." + extension);
@@ -81,12 +77,10 @@ namespace Plaza::Editor::Utils {
 			if (filesystem::exists(path)) {
 				std::filesystem::remove_all(path);
 				Gui::canUpdateContent = true;
-				//Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
+				// Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
 			}
 		}
 
-		static void ChangeFolderName() {
-
-		}
+		static void ChangeFolderName() {}
 	};
-}
+} // namespace Plaza::Editor::Utils

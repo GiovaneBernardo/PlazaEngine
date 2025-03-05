@@ -1,17 +1,14 @@
 #pragma once
 namespace Plaza {
-	class FrameBuffer
-	{
-	public:
+	class FrameBuffer {
+	  public:
 		unsigned int buffer;
 		unsigned int colorBuffer;
 		unsigned int depthBuffer;
 		unsigned int renderBufferObject;
 		GLenum target;
 
-		FrameBuffer(const GLenum target) : target(target) {
-			Init();
-		};
+		FrameBuffer(const GLenum target) : target(target) { Init(); };
 
 		void Init();
 		void Bind();
@@ -28,11 +25,12 @@ namespace Plaza {
 		/// <param name="format"></param>
 		/// <param name="type"></param>
 		/// <param name="param"></param>
-		void InitColorAttachment(GLenum textureTarget, GLenum internalFormat, int width, int height, GLenum format, GLenum type, GLint param);
+		void InitColorAttachment(GLenum textureTarget, GLenum internalFormat, int width, int height, GLenum format,
+								 GLenum type, GLint param);
 		void InitDepthAttachment(GLint level, GLenum internalFormat, int width, int height, GLenum format, GLenum type);
 
 		void DrawAttachments(GLenum attachments[], int width, int height);
 		void UpdateSize();
 		void Terminate();
 	};
-}
+} // namespace Plaza

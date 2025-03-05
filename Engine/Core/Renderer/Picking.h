@@ -3,7 +3,7 @@
 
 namespace Plaza {
 	class Picking {
-	public:
+	  public:
 		glm::vec2 mResolution;
 		PlazaPipeline* mRenderPickingTexturePostEffects;
 		PlazaPipeline* mOutlinePostEffects;
@@ -14,4 +14,4 @@ namespace Plaza {
 		virtual uint64_t DrawAndRead(Scene* scene, glm::vec2 position) = 0;
 		virtual void Terminate() = 0;
 	};
-}
+} // namespace Plaza

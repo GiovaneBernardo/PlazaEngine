@@ -26,4 +26,4 @@ namespace Plaza {
 		}
 		mSize = mData.size();
 	}
-}
+} // namespace Plaza

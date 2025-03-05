@@ -17,7 +17,7 @@ uniform mat4 model;
 void main()
 {
     mat4 finalInstanceMatrix = aInstanceMatrix;
-    gl_Position = view * finalInstanceMatrix * vec4(aPos, 1.0); 
+    gl_Position = view * finalInstanceMatrix * vec4(aPos, 1.0);
     mat3 normalMatrix = mat3(transpose(inverse(view * finalInstanceMatrix)));
     vs_out.normal = normalize(vec3(vec4(normalMatrix * aNormal, 0.0)));
 }

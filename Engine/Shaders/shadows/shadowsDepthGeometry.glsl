@@ -12,7 +12,7 @@ uniform mat4 lightSpaceMatrices[16];
 */
 
 void main()
-{          
+{
 	for (int i = 0; i < 3; ++i)
 	{
 		gl_Position = lightSpaceMatrices[gl_InvocationID] * gl_in[i].gl_Position;
@@ -20,4 +20,4 @@ void main()
 		EmitVertex();
 	}
 	EndPrimitive();
-}  
+}

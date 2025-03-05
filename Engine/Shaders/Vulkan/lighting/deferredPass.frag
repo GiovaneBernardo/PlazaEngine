@@ -77,23 +77,23 @@ vec4 HeatMap(int clusterIndex, int numLights)
     vec3 color;
     if(numLights <= 0)
     {
-        color = vec3(0.5f, 0.5f, 0.5f);    
+        color = vec3(0.5f, 0.5f, 0.5f);
     }
     else if(numLights < 10)
     {
-        color = vec3(0.2f, 1.0f, 0.0f);    
+        color = vec3(0.2f, 1.0f, 0.0f);
     }
     else if(numLights < 50)
     {
-        color = vec3(0.4f, 0.8f, 0.0f);    
+        color = vec3(0.4f, 0.8f, 0.0f);
     }
     else if(numLights < 100)
     {
-        color = vec3(0.8f, 0.4f, 0.0f);    
+        color = vec3(0.8f, 0.4f, 0.0f);
     }
     else if(numLights >= 100)
     {
-        color = vec3(1.0f, 0.0f, 0.0f);    
+        color = vec3(1.0f, 0.0f, 0.0f);
     }
     return vec4(color, 1.0f);
 }
@@ -125,7 +125,7 @@ float GetDepth() {
 
 vec3 ReconstructPosition(float depth) {
     mat4 viewProjection = ubo.projection * ubo.view;
-    float ndcZ = (depth) * 2.0f - 1.0f; 
+    float ndcZ = (depth) * 2.0f - 1.0f;
     vec4 ndcPosition = vec4(gl_FragCoord.xy * (1.0f / screenSize) * 2.0 - 1.0, (depth), 1.0);
     ndcPosition.y *= -1;
     vec4 worldPosition = inverse(viewProjection) * ndcPosition;
@@ -149,7 +149,7 @@ float D_GGX(float dotNH, float roughness)
     float alpha = roughness * roughness;
     float alpha2 = alpha * alpha;
     float denom = dotNH * dotNH * (alpha2 - 1.0) + 1.0;
-    return (alpha2)/(PI * denom*denom); 
+    return (alpha2)/(PI * denom*denom);
 }
 
 float G_SchlicksmithGGX(float dotNL, float dotNV, float roughness)
@@ -191,11 +191,11 @@ vec3 specularContribution(vec3 L, vec3 V, vec3 N, vec3 F0, float metallic, float
     vec3 color = vec3(0.0);
 
     if (dotNL > 0.0) {
-        float D = D_GGX(dotNH, roughness); 
+        float D = D_GGX(dotNH, roughness);
         float G = G_SchlicksmithGGX(dotNL, dotNV, roughness);
-        vec3 F = F_Schlick(dotNV, F0);		
-        vec3 spec = D * F * G / (4.0 * dotNL * dotNV + 0.001);		
-        vec3 kD = (vec3(1.0) - F) * (1.0 - metallic);			
+        vec3 F = F_Schlick(dotNV, F0);
+        vec3 spec = D * F * G / (4.0 * dotNL * dotNV + 0.001);
+        vec3 kD = (vec3(1.0) - F) * (1.0 - metallic);
         color += (kD * materialColor / PI + spec) * dotNL;
     }
 
@@ -250,7 +250,7 @@ float ShadowCalculation(vec3 fragPos, vec3 Normal)
     }
     bias = 0.0005;
     float distanceToCamera = distance(ubo.viewPos.xyz, projCoords.xyz);
-    
+
     bias = 0.0001;
     float floatVal = 3 - (texture(shadowsDepthMap, vec3(projCoords.xyz)).r * 2.3);
     int pcfCount = 5;// + int(floatVal);
@@ -266,10 +266,10 @@ float ShadowCalculation(vec3 fragPos, vec3 Normal)
         for(int y = -pcfCount; y <= pcfCount; ++y)
         {
             float pcfDepth = texture(shadowsDepthMap, vec3(projCoords.xy + vec2(x, y) * texelSize, layer)).r;
-            shadow += (currentDepth - bias) > pcfDepth ? 1.0 : 0.0;        
-        }    
+            shadow += (currentDepth - bias) > pcfDepth ? 1.0 : 0.0;
+        }
     }
-    shadow /= totalTexels; 
+    shadow /= totalTexels;
     return shadow;
 }
 
@@ -281,7 +281,7 @@ vec3 CalculateDirectionalLight(vec3 fragPos, vec3 albedo, vec3 normal, float met
         NdotV = 1.0f - NdotV;
     }
 
-    vec3 R = mat3(inverse(ubo.view)) * reflect(-V, normal); 
+    vec3 R = mat3(inverse(ubo.view)) * reflect(-V, normal);
     vec3 F0 = mix(vec3(0.04), albedo, metallic);
 
     float maxNdotV = max(NdotV, 0.25);
@@ -297,10 +297,10 @@ vec3 CalculateDirectionalLight(vec3 fragPos, vec3 albedo, vec3 normal, float met
     vec3 diffuse = irradiance * albedo.xyz;
 
     const float MAX_REFLECTION_LOD = 9.0;
-    vec3 prefilteredColor = textureLod(prefilterMap, R,  roughness * MAX_REFLECTION_LOD).rgb;   
+    vec3 prefilteredColor = textureLod(prefilterMap, R,  roughness * MAX_REFLECTION_LOD).rgb;
     vec2 brdfCoord = vec2(maxNdotV, roughness);
     vec2 brdf  = texture(samplerBRDFLUT, brdfCoord).rg;
-    vec3 reflection = prefilteredReflection(R, roughness).rgb;	
+    vec3 reflection = prefilteredReflection(R, roughness).rgb;
     vec3 specular = reflection * ((F * brdf.x + brdf.y)) ;
 
     float ambientOcclusion = 1.0f;
@@ -334,18 +334,18 @@ vec3 CalculatePointLight(vec3 fragPos, vec3 albedo, vec3 normal, float roughness
 
 float CalculateAttenuation(vec3 lightPos, vec3 fragPos, float minRadius, float maxRadius) {
     float distance = length(lightPos - fragPos);
-    
+
     // Compute linear attenuation based on distance and clamp within min/max range
     float attenuation = clamp(1.0 - (distance - minRadius) / (maxRadius - minRadius), 0.0, 1.0);
 
     // Optionally, square the attenuation to make the falloff effect smoother
     attenuation *= attenuation;
-    
+
     return attenuation;
 }
 
 void main()
-{  
+{
     float depth = GetDepth();
     vec3 lighting  = vec3(1.0f);
 
@@ -377,11 +377,11 @@ void main()
                 vec3 lightColor = light.color * light.intensity;
                 float attenuation =  CalculateAttenuation(lightPosition, fragViewPos, light.cutoff, light.radius + light.cutoff);
                 lighting += (CalculatePointLight(fragViewPos, Diffuse, Normal, roughness, lightPosition, lightColor, metalness, attenuation) * 1.0f);//atten;//Lo;
-            }    
+            }
          }
         color = color + (lighting - 1.0f); //* (lighting);
     }
-    
+
     //color += max((lighting - 1.0f) * Diffuse, vec3(0.0f));
 
 //    #define SHOW_HEATMAP

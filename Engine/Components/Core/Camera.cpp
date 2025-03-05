@@ -3,8 +3,8 @@
 #include "Engine/Core/Scene.h"
 
 namespace Plaza {
-	Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
-	{
+	Camera::Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch)
+		: Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM) {
 		Position = position;
 		WorldUp = up;
 		Yaw = yaw;
@@ -20,21 +20,25 @@ namespace Plaza {
 	}
 
 	glm::mat4 Camera::GetProjectionMatrix() {
-		return glm::infinitePerspective(glm::radians(Zoom), Application::Get()->appSizes->sceneSize.x / Application::Get()->appSizes->sceneSize.y, nearPlane);
+		return glm::infinitePerspective(
+			glm::radians(Zoom), Application::Get()->appSizes->sceneSize.x / Application::Get()->appSizes->sceneSize.y,
+			nearPlane);
 	}
 
 	glm::mat4 Camera::GetProjectionMatrix(float nearPlaneCustom, float farPlaneCustom) {
 		nearPlaneCustom = nearPlaneCustom == NULL ? nearPlane : nearPlaneCustom;
 		farPlaneCustom = farPlaneCustom == NULL ? nearPlane : farPlaneCustom;
-		return glm::perspective(this->Zoom, (Application::Get()->appSizes->sceneSize.x / Application::Get()->appSizes->sceneSize.y), nearPlaneCustom, farPlaneCustom);
+		return glm::perspective(this->Zoom,
+								(Application::Get()->appSizes->sceneSize.x / Application::Get()->appSizes->sceneSize.y),
+								nearPlaneCustom, farPlaneCustom);
 	}
 
 	glm::mat4 Camera::GetOrthogonalMatrix() {
-		return glm::ortho(0.0f, Application::Get()->appSizes->sceneSize.x, 0.0f, Application::Get()->appSizes->sceneSize.y, -1.0f, 1.0f);
+		return glm::ortho(0.0f, Application::Get()->appSizes->sceneSize.x, 0.0f,
+						  Application::Get()->appSizes->sceneSize.y, -1.0f, 1.0f);
 	}
 
-	void Camera::ProcessKeyboard(Camera_Movement direction, float deltaTime)
-	{
+	void Camera::ProcessKeyboard(Camera_Movement direction, float deltaTime) {
 		float velocity = MovementSpeed * MovementSpeedTemporaryBoost * deltaTime;
 		if (direction == FORWARD)
 			Position += Front * velocity;
@@ -48,11 +52,9 @@ namespace Plaza {
 			Position -= Up * velocity;
 		if (direction == DOWN)
 			Position += Up * velocity;
-
 	}
 
-	void Camera::ProcessMouseMovement(float xoffset, float yoffset, bool constrainPitch)
-	{
+	void Camera::ProcessMouseMovement(float xoffset, float yoffset, bool constrainPitch) {
 		// FIX: Implement proper way to get the scene
 		Scene* scene = Scene::GetActiveScene();
 		xoffset *= MouseSensitivity;
@@ -62,8 +64,7 @@ namespace Plaza {
 		Pitch += yoffset;
 
 		// make sure that when pitch is out of bounds, screen doesn't get flipped
-		if (constrainPitch)
-		{
+		if (constrainPitch) {
 			if (Pitch > 89.0f)
 				Pitch = 89.0f;
 			if (Pitch < -89.0f)
@@ -78,41 +79,33 @@ namespace Plaza {
 
 	void Camera::UpdateFrustum() {
 		Camera& cam = *this;
-		float aspect = Application::Get()->appSizes->sceneSize.x / Application::Get()->appSizes->sceneSize.y; float fovY = glm::radians(Zoom); float zNear = nearPlane; float zFar = farPlane;
+		float aspect = Application::Get()->appSizes->sceneSize.x / Application::Get()->appSizes->sceneSize.y;
+		float fovY = glm::radians(Zoom);
+		float zNear = nearPlane;
+		float zFar = farPlane;
 		ViewFrustum newFrustum;
 		const float halfVSide = zFar * tanf(fovY * .5f);
 		const float halfHSide = halfVSide * aspect;
 		const glm::vec3 frontMultFar = zFar * cam.Front;
 
-		newFrustum.nearFace = { cam.Position + zNear * cam.Front, cam.Front };
-		newFrustum.farFace = { cam.Position + frontMultFar, -cam.Front };
-		newFrustum.rightFace = { cam.Position, glm::cross(frontMultFar - cam.Right * halfHSide, cam.Up) };
-		newFrustum.leftFace = { cam.Position, glm::cross(cam.Up, frontMultFar + cam.Right * halfHSide) };
-		newFrustum.topFace = { cam.Position, glm::cross(cam.Right, frontMultFar - cam.Up * halfVSide) };
-		newFrustum.bottomFace = { cam.Position, glm::cross(frontMultFar + cam.Up * halfVSide, cam.Right) };
+		newFrustum.nearFace = {cam.Position + zNear * cam.Front, cam.Front};
+		newFrustum.farFace = {cam.Position + frontMultFar, -cam.Front};
+		newFrustum.rightFace = {cam.Position, glm::cross(frontMultFar - cam.Right * halfHSide, cam.Up)};
+		newFrustum.leftFace = {cam.Position, glm::cross(cam.Up, frontMultFar + cam.Right * halfHSide)};
+		newFrustum.topFace = {cam.Position, glm::cross(cam.Right, frontMultFar - cam.Up * halfVSide)};
+		newFrustum.bottomFace = {cam.Position, glm::cross(frontMultFar + cam.Up * halfVSide, cam.Right)};
 		this->frustum = newFrustum;
 	}
-	bool Camera::IsInsideViewFrustum(glm::vec3 pos) {
-		return true;
-	}
+	bool Camera::IsInsideViewFrustum(glm::vec3 pos) { return true; }
 
-	std::vector<glm::vec4> Camera::getFrustumCornersWorldSpace(const glm::mat4& proj, const glm::mat4& view)
-	{
+	std::vector<glm::vec4> Camera::getFrustumCornersWorldSpace(const glm::mat4& proj, const glm::mat4& view) {
 		const auto inv = glm::inverse(proj * view);
 
 		std::vector<glm::vec4> frustumCorners;
-		for (unsigned int x = 0; x < 2; ++x)
-		{
-			for (unsigned int y = 0; y < 2; ++y)
-			{
-				for (unsigned int z = 0; z < 2; ++z)
-				{
-					const glm::vec4 pt =
-						inv * glm::vec4(
-							2.0f * x - 1.0f,
-							2.0f * y - 1.0f,
-							2.0f * z - 1.0f,
-							1.0f);
+		for (unsigned int x = 0; x < 2; ++x) {
+			for (unsigned int y = 0; y < 2; ++y) {
+				for (unsigned int z = 0; z < 2; ++z) {
+					const glm::vec4 pt = inv * glm::vec4(2.0f * x - 1.0f, 2.0f * y - 1.0f, 2.0f * z - 1.0f, 1.0f);
 					frustumCorners.push_back(pt / pt.w);
 				}
 			}
@@ -121,9 +114,9 @@ namespace Plaza {
 		return frustumCorners;
 	};
 
-	void Camera::updateCameraVectors(Scene* scene)
-	{
-		TransformComponent* transform = scene->GetComponent<TransformComponent>(this->mUuid);//scene->GetComponent<TransformComponent>(this->mUuid);
+	void Camera::updateCameraVectors(Scene* scene) {
+		TransformComponent* transform = scene->GetComponent<TransformComponent>(
+			this->mUuid); // scene->GetComponent<TransformComponent>(this->mUuid);
 		if (this->isEditorCamera) {
 			// calculate the new Front vector
 			glm::vec3 front;
@@ -145,7 +138,7 @@ namespace Plaza {
 				*/
 
 				glm::vec3 cubeRight = glm::normalize(glm::vec3(transformationMatrix[0])); // X-axis
-				glm::vec3 cubeUp = glm::normalize(glm::vec3(transformationMatrix[1])); // Y-axis
+				glm::vec3 cubeUp = glm::normalize(glm::vec3(transformationMatrix[1]));	  // Y-axis
 				glm::vec3 cubeFront = glm::normalize(glm::vec3(transformationMatrix[2])); // Z-axis
 
 				Right = cubeRight;
@@ -160,11 +153,10 @@ namespace Plaza {
 		float y = 1.0f - (2.0f * position.y) / size.y;
 		float z = 1.0f;
 
-
 		glm::vec4 rayClip = glm::vec4(x, y, -1.0f, 1.0f);
 		glm::vec4 rayEye = glm::inverse(this->GetProjectionMatrix()) * rayClip;
 		rayEye = glm::vec4(rayEye.x, rayEye.y, -1.0f, 0.0f);
 		glm::vec3 rayWorld = glm::vec3(glm::inverse(this->GetViewMatrix()) * rayEye);
 		return glm::normalize(rayWorld);
 	}
-}
+} // namespace Plaza

@@ -8,7 +8,7 @@ project(GameProject)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-if (MSVC)
+if(MSVC)
     add_compile_options(/MP)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /WX- /W4 /O2")
     add_compile_options(/bigobj)
@@ -24,7 +24,7 @@ add_definitions(-D_DEBUG)
 add_definitions(-D_ITERATOR_DEBUG_LEVEL=2)
 add_definitions(-DLIBTYPE=STATIC)
 add_compile_definitions(IMGUI_DEFINE_MATH_OPERATORS)
-option(MSVC_CRT_STATIC   "Link primesieve.lib with /MT instead of the default /MD" OFF)
+option(MSVC_CRT_STATIC "Link primesieve.lib with /MT instead of the default /MD" OFF)
 set(PLATFORM_CMAKELISTS "${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt")
 set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /Ob0 /Od /RTC1")
@@ -39,9 +39,9 @@ add_library(GameLib SHARED ${GAME_SOURCES})
 target_precompile_headers(GameLib PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/Assets/Scripts/pch.h")
 target_compile_definitions(GameLib PRIVATE ENGINE_IMPORT)
 
-target_compile_definitions(GameLib PUBLIC  PX_PHYSX_STATIC_LIB)
-target_compile_definitions(GameLib PUBLIC  EDITOR_MODE)
-target_compile_definitions(GameLib PUBLIC  COMPILING_GAME_DLL)
+target_compile_definitions(GameLib PUBLIC PX_PHYSX_STATIC_LIB)
+target_compile_definitions(GameLib PUBLIC EDITOR_MODE)
+target_compile_definitions(GameLib PUBLIC COMPILING_GAME_DLL)
 target_link_options(GameLib PUBLIC "/INCREMENTAL /PDBALTPATH:$<TARGET_PDB_FILE_NAME:GameLib>")
 link_directories("${CMAKE_SOURCE_DIR}/bin")
 
@@ -49,13 +49,13 @@ set_property(TARGET GameLib PROPERTY CXX_STANDARD 20)
 
 include(FetchContent)
 FetchContent_Declare(
-  PlazaEngineCoreLibs
-  SOURCE_DIR "${ENGINE_SOURCE_DIR}/"
+    PlazaEngineCoreLibs
+    SOURCE_DIR "${ENGINE_SOURCE_DIR}/"
 )
 
 FetchContent_MakeAvailable(PlazaEngineCoreLibs)
 
-target_link_libraries(GameLib PUBLIC PlazaEngineCore PlazaEngineCoreLibs) 
+target_link_libraries(GameLib PUBLIC PlazaEngineCore PlazaEngineCoreLibs)
 
 target_include_directories(GameLib PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/"
@@ -74,6 +74,6 @@ add_custom_target(CopyGameLib ALL DEPENDS GameLib)
 add_custom_target(DeleteGamePDB ALL DEPENDS GameLib)
 
 add_custom_command(TARGET GameLib
-                   PRE_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/bin/PlazaEngineCore.lib" "${CMAKE_CURRENT_BINARY_DIR}/"
-                   COMMENT "Copying PlazaEngineCore.lib to game project folder")
+    PRE_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/bin/PlazaEngineCore.lib" "${CMAKE_CURRENT_BINARY_DIR}/"
+    COMMENT "Copying PlazaEngineCore.lib to game project folder")

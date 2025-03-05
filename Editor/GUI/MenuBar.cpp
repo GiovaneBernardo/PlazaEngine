@@ -27,33 +27,37 @@ namespace Plaza {
 							std::filesystem::create_directories(destPath);
 						}
 						else if (std::filesystem::is_regular_file(path)) {
-							std::filesystem::copy_file(path, destPath, std::filesystem::copy_options::overwrite_existing);
+							std::filesystem::copy_file(path, destPath,
+													   std::filesystem::copy_options::overwrite_existing);
 							std::cout << "Copied: " << path << " to " << destPath << '\n';
 						}
-					}
-					catch (const std::filesystem::filesystem_error& e) {
+					} catch (const std::filesystem::filesystem_error& e) {
 						std::cerr << "Skipped file (in use or inaccessible): " << path << "\n";
 					}
 				}
-			}
-			catch (const std::filesystem::filesystem_error& e) {
+			} catch (const std::filesystem::filesystem_error& e) {
 				std::cerr << "Error: " << e.what() << '\n';
 			}
 		}
-
 
 		void Gui::MainMenuBar::Begin() {
 			// MenuBar / TitleBar
 			ImGui::BeginMainMenuBar();
 			if (ImGui::BeginMenu("File")) {
 				if (ImGui::Button("Build")) {
-					std::string devEnv = " \"C:/Program Files/Microsoft Visual Studio/2022/Community/MSBuild/Current/Bin/msbuild.exe\" ";
-					std::string outPath = "\"" + Application::Get()->projectPath + "/../" + Application::Get()->activeProject->mAssetName + "build//\"";
-					std::string command = "\"" + devEnv + "\"" + Application::Get()->enginePath + "/../OpenGLEngine.sln\" /p:Configuration=GameRel /t:Build /p:PROJECT_NAME=YourMacroValue /p:OutDir=" + outPath + "\"";
+					std::string devEnv =
+						" \"C:/Program Files/Microsoft Visual Studio/2022/Community/MSBuild/Current/Bin/msbuild.exe\" ";
+					std::string outPath = "\"" + Application::Get()->projectPath + "/../" +
+										  Application::Get()->activeProject->mAssetName + "build//\"";
+					std::string command = "\"" + devEnv + "\"" + Application::Get()->enginePath +
+										  "/../OpenGLEngine.sln\" /p:Configuration=GameRel /t:Build "
+										  "/p:PROJECT_NAME=YourMacroValue /p:OutDir=" +
+										  outPath + "\"";
 					std::cout << command << std::endl;
 					system(command.c_str());
 
-					std::string newMainFolderPath = Application::Get()->projectPath + "/../" + Application::Get()->activeProject->mAssetName + "build/";
+					std::string newMainFolderPath = Application::Get()->projectPath + "/../" +
+													Application::Get()->activeProject->mAssetName + "build/";
 
 					/* Copy assets and scripts into Content Folder inside build folder */
 					CopyDirectory(Application::Get()->projectPath, newMainFolderPath);
@@ -67,29 +71,40 @@ namespace Plaza {
 					/* Iterate over all copied assets and convert them to binary */
 					for (auto [key, asset] : AssetsManager::mAssets) {
 						std::string oldPath = asset->mAssetPath.string();
-						asset->mAssetPath = asset->mAssetPath.string().replace(0, Application::Get()->projectPath.size(), newMainFolderPath);
+						asset->mAssetPath = asset->mAssetPath.string().replace(
+							0, Application::Get()->projectPath.size(), newMainFolderPath);
 
-						bool assetContainsMetaData = asset->GetExtension() != Standards::metadataExtName && AssetsManager::AssetContainsMetaData(asset);
+						bool assetContainsMetaData = asset->GetExtension() != Standards::metadataExtName &&
+													 AssetsManager::AssetContainsMetaData(asset);
 						if (assetContainsMetaData) {
 							std::filesystem::path oldMetadataPath = oldPath;
 							oldMetadataPath.replace_extension(Standards::metadataExtName);
-							std::shared_ptr<Metadata::MetadataStructure> metaDataContent = AssetsSerializer::DeSerializeFile<Metadata::MetadataStructure>(AssetsManager::GetAssetMetaDataPath(oldMetadataPath).string(),
-								oldSettings.mMetaDataSerializationMode);
+							std::shared_ptr<Metadata::MetadataStructure> metaDataContent =
+								AssetsSerializer::DeSerializeFile<Metadata::MetadataStructure>(
+									AssetsManager::GetAssetMetaDataPath(oldMetadataPath).string(),
+									oldSettings.mMetaDataSerializationMode);
 							asset->mAssetPath.replace_extension(Standards::metadataExtName);
-							AssetsSerializer::SerializeFile<Metadata::MetadataStructure>(*metaDataContent.get(), asset->mAssetPath.string(), newSettings.mMetaDataSerializationMode);
+							AssetsSerializer::SerializeFile<Metadata::MetadataStructure>(
+								*metaDataContent.get(), asset->mAssetPath.string(),
+								newSettings.mMetaDataSerializationMode);
 						}
 						else {
 							if (asset->GetExtension() == Standards::sceneExtName) {
 								Asset oldAsset = *asset;
-								//asset = new Scene(*AssetsSerializer::DeSerializeFile<Scene>(oldPath, oldSettings.mSceneSerializationMode).get());
-								AssetsSerializer::SerializeFile<Scene>(*static_cast<Scene*>(AssetsSerializer::DeSerializeFile<Scene>(oldPath, oldSettings.mSceneSerializationMode).get()), oldAsset.mAssetPath.string(), Application::Get()->mSettings.mSceneSerializationMode);
+								// asset = new Scene(*AssetsSerializer::DeSerializeFile<Scene>(oldPath,
+								// oldSettings.mSceneSerializationMode).get());
+								AssetsSerializer::SerializeFile<Scene>(
+									*static_cast<Scene*>(AssetsSerializer::DeSerializeFile<Scene>(
+															 oldPath, oldSettings.mSceneSerializationMode)
+															 .get()),
+									oldAsset.mAssetPath.string(),
+									Application::Get()->mSettings.mSceneSerializationMode);
 							}
 							else
 								AssetsSerializer::SerializeAssetByExtension(asset);
 						}
 						asset->mAssetPath = oldPath;
 					}
-
 
 					Application::Get()->mSettings = oldSettings;
 				}
@@ -104,25 +119,39 @@ namespace Plaza {
 				}
 
 				if (ImGui::Button("New Scene")) {
-					std::string newPath = FileDialog::SaveFileDialog(("Engine (*.%s)", Standards::sceneExtName).c_str());
+					std::string newPath =
+						FileDialog::SaveFileDialog(("Engine (*.%s)", Standards::sceneExtName).c_str());
 					if (!newPath.empty()) {
 						Editor::selectedGameObject = nullptr;
 						Scene::SetEditorScene(*new std::shared_ptr<Scene>(AssetsManager::NewAsset<Scene>(newPath)));
 						Scene::SetActiveScene(Scene::GetEditorScene());
 						Scene::GetActiveScene()->mainSceneEntity = new Entity("Scene");
-						Scene::GetActiveScene()->mainSceneEntity->parentUuid = Scene::GetActiveScene()->mainSceneEntity->uuid;
+						Scene::GetActiveScene()->mainSceneEntity->parentUuid =
+							Scene::GetActiveScene()->mainSceneEntity->uuid;
 
-						AssetsSerializer::SerializeFile<Scene>(*Scene::GetEditorScene(), newPath, Application::Get()->mSettings.mSceneSerializationMode);
+						AssetsSerializer::SerializeFile<Scene>(*Scene::GetEditorScene(), newPath,
+															   Application::Get()->mSettings.mSceneSerializationMode);
 						Application::Get()->activeProject->mLastSceneUuid = Scene::GetEditorScene()->mAssetUuid;
-						AssetsSerializer::SerializeFile<Project>(*Application::Get()->activeProject, Application::Get()->activeProject->mAssetPath.string(), Application::Get()->mSettings.mProjectSerializationMode);
-						AssetsLoader::LoadScene(AssetsSerializer::DeSerializeFile<Asset>(newPath, Application::Get()->mSettings.mSceneSerializationMode).get(), Application::Get()->mSettings.mSceneSerializationMode);
+						AssetsSerializer::SerializeFile<Project>(
+							*Application::Get()->activeProject, Application::Get()->activeProject->mAssetPath.string(),
+							Application::Get()->mSettings.mProjectSerializationMode);
+						AssetsLoader::LoadScene(AssetsSerializer::DeSerializeFile<Asset>(
+													newPath, Application::Get()->mSettings.mSceneSerializationMode)
+													.get(),
+												Application::Get()->mSettings.mSceneSerializationMode);
 					}
 				}
 				if (ImGui::Button("Save Scene")) {
-					if (!Scene::GetActiveScene()->mAssetPath.empty() && std::filesystem::exists(Scene::GetActiveScene()->mAssetPath)) {
-						AssetsSerializer::SerializeFile(*Scene::GetActiveScene(), AssetsManager::GetAsset(Scene::GetActiveScene()->mAssetUuid)->mAssetPath.string(), Application::Get()->mSettings.mSceneSerializationMode);
+					if (!Scene::GetActiveScene()->mAssetPath.empty() &&
+						std::filesystem::exists(Scene::GetActiveScene()->mAssetPath)) {
+						AssetsSerializer::SerializeFile(
+							*Scene::GetActiveScene(),
+							AssetsManager::GetAsset(Scene::GetActiveScene()->mAssetUuid)->mAssetPath.string(),
+							Application::Get()->mSettings.mSceneSerializationMode);
 						Application::Get()->activeProject->mLastSceneUuid = Scene::GetActiveScene()->mAssetUuid;
-						AssetsSerializer::SerializeFile<Project>(*Application::Get()->activeProject, Application::Get()->activeProject->mAssetPath.string(), Application::Get()->mSettings.mProjectSerializationMode);
+						AssetsSerializer::SerializeFile<Project>(
+							*Application::Get()->activeProject, Application::Get()->activeProject->mAssetPath.string(),
+							Application::Get()->mSettings.mProjectSerializationMode);
 					}
 				}
 				if (ImGui::Button("Save Scene As...")) {
@@ -130,49 +159,55 @@ namespace Plaza {
 					if (!path.empty()) {
 						Asset* asset = AssetsManager::GetAsset(Scene::GetActiveScene()->mAssetUuid);
 						if (!asset) {
-							AssetsSerializer::SerializeFile<Scene>(*Scene::GetActiveScene(), path, Application::Get()->mSettings.mSceneSerializationMode);
+							AssetsSerializer::SerializeFile<Scene>(
+								*Scene::GetActiveScene(), path, Application::Get()->mSettings.mSceneSerializationMode);
 							asset = AssetsReader::ReadAssetAtPath(path);
 						}
 						bool sceneFileIsEditorScene = path == asset->mAssetPath.string();
 
 						Scene::GetActiveScene()->mAssetPath = path;
-						Scene::GetActiveScene()->mAssetName = std::filesystem::path{ path }.filename().string();
-						AssetsSerializer::SerializeFile(*Scene::GetActiveScene(), path, Application::Get()->mSettings.mSceneSerializationMode);
+						Scene::GetActiveScene()->mAssetName = std::filesystem::path{path}.filename().string();
+						AssetsSerializer::SerializeFile(*Scene::GetActiveScene(), path,
+														Application::Get()->mSettings.mSceneSerializationMode);
 
 						Application::Get()->activeProject->mLastSceneUuid = Scene::GetActiveScene()->mAssetUuid;
-						AssetsSerializer::SerializeFile<Project>(*Application::Get()->activeProject, Application::Get()->activeProject->mAssetPath.string(), Application::Get()->mSettings.mProjectSerializationMode);
+						AssetsSerializer::SerializeFile<Project>(
+							*Application::Get()->activeProject, Application::Get()->activeProject->mAssetPath.string(),
+							Application::Get()->mSettings.mProjectSerializationMode);
 
-						AssetsLoader::LoadScene(AssetsSerializer::DeSerializeFile<Asset>(path, Application::Get()->mSettings.mSceneSerializationMode).get(), Application::Get()->mSettings.mSceneSerializationMode);
+						AssetsLoader::LoadScene(AssetsSerializer::DeSerializeFile<Asset>(
+													path, Application::Get()->mSettings.mSceneSerializationMode)
+													.get(),
+												Application::Get()->mSettings.mSceneSerializationMode);
 					}
-
 				}
 				if (ImGui::Button("Open Scene")) {
 					std::string path = FileDialog::OpenFileDialog(("Engine (*.%s)", Standards::sceneExtName).c_str());
 					if (std::filesystem::exists(path)) {
-						Scene::SetEditorScene(AssetsSerializer::DeSerializeFile<Scene>(path, Application::Get()->mSettings.mSceneSerializationMode));
+						Scene::SetEditorScene(AssetsSerializer::DeSerializeFile<Scene>(
+							path, Application::Get()->mSettings.mSceneSerializationMode));
 						Scene::SetActiveScene(Scene::GetEditorScene());
 						Scene::GetActiveScene()->RecalculateAddedComponents();
 					}
 				}
 
 				if (ImGui::BeginMenu("Project")) {
-
 					if (ImGui::BeginMenu("Update Project Files")) {
 						if (ImGui::MenuItem("Update All"))
-							ProjectGenerator::PasteAllProjectFiles(Application::Get()->activeProject->mAssetPath.parent_path());
+							ProjectGenerator::PasteAllProjectFiles(
+								Application::Get()->activeProject->mAssetPath.parent_path());
 						if (ImGui::MenuItem("Update CMake file"))
-							ProjectGenerator::PasteCmakeFile(Application::Get()->activeProject->mAssetPath.parent_path());
+							ProjectGenerator::PasteCmakeFile(
+								Application::Get()->activeProject->mAssetPath.parent_path());
 						if (ImGui::MenuItem("Update Git Ignore"))
-							ProjectGenerator::PasteGitIgnore(Application::Get()->activeProject->mAssetPath.parent_path());
+							ProjectGenerator::PasteGitIgnore(
+								Application::Get()->activeProject->mAssetPath.parent_path());
 						ImGui::EndMenu();
 					}
 					ImGui::EndMenu();
 				}
 				ImGui::EndMenu();
 			}
-
-
-
 
 			// Create an invisible margin to align the buttons to the right
 			float spacingX = Application::Get()->appSizes->appSize.x - 150;
@@ -194,8 +229,6 @@ namespace Plaza {
 			}
 
 			ImGui::EndMainMenuBar();
-
-
 		}
-	}
-}
+	} // namespace Editor
+} // namespace Plaza

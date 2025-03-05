@@ -12,7 +12,6 @@ namespace Plaza {
 			return str.size() >= suffix.size() && str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
 		}
 
-
 		int GetNumberOfSameNameFiles(std::string path, std::string name) {
 			std::filesystem::path directory(path);
 			int count = 0;
@@ -27,5 +26,5 @@ namespace Plaza {
 
 			return count;
 		}
-	}
-}
+	} // namespace FileUtils
+} // namespace Plaza

@@ -37,13 +37,9 @@ namespace Plaza {
 		}
 	}
 
-	void Scene::NewRuntimeScene(Scene* baseScene) {
+	void Scene::NewRuntimeScene(Scene* baseScene) {}
 
-	}
-
-	Scene::Scene() {
-		this->mAssetUuid = Plaza::UUID::NewUUID();
-	}
+	Scene::Scene() { this->mAssetUuid = Plaza::UUID::NewUUID(); }
 
 	void Scene::Play() {
 		/* Restart physics */
@@ -86,10 +82,10 @@ namespace Plaza {
 
 		for (const uint64_t& uuid : SceneView<Collider>(scene)) {
 			Collider& collider = *scene->GetComponent<Collider>(uuid);
-			ECS::ColliderSystem::UpdateShapeScale(scene, &collider, scene->GetComponent<TransformComponent>(uuid)->GetWorldScale());
+			ECS::ColliderSystem::UpdateShapeScale(scene, &collider,
+												  scene->GetComponent<TransformComponent>(uuid)->GetWorldScale());
 			ECS::ColliderSystem::UpdatePose(&collider, scene->GetComponent<TransformComponent>(uuid));
 		}
-
 	}
 
 	void Scene::Stop() {
@@ -99,16 +95,14 @@ namespace Plaza {
 			Editor::Filewatcher::taskQueue.pop();
 		}
 
-
 		for (const uint64_t& uuid : SceneView<AudioSource>(Scene::GetActiveScene())) {
 			AudioSource& source = *Scene::GetActiveScene()->GetComponent<AudioSource>(uuid);
 			source.Stop();
 		}
 
-
 		// Change active scene, update the selected object scene, delete runtime and set running to false.
 		Editor::selectedGameObject = nullptr;
-		//delete(Application::Get()->runtimeScene);
+		// delete(Application::Get()->runtimeScene);
 		Scene::sRuntimeScene.reset();
 
 		Scene::SetActiveScene(Scene::GetEditorScene());
@@ -122,30 +116,31 @@ namespace Plaza {
 			}
 		}
 	}
-	void Scene::Pause() {
-
-	}
+	void Scene::Pause() {}
 
 	void Scene::RecalculateAddedComponents() {
 		for (const uint64_t& uuid : SceneView<MeshRenderer>(this)) {
 			MeshRenderer& component = *this->GetComponent<MeshRenderer>(uuid);
-			component.renderGroup = this->AddRenderGroup(AssetsManager::GetMesh(component.mMeshUuid), component.GetMaterials());
+			component.renderGroup =
+				this->AddRenderGroup(AssetsManager::GetMesh(component.mMeshUuid), component.GetMaterials());
 		}
 
 		this->mainSceneEntity = this->GetEntity(this->mainSceneEntityUuid);
-		ECS::TransformSystem::UpdateSelfAndChildrenTransform(*this->GetComponent<TransformComponent>(mainSceneEntityUuid), nullptr, this, true, true);
+		ECS::TransformSystem::UpdateSelfAndChildrenTransform(
+			*this->GetComponent<TransformComponent>(mainSceneEntityUuid), nullptr, this, true, true);
 
-		//for (auto& [componentUuid, component] : guiComponents) {
+		// for (auto& [componentUuid, component] : guiComponents) {
 		//	for (auto& [key, value] : component.mGuiItems) {
-		//		glm::mat4 parentTransform = component.HasGuiItem(value->mGuiParentUuid) ? component.GetGuiItem<GuiItem>(value->mGuiParentUuid)->mTransform : glm::mat4(1.0f);
+		//		glm::mat4 parentTransform = component.HasGuiItem(value->mGuiParentUuid) ?
+		//component.GetGuiItem<GuiItem>(value->mGuiParentUuid)->mTransform : glm::mat4(1.0f);
 		//		GuiItem::UpdateSelfAndChildrenTransform(value.get(), parentTransform);
 		//	}
-		//}
-		//entitiesNames = std::unordered_map<std::string, std::unordered_set<uint64_t>>();
-		//entitiesNames.reserve(entities.size());
-		//for (auto& [key, value] : entities) {
+		// }
+		// entitiesNames = std::unordered_map<std::string, std::unordered_set<uint64_t>>();
+		// entitiesNames.reserve(entities.size());
+		// for (auto& [key, value] : entities) {
 		//	entitiesNames[value.name].insert(key);
-		//}
+		// }
 	}
 
 	void Scene::InitializeScenes() {
@@ -153,29 +148,19 @@ namespace Plaza {
 		sRuntimeScene = std::make_shared<Scene>();
 	}
 
-	Scene* Scene::GetEditorScene() {
-		return sEditorScene.get();
-	}
-	void Scene::SetEditorScene(std::shared_ptr<Scene> scene) {
-		sEditorScene = scene;
-	}
+	Scene* Scene::GetEditorScene() { return sEditorScene.get(); }
+	void Scene::SetEditorScene(std::shared_ptr<Scene> scene) { sEditorScene = scene; }
 	void Scene::ClearEditorScene() {
 		sEditorScene.reset();
 		sEditorScene = std::make_shared<Scene>();
 	}
-	Scene* Scene::GetRuntimeScene() {
-		return sRuntimeScene.get();
-	}
-	Scene* Scene::GetActiveScene() {
-		return sActiveScene;
-	}
-	void Scene::SetActiveScene(Scene* scene) {
-		sActiveScene = scene;
-	}
+	Scene* Scene::GetRuntimeScene() { return sRuntimeScene.get(); }
+	Scene* Scene::GetActiveScene() { return sActiveScene; }
+	void Scene::SetActiveScene(Scene* scene) { sActiveScene = scene; }
 
 	void Scene::Terminate() {
 		sActiveScene = nullptr;
 		sEditorScene.reset();
 		sRuntimeScene.reset();
 	}
-}
+} // namespace Plaza

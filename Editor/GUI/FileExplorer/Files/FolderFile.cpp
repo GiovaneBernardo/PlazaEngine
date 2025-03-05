@@ -11,24 +11,14 @@ namespace Plaza {
 			Gui::FileExplorer::breakFilesLoop = true;
 		}
 
-		void FolderFile::Delete() {
+		void FolderFile::Delete() {}
 
-		}
+		void FolderFile::Rename(std::string oldPath, std::string newPath) {}
 
-		void FolderFile::Rename(std::string oldPath, std::string newPath) {
+		void FolderFile::Move(std::string oldPath, std::string newPath) {}
 
-		}
+		void FolderFile::Copy() {}
 
-		void FolderFile::Move(std::string oldPath, std::string newPath) {
-
-		}
-
-		void FolderFile::Copy() {
-
-		}
-
-		void FolderFile::Paste() {
-
-		}
-	}
-}
+		void FolderFile::Paste() {}
+	} // namespace Editor
+} // namespace Plaza

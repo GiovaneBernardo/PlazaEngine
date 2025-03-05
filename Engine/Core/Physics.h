@@ -5,13 +5,10 @@
 namespace Plaza {
 	class PhysicsMaterial;
 	class PLAZA_API MyQueryFilterCallback : public physx::PxQueryFilterCallback {
-	public:
-		virtual physx::PxQueryHitType::Enum preFilter(
-			const physx::PxFilterData& filterData,
-			const physx::PxShape* shape,
-			const physx::PxRigidActor* actor,
-			physx::PxHitFlags& queryFlags) override
-		{
+	  public:
+		virtual physx::PxQueryHitType::Enum preFilter(const physx::PxFilterData& filterData,
+													  const physx::PxShape* shape, const physx::PxRigidActor* actor,
+													  physx::PxHitFlags& queryFlags) override {
 			if (actor && actor->userData == mEntityToIgnore) {
 				return physx::PxQueryHitType::eNONE;
 			}
@@ -19,15 +16,14 @@ namespace Plaza {
 		}
 
 		// Set the entity to ignore
-		void setEntityToIgnore(void* entityToIgnore) {
-			mEntityToIgnore = entityToIgnore;
-		}
+		void setEntityToIgnore(void* entityToIgnore) { mEntityToIgnore = entityToIgnore; }
 
-		physx::PxQueryHitType::Enum postFilter(const physx::PxFilterData& filterData, const physx::PxQueryHit& hit, const physx::PxShape* shape, const physx::PxRigidActor* actor) override {
+		physx::PxQueryHitType::Enum postFilter(const physx::PxFilterData& filterData, const physx::PxQueryHit& hit,
+											   const physx::PxShape* shape, const physx::PxRigidActor* actor) override {
 			return physx::PxQueryHitType::eTOUCH;
 		}
 
-	private:
+	  private:
 		void* mEntityToIgnore = nullptr;
 	};
 
@@ -41,7 +37,7 @@ namespace Plaza {
 	class Mesh;
 	class ColliderShape;
 	class PLAZA_API Physics {
-	public:
+	  public:
 		static physx::PxDefaultAllocator m_defaultAllocatorCallback;
 		static physx::PxDefaultErrorCallback m_defaultErrorCallback;
 		static physx::PxDefaultCpuDispatcher* m_dispatcher;
@@ -54,7 +50,8 @@ namespace Plaza {
 
 		static physx::PxMaterial* defaultMaterial;
 
-		static physx::PxMaterial* InitializePhysicsMaterial(float staticFriction, float dynamicFriction, float restitution);
+		static physx::PxMaterial* InitializePhysicsMaterial(float staticFriction, float dynamicFriction,
+															float restitution);
 		static PhysicsMaterial& GetDefaultPhysicsMaterial();
 
 		static physx::PxScene* m_scene;
@@ -89,7 +86,8 @@ namespace Plaza {
 		static void DeleteShape();
 
 		static void Raycast(glm::vec3 origin, glm::vec3 direction, RaycastHit& hit);
-	private:
+
+	  private:
 		static physx::PxVec3 GlmToPhysX(const glm::vec3& vector);
 	};
-}
+} // namespace Plaza

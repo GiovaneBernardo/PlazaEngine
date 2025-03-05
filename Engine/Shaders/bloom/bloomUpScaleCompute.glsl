@@ -66,7 +66,7 @@ void main()
     {
         vec2 uv        = (base_index + 0.5) * u_texel_size;
         vec2 uv_offset = vec2(i % TILE_SIZE, i / TILE_SIZE) * u_texel_size;
-        
+
         vec4 color = textureLod(u_input_texture, (uv + uv_offset), u_mip_level);
         store_lds(i, color);
     }
@@ -82,11 +82,11 @@ void main()
     s =  load_lds(sm_idx - TILE_SIZE - 1);
     s += load_lds(sm_idx - TILE_SIZE    ) * 2.0;
     s += load_lds(sm_idx - TILE_SIZE + 1);
-	
+
     s += load_lds(sm_idx - 1) * 2.0;
     s += load_lds(sm_idx    ) * 4.0;
     s += load_lds(sm_idx + 1) * 2.0;
-	
+
     s += load_lds(sm_idx + TILE_SIZE - 1);
     s += load_lds(sm_idx + TILE_SIZE    ) * 2.0;
     s += load_lds(sm_idx + TILE_SIZE + 1);

@@ -14,14 +14,14 @@
 #include "ThirdParty/minimp3/minimp3_ex.h"
 
 namespace Plaza {
-	static ALenum GetOpenALFormat(uint32_t channels)
-	{
+	static ALenum GetOpenALFormat(uint32_t channels) {
 		// Note: sample size is always 2 bytes (16-bits) with
 		// both the .mp3 and .ogg decoders that we're using
-		switch (channels)
-		{
-		case 1:  return AL_FORMAT_MONO16;
-		case 2:  return AL_FORMAT_STEREO16;
+		switch (channels) {
+			case 1:
+				return AL_FORMAT_MONO16;
+			case 2:
+				return AL_FORMAT_STEREO16;
 		}
 		// assert
 		return 0;
@@ -51,4 +51,4 @@ namespace Plaza {
 
 		return source;
 	}
-}
+} // namespace Plaza

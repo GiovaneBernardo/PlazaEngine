@@ -29,7 +29,8 @@ namespace Plaza {
 		layoutInfo.bindingCount = 3;
 		layoutInfo.pBindings = layoutBindings.data();
 
-		if (vkCreateDescriptorSetLayout(VulkanRenderer::GetRenderer()->mDevice, &layoutInfo, nullptr, &mComputeDescriptorSetLayout) != VK_SUCCESS) {
+		if (vkCreateDescriptorSetLayout(VulkanRenderer::GetRenderer()->mDevice, &layoutInfo, nullptr,
+										&mComputeDescriptorSetLayout) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create compute descriptor set layout!");
 		}
 	}
@@ -38,7 +39,9 @@ namespace Plaza {
 			CreateComputeDescriptorSetLayout();
 
 		bool pathEndsWithSpv = shadersPath.ends_with(".spv");
-		VkShaderModule computeShaderModule = VulkanShaders::CreateShaderModule(VulkanShaders::ReadFile(pathEndsWithSpv ? shadersPath : VulkanShadersCompiler::Compile(shadersPath)), VulkanRenderer::GetRenderer()->mDevice);
+		VkShaderModule computeShaderModule = VulkanShaders::CreateShaderModule(
+			VulkanShaders::ReadFile(pathEndsWithSpv ? shadersPath : VulkanShadersCompiler::Compile(shadersPath)),
+			VulkanRenderer::GetRenderer()->mDevice);
 
 		VkPipelineShaderStageCreateInfo computeShaderStageInfo{};
 		computeShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -55,7 +58,8 @@ namespace Plaza {
 			pipelineLayoutInfo.pushConstantRangeCount = pushConstantsRange.size();
 		}
 
-		if (vkCreatePipelineLayout(VulkanRenderer::GetRenderer()->mDevice, &pipelineLayoutInfo, nullptr, &mComputePipelineLayout) != VK_SUCCESS) {
+		if (vkCreatePipelineLayout(VulkanRenderer::GetRenderer()->mDevice, &pipelineLayoutInfo, nullptr,
+								   &mComputePipelineLayout) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create compute pipeline layout!");
 		}
 
@@ -64,7 +68,8 @@ namespace Plaza {
 		pipelineInfo.layout = mComputePipelineLayout;
 		pipelineInfo.stage = computeShaderStageInfo;
 
-		if (vkCreateComputePipelines(VulkanRenderer::GetRenderer()->mDevice, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &mComputePipeline) != VK_SUCCESS) {
+		if (vkCreateComputePipelines(VulkanRenderer::GetRenderer()->mDevice, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
+									 &mComputePipeline) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create compute pipeline!");
 		}
 
@@ -72,42 +77,49 @@ namespace Plaza {
 	}
 
 	void VulkanComputeShaders::RunCompute() {
-
-
-		//UniformBufferObject ubo{};
+		// UniformBufferObject ubo{};
 		////ubo.deltaTime = Time::deltaTime * 1000.0f;
 		//
-		//memcpy(mUniformBuffersMapped[Application::Get()->mRenderer->mCurrentFrame], &ubo, sizeof(ubo));
+		// memcpy(mUniformBuffersMapped[Application::Get()->mRenderer->mCurrentFrame], &ubo, sizeof(ubo));
 		//
-		//vkCmdBindPipeline(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, mComputePipeline);
+		// vkCmdBindPipeline(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
+		// mComputePipeline);
 		//
-		//vkCmdBindDescriptorSets(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, mComputePipelineLayout, 0, 1, &mComputeDescriptorSets[VulkanRenderer::GetRenderer()->mCurrentFrame], 0, nullptr);
+		// vkCmdBindDescriptorSets(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
+		// mComputePipelineLayout, 0, 1, &mComputeDescriptorSets[VulkanRenderer::GetRenderer()->mCurrentFrame], 0,
+		// nullptr);
 		//
-		//vkCmdDispatch(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, PARTICLE_COUNT / 256, 1, 1);
+		// vkCmdDispatch(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, PARTICLE_COUNT / 256, 1, 1);
 	}
 
-	void VulkanComputeShaders::Dispatch(int x, int y, int z, void* pushConstantData, unsigned int pushConstantSize, VkDescriptorSet descriptorSet) {
-		vkCmdBindPipeline(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, mComputePipeline);
+	void VulkanComputeShaders::Dispatch(int x, int y, int z, void* pushConstantData, unsigned int pushConstantSize,
+										VkDescriptorSet descriptorSet) {
+		vkCmdBindPipeline(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
+						  mComputePipeline);
 
-		uint32_t offsets[1] = { 0 };
-		vkCmdBindDescriptorSets(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, mComputePipelineLayout, 0, 1, descriptorSet == VK_NULL_HANDLE ? &mComputeDescriptorSets[VulkanRenderer::GetRenderer()->mCurrentFrame] : &descriptorSet, 0, nullptr);
+		uint32_t offsets[1] = {0};
+		vkCmdBindDescriptorSets(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
+								mComputePipelineLayout, 0, 1,
+								descriptorSet == VK_NULL_HANDLE
+									? &mComputeDescriptorSets[VulkanRenderer::GetRenderer()->mCurrentFrame]
+									: &descriptorSet,
+								0, nullptr);
 
 		if (pushConstantData)
-			vkCmdPushConstants(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, this->mComputePipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, pushConstantSize, pushConstantData);
-
+			vkCmdPushConstants(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, this->mComputePipelineLayout,
+							   VK_SHADER_STAGE_COMPUTE_BIT, 0, pushConstantSize, pushConstantData);
 
 		vkCmdDispatch(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, x, y, z);
 	}
 
 	void VulkanComputeShaders::Draw() {
-		//VkDeviceSize offsets[] = { 0 };
-		//vkCmdBindVertexBuffers(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, 0, 1, &mShaderStorageBuffers[VulkanRenderer::GetRenderer()->mCurrentFrame], offsets);
+		// VkDeviceSize offsets[] = { 0 };
+		// vkCmdBindVertexBuffers(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, 0, 1,
+		// &mShaderStorageBuffers[VulkanRenderer::GetRenderer()->mCurrentFrame], offsets);
 		//
-		//vkCmdDraw(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, PARTICLE_COUNT, 1, 0, 0);
+		// vkCmdDraw(*VulkanRenderer::GetRenderer()->mActiveCommandBuffer, PARTICLE_COUNT, 1, 0, 0);
 	}
 
-	void VulkanComputeShaders::Terminate() {
+	void VulkanComputeShaders::Terminate() {}
 
-	}
-
-}
+} // namespace Plaza

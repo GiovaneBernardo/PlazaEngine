@@ -8,7 +8,4 @@
 #include "Engine/Core/Scene.h"
 #include "Engine/Core/Physics.h"
 
-
-namespace Plaza {
-
-}
+namespace Plaza {}

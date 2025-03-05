@@ -14,7 +14,7 @@ uniform float objectID;
 out uvec3 pixelObjectID;
 
 void main()
-{       
+{
     uvec3 color = uvec3(uint(array[0]), uint(array[1]), 0u);
     pixelObjectID = color;
     FragColor = uvec4(color.x, color.y, 1.0f, 1.0f);

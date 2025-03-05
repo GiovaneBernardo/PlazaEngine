@@ -5,11 +5,8 @@
 namespace Plaza {
 	namespace Editor {
 		class AssetsImporterWindow : public GuiWindow {
-		public:
-			AssetsImporterWindow(GuiLayer layer, bool startOpen = true) : GuiWindow(layer, startOpen) {
-				
-			}
-
+		  public:
+			AssetsImporterWindow(GuiLayer layer, bool startOpen = true) : GuiWindow(layer, startOpen) {}
 
 			void Init() override;
 			void Update(Scene* scene) override;
@@ -20,17 +17,16 @@ namespace Plaza {
 				this->SetOpen(true);
 			}
 
-		private:
+		  private:
 			Plaza::AssetsImporterSettings settings{};
 
 			std::string mFileToImport = "";
 			std::string mFileToImportOut = "";
-			//AssetsImporterSettings mSettings{};
+			// AssetsImporterSettings mSettings{};
 			void OnKeyPress(int key, int scancode, int action, int mods) override;
 
 			void ModelImporterMenu();
 			void TextureImporterMenu();
-
 		};
-	}
-}
+	} // namespace Editor
+} // namespace Plaza

@@ -11,69 +11,59 @@
 
 namespace Plaza::Editor {
 	void HierarchyPopup::Update(Scene* scene, Entity* entity) {
-		if (ImGui::BeginPopupContextWindow("ItemPopup"))
-		{
+		if (ImGui::BeginPopupContextWindow("ItemPopup")) {
 			Popup::NewEntityPopup::Init(entity, scene);
 			if (entity)
 				HierarchyPopup::UpdateAddComponentPopup(scene, entity);
 
 			ImGui::EndPopup();
-
 		}
 	}
 
 	void HierarchyPopup::UpdateAddComponentPopup(Scene* scene, Entity* entity) {
-		if (ImGui::BeginMenu("Add Component"))
-		{
-			if (ImGui::MenuItem("Mesh Renderer"))
-			{
+		if (ImGui::BeginMenu("Add Component")) {
+			if (ImGui::MenuItem("Mesh Renderer")) {
 				MeshRenderer* meshRenderer = scene->NewComponent<MeshRenderer>(entity->uuid);
 				meshRenderer->AddMaterial(AssetsManager::GetDefaultMaterial());
 				meshRenderer->instanced = true;
 			}
 
-			if (ImGui::MenuItem("Rigid Body Dynamic"))
-			{
+			if (ImGui::MenuItem("Rigid Body Dynamic")) {
 				RigidBody* rigidBody = scene->NewComponent<RigidBody>(entity->uuid);
 				rigidBody->mUuid = entity->uuid;
 				ECS::RigidBodySystem::Init(scene, entity->uuid);
 				ECS::ColliderSystem::InitCollider(scene, entity->uuid);
 			}
 
-			if (ImGui::MenuItem("Rigid Body Non Dynamic"))
-			{
+			if (ImGui::MenuItem("Rigid Body Non Dynamic")) {
 				RigidBody* rigidBody = scene->NewComponent<RigidBody>(entity->uuid);
 				rigidBody->dynamic = false;
 				rigidBody->mUuid = entity->uuid;
 			}
 
-			if (ImGui::MenuItem("Collider"))
-			{
+			if (ImGui::MenuItem("Collider")) {
 				Collider* collider = scene->NewComponent<Collider>(entity->uuid);
 				ECS::ColliderSystem::InitCollider(scene, entity->uuid);
 			}
 
-			if (ImGui::MenuItem("Camera"))
-			{
+			if (ImGui::MenuItem("Camera")) {
 				Camera* camera = scene->NewComponent<Camera>(entity->uuid);
 				camera->mUuid = entity->uuid;
 			}
 
-			if (ImGui::MenuItem("Text Renderer"))
-			{
-				Plaza::Drawing::UI::TextRenderer* textRenderer = scene->NewComponent<Plaza::Drawing::UI::TextRenderer>(entity->uuid);
+			if (ImGui::MenuItem("Text Renderer")) {
+				Plaza::Drawing::UI::TextRenderer* textRenderer =
+					scene->NewComponent<Plaza::Drawing::UI::TextRenderer>(entity->uuid);
 				textRenderer->Init(Application::Get()->activeProject->mAssetPath.parent_path().string() + "/font.ttf");
 				textRenderer->mUuid = entity->uuid;
 			}
 
-			if (ImGui::MenuItem("Audio Source"))
-			{
+			if (ImGui::MenuItem("Audio Source")) {
 				AudioSource* audioSource = scene->NewComponent<AudioSource>(entity->uuid);
 				audioSource->mUuid = entity->uuid;
 			}
 
-			if (ImGui::MenuItem("Audio Listener"))
-			{
+			if (ImGui::MenuItem("Audio Listener")) {
 				AudioListener* audioListener = scene->NewComponent<AudioListener>(entity->uuid);
 				audioListener->mUuid = entity->uuid;
 			}
@@ -84,20 +74,21 @@ namespace Plaza::Editor {
 				HierarchyWindow::Item::firstFocus = true;
 			}
 
-			if (ImGui::BeginMenu("C++ Script"))
-			{
+			if (ImGui::BeginMenu("C++ Script")) {
 				for (auto& [key, value] : AssetsManager::mScripts) {
 					if (value->GetExtension() != ".h")
 						continue;
 
-					//TODO: FIX SCRIPTS WITH INCORRECT NAME AND REMOVE THE BELOW HACK USING THE ASSET
+					// TODO: FIX SCRIPTS WITH INCORRECT NAME AND REMOVE THE BELOW HACK USING THE ASSET
 					Asset* asset = AssetsManager::GetAsset(key);
 					if (ImGui::MenuItem(value->mAssetName.c_str())) {
-						CppScriptComponent* component = Scene::GetActiveScene()->GetComponent<CppScriptComponent>(entity->uuid);
+						CppScriptComponent* component =
+							Scene::GetActiveScene()->GetComponent<CppScriptComponent>(entity->uuid);
 						if (!component) {
 							component = scene->NewComponent<CppScriptComponent>(entity->uuid);
 						}
-						CppScript* script = ScriptFactory::CreateScript(std::filesystem::path(value->mAssetName).stem().string());
+						CppScript* script =
+							ScriptFactory::CreateScript(std::filesystem::path(value->mAssetName).stem().string());
 						if (!script) {
 							PL_CORE_ERROR("Added Script is a nullptr");
 							continue;
@@ -107,33 +98,29 @@ namespace Plaza::Editor {
 						if (scene->mRunning) {
 							script->OnStart(scene);
 						}
-						//entity->AddComponent<CppScriptComponent>(component);
+						// entity->AddComponent<CppScriptComponent>(component);
 					}
 				}
 
 				ImGui::EndMenu();
 			}
 
-			if (ImGui::MenuItem("Light"))
-			{
+			if (ImGui::MenuItem("Light")) {
 				Light* light = scene->NewComponent<Light>(entity->uuid);
 				light->mUuid = entity->uuid;
 			}
 
-			if (ImGui::MenuItem("Character Controller"))
-			{
+			if (ImGui::MenuItem("Character Controller")) {
 				CharacterController* characterController = scene->NewComponent<CharacterController>(entity->uuid);
 				characterController->mUuid = entity->uuid;
 			}
 
-			if (ImGui::MenuItem("Animation"))
-			{
+			if (ImGui::MenuItem("Animation")) {
 				AnimationComponent* animationComponent = scene->NewComponent<AnimationComponent>(entity->uuid);
 				animationComponent->mUuid = entity->uuid;
 			}
 
-			if (ImGui::MenuItem("Gui"))
-			{
+			if (ImGui::MenuItem("Gui")) {
 				GuiComponent* guiComponent = scene->NewComponent<GuiComponent>(entity->uuid);
 				guiComponent->mUuid = entity->uuid;
 			}
@@ -141,4 +128,4 @@ namespace Plaza::Editor {
 			ImGui::EndMenu();
 		}
 	}
-}
+} // namespace Plaza::Editor

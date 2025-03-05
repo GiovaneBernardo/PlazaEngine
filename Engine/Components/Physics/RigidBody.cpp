@@ -17,15 +17,17 @@ namespace Plaza {
 		if (initWithPhysics) {
 			this->mUuid = uuid;
 			this->dynamic = dynamic;
-			//Init();
+			// Init();
 		}
 	}
 
 	void RigidBody::ApplyForce(const glm::vec3& force) {
 		if (this->mRigidActor) {
-			//this->mRigidActor->is<PxRigidDynamic>()->addForce(PxVec3(force.x, force.y, force.z), physx::PxForceMode::eFORCE);
+			// this->mRigidActor->is<PxRigidDynamic>()->addForce(PxVec3(force.x, force.y, force.z),
+			// physx::PxForceMode::eFORCE);
 			this->mRigidActor->is<PxRigidDynamic>()->setLinearVelocity(PxVec3(force.x, force.y, force.z));
-			//this->mRigidActor->is<PxRigidDynamic>()->addForce(PxVec3(force.x, force.y, force.z), physx::PxForceMode::eFORCE);
+			// this->mRigidActor->is<PxRigidDynamic>()->addForce(PxVec3(force.x, force.y, force.z),
+			// physx::PxForceMode::eFORCE);
 		}
 	};
 
@@ -78,4 +80,4 @@ namespace Plaza {
 
 		this->mRigidActor->is<physx::PxRigidDynamic>()->setRigidDynamicLockFlag(flag, value);
 	}
-}
+} // namespace Plaza

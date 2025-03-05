@@ -4,7 +4,7 @@
 
 namespace Plaza {
 	class AssetsReader {
-	public:
+	  public:
 		static Asset* ReadAssetAtPath(std::filesystem::path path);
 	};
-}
+} // namespace Plaza

@@ -3,7 +3,7 @@
 
 namespace Plaza {
 	class PLAZA_API Input::Cursor {
-	public:
+	  public:
 		static bool show;
 
 		static double lastX;
@@ -11,7 +11,7 @@ namespace Plaza {
 
 		static double deltaX;
 		static double deltaY;
-		
+
 		static void Update();
 
 		static void SetX(float value);
@@ -19,4 +19,4 @@ namespace Plaza {
 		static glm::vec2 GetMousePosition();
 		static glm::vec2 GetDeltaMousePosition();
 	};
-}
+} // namespace Plaza

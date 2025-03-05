@@ -1,4 +1,4 @@
-#version 460 
+#version 460
 #extension GL_EXT_nonuniform_qualifier : enable
 
 layout(push_constant) uniform PushConsts {
@@ -10,10 +10,10 @@ layout (location = 0) out vec2 outUV;
 layout (location = 1) out uint outCascadeIndex;
 
 out gl_PerVertex {
-	vec4 gl_Position;   
+	vec4 gl_Position;
 };
 
-void main() 
+void main()
 {
 	outUV = vec2((gl_VertexIndex << 1) & 2, gl_VertexIndex & 2);
 	outCascadeIndex = pushConsts.cascadeIndex;

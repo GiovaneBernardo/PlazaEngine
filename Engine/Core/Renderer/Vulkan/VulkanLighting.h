@@ -6,17 +6,18 @@
 
 namespace Plaza {
 	class VulkanLighting : public Lighting {
-	public:
+	  public:
 		void Init() override;
 		void GetLights(Scene* scene) override;
 		void UpdateTiles() override;
 		void DrawDeferredPass();
 		void Terminate() override;
-		
+
 		VulkanTexture mDeferredEndTexture;
 		VulkanPlazaPipeline mDeferredEndPassRenderer;
 		const VkFormat mDeferredEndTextureFormat = VK_FORMAT_R32G32B32A32_SFLOAT;
-	private:
+
+	  private:
 		struct LightSorterPushConstants {
 			glm::mat4 view;
 			glm::mat4 projection;
@@ -37,9 +38,8 @@ namespace Plaza {
 
 		void InitializeDescriptorSets();
 		void InitializeBuffers();
-		
-	private:
 
+	  private:
 		VulkanComputeShaders mLightSorterComputeShaders;
 		VulkanShaders* mDeferredPass = nullptr;
 
@@ -50,4 +50,4 @@ namespace Plaza {
 		std::vector<VkBuffer> mDepthValuesBuffer;
 		std::vector<VkDeviceMemory> mDepthValuesBufferMemory;
 	};
-}
+} // namespace Plaza

@@ -110,7 +110,7 @@ float ShadowCalculation(vec3 fragPosWorldSpace)
         bias *= 1 / ((ubo.cascadePlaneDistances[layer].x) * biasModifier);
     }
     float distanceToCamera = distance(ubo.viewPos.xyz, projCoords.xyz);
-    
+
     bias = 0.0001;
     float floatVal = 3 - (texture(shadowsDepthMap, vec3(projCoords.xyz)).r * 2.3);
     int pcfCount = 5;// + int(floatVal);
@@ -126,8 +126,8 @@ float ShadowCalculation(vec3 fragPosWorldSpace)
         for(int y = -pcfCount; y <= pcfCount; ++y)
         {
             float pcfDepth = texture(shadowsDepthMap, vec3(projCoords.xy + vec2(x, y) * texelSize, layer)).r;
-            shadow += (currentDepth - bias) > pcfDepth ? 1.0 : 0.0;        
-        }    
+            shadow += (currentDepth - bias) > pcfDepth ? 1.0 : 0.0;
+        }
     }
     shadow /= totalTexels;
     return shadow;
@@ -165,7 +165,7 @@ void main() {
     //MaterialData material = materials[materialIndex];
     vec4 color;
     if(materials[materialIndex].diffuseIndex > -1)
-    { 
+    {
         color = texture(textures[materials[materialIndex].diffuseIndex], fragTexCoord) * 1;
     }
     else
@@ -231,7 +231,7 @@ void main() {
     float nDotV = max(dot(n, v), 0.0);
 
     vec3  F0 = mix (vec3 (0.04), color.xyz, metallic);
-    vec3 F = fresnelSchlick(vDotH, F0);   
+    vec3 F = fresnelSchlick(vDotH, F0);
 
     vec3 kS = F;
     vec3 kD = 1.0 - kS;

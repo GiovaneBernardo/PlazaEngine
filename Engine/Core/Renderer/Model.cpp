@@ -15,4 +15,4 @@ namespace Plaza {
 			mMeshes.emplace(mesh->uuid, mesh);
 		}
 	}
-}
+} // namespace Plaza

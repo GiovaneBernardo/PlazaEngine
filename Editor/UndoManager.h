@@ -1,5 +1,3 @@
 #pragma once
 
-namespace Plaza::Editor {
-
-}
+namespace Plaza::Editor {}

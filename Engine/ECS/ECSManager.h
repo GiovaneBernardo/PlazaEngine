@@ -4,13 +4,12 @@
 
 namespace Plaza {
 	class PLAZA_API ECSManager {
-	public:
-
+	  public:
 	};
 
 	class ComponentPool;
 	class PLAZA_API ECS {
-	public:
+	  public:
 		static inline void RegisterComponents() {
 			Application::Get()->mComponentCounter = 0;
 			Scene::GetComponentId<TransformComponent>();
@@ -35,48 +34,63 @@ namespace Plaza {
 			ECS::RegisterComponent<AnimationComponent>();
 		}
 
-		static void InstantiateComponent(ComponentPool* srcPool, ComponentPool* dstPool, uint64_t srcUuid, uint64_t dstUuid);
-		static inline std::vector<std::function<void* (ComponentPool* srcPool, ComponentPool* dstPool, uint64_t srcUuid, uint64_t dstUuid)>> sInstantiateComponentFactory{};
-		template<typename T>
-		static inline void RegisterComponent() {
+		static void InstantiateComponent(ComponentPool* srcPool, ComponentPool* dstPool, uint64_t srcUuid,
+										 uint64_t dstUuid);
+		static inline std::vector<
+			std::function<void*(ComponentPool* srcPool, ComponentPool* dstPool, uint64_t srcUuid, uint64_t dstUuid)>>
+			sInstantiateComponentFactory{};
+		template <typename T> static inline void RegisterComponent() {
 			const int componentId = Scene::GetComponentId<T>();
 			if (componentId >= ECS::sInstantiateComponentFactory.size())
 				ECS::sInstantiateComponentFactory.resize(componentId + 1);
-			ECS::sInstantiateComponentFactory[componentId] = [](ComponentPool* srcPool, ComponentPool* dstPool, uint64_t srcUuid, uint64_t dstUuid) -> void* {
+			ECS::sInstantiateComponentFactory[componentId] = [](ComponentPool* srcPool, ComponentPool* dstPool,
+																uint64_t srcUuid, uint64_t dstUuid) -> void* {
 				T* component = dstPool->New<T>(dstUuid);
 				*component = *static_cast<T*>(srcPool->Get(srcUuid));
 				static_cast<Component*>(component)->mUuid = dstUuid;
 				return component;
-				};
+			};
 		}
-	private:
 
-	public:
+	  private:
+	  public:
 		class PLAZA_API EntitySystem {
-		public:
+		  public:
 			static void SetParent(Scene* scene, Entity* child, Entity* newParent);
 			static void Delete(Scene* scene, uint64_t uuid);
 			static uint64_t Instantiate(Scene* scene, uint64_t uuidToInstantiate, bool newTransform = false);
-			static uint64_t Instantiate(Scene* srcScene, Scene* dstScene, uint64_t srcUuid, uint64_t dstUuid, bool newTransform = false);
-			static uint64_t Instantiate(const std::unordered_map<uint64_t, Entity>& srcEntities, const std::vector<ComponentPool*>& srcComponentPools, Scene* dstScene, uint64_t srcUuid, uint64_t dstUuid, bool newTransform = false);
+			static uint64_t Instantiate(Scene* srcScene, Scene* dstScene, uint64_t srcUuid, uint64_t dstUuid,
+										bool newTransform = false);
+			static uint64_t Instantiate(const std::unordered_map<uint64_t, Entity>& srcEntities,
+										const std::vector<ComponentPool*>& srcComponentPools, Scene* dstScene,
+										uint64_t srcUuid, uint64_t dstUuid, bool newTransform = false);
 		};
 		class PLAZA_API TransformSystem {
-		public:
+		  public:
 			static void OnInstantiate(Component* componentToInstantiate, TransformComponent& transform);
 			static void UpdateTransform(TransformComponent& transform, Scene* scene);
 			static void UpdateLocalMatrix(TransformComponent& transform, Scene* scene);
-			static void UpdateWorldMatrix(TransformComponent& transform, const glm::mat4& parentWorldMatrix, Scene* scene);
+			static void UpdateWorldMatrix(TransformComponent& transform, const glm::mat4& parentWorldMatrix,
+										  Scene* scene);
 			static void UpdateChildrenTransform(TransformComponent& transform, Scene* scene);
-			static void SetLocalPosition(TransformComponent& transform, Scene* scene, const glm::vec3& vector, bool updateWorldMatrix = true);
-			static void SetLocalRotation(TransformComponent& transform, Scene* scene, const glm::quat& quat, bool updateWorldMatrix = true);
-			static void SetLocalScale(TransformComponent& transform, Scene* scene, const glm::vec3& vector, bool updateWorldMatrix = true);
-			static void SetWorldPosition(TransformComponent& transform, Scene* scene, const glm::vec3& vector, bool updateWorldMatrix = true);
-			static void SetWorldRotation(TransformComponent& transform, Scene* scene, const glm::vec3& vector, bool updateWorldMatrix = true);
-			static void SetWorldScale(TransformComponent& transform, Scene* scene, const glm::vec3& vector, bool updateWorldMatrix = true);
-			static void UpdateSelfAndChildrenTransform(TransformComponent& transform, TransformComponent* parentTransform, Scene* scene, bool updateLocal = true, bool forceUpdateLocal = false);
+			static void SetLocalPosition(TransformComponent& transform, Scene* scene, const glm::vec3& vector,
+										 bool updateWorldMatrix = true);
+			static void SetLocalRotation(TransformComponent& transform, Scene* scene, const glm::quat& quat,
+										 bool updateWorldMatrix = true);
+			static void SetLocalScale(TransformComponent& transform, Scene* scene, const glm::vec3& vector,
+									  bool updateWorldMatrix = true);
+			static void SetWorldPosition(TransformComponent& transform, Scene* scene, const glm::vec3& vector,
+										 bool updateWorldMatrix = true);
+			static void SetWorldRotation(TransformComponent& transform, Scene* scene, const glm::vec3& vector,
+										 bool updateWorldMatrix = true);
+			static void SetWorldScale(TransformComponent& transform, Scene* scene, const glm::vec3& vector,
+									  bool updateWorldMatrix = true);
+			static void UpdateSelfAndChildrenTransform(TransformComponent& transform,
+													   TransformComponent* parentTransform, Scene* scene,
+													   bool updateLocal = true, bool forceUpdateLocal = false);
 		};
 		class PLAZA_API ColliderSystem {
-		public:
+		  public:
 			static void RemoveActor(Collider* collider);
 			static void Init(RigidBody* rigidBody);
 			static void InitDynamic(RigidBody* rigidBody = nullptr) {};
@@ -86,7 +100,8 @@ namespace Plaza {
 			static void RemoveCollider();
 			static void Update() {};
 
-			static void CreateShape(Collider* collider, TransformComponent* transform, ColliderShape::ColliderShapeEnum shapeEnum, Mesh* mesh = nullptr);
+			static void CreateShape(Collider* collider, TransformComponent* transform,
+									ColliderShape::ColliderShapeEnum shapeEnum, Mesh* mesh = nullptr);
 			static void AddShape(ColliderShape* shape);
 			static void AddConvexMeshShape(Mesh* mesh);
 			static void AddMeshShape(Mesh* mesh);
@@ -98,11 +113,11 @@ namespace Plaza {
 		};
 
 		class PLAZA_API RigidBodySystem {
-		public:
+		  public:
 			static void Init(Scene* scene, uint64_t uuid);
 			static void Update(Scene* scene, uint64_t uuid);
 			static void UpdateGlobalPose(Scene* scene, uint64_t uuid);
 			static void AddCollidersOfChildren(Scene* scene, uint64_t parent);
 		};
 	};
-};
+}; // namespace Plaza

@@ -7,4 +7,4 @@ namespace Plaza::Editor {
 		else
 			glfwSwapInterval(0);
 	}
-}
+} // namespace Plaza::Editor

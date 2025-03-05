@@ -7,13 +7,10 @@
 
 namespace Plaza {
 	namespace plvk {
-		static VkDescriptorSetLayoutBinding descriptorSetLayoutBinding(
-			uint32_t binding,
-			uint32_t descriptorCount,
-			VkDescriptorType descriptorType,
-			VkSampler* pImmutableSamplers,
-			VkShaderStageFlags shaderStageFlags
-		) {
+		static VkDescriptorSetLayoutBinding descriptorSetLayoutBinding(uint32_t binding, uint32_t descriptorCount,
+																	   VkDescriptorType descriptorType,
+																	   VkSampler* pImmutableSamplers,
+																	   VkShaderStageFlags shaderStageFlags) {
 			VkDescriptorSetLayoutBinding bindingInfo{};
 			bindingInfo.binding = binding;
 			bindingInfo.descriptorCount = descriptorCount;
@@ -26,8 +23,7 @@ namespace Plaza {
 		static VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo(
 			std::vector<VkDescriptorSetLayoutBinding>& bindings,
 			VkDescriptorSetLayoutCreateFlags flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT_EXT,
-			void* pNext = nullptr
-		) {
+			void* pNext = nullptr) {
 			VkDescriptorSetLayoutCreateInfo createInfo{};
 			createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 			createInfo.bindingCount = static_cast<uint32_t>(bindings.size());
@@ -38,14 +34,9 @@ namespace Plaza {
 		}
 
 		static VkWriteDescriptorSet writeDescriptorSet(
-			VkDescriptorSet dstSet,
-			uint32_t dstBinding = 0,
-			uint32_t dstArrayElement = 0,
-			VkDescriptorType descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-			uint32_t descriptorCount = 1,
-			VkDescriptorImageInfo* imageInfo = nullptr,
-			VkDescriptorBufferInfo* bufferInfo = nullptr
-		) {
+			VkDescriptorSet dstSet, uint32_t dstBinding = 0, uint32_t dstArrayElement = 0,
+			VkDescriptorType descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, uint32_t descriptorCount = 1,
+			VkDescriptorImageInfo* imageInfo = nullptr, VkDescriptorBufferInfo* bufferInfo = nullptr) {
 			VkWriteDescriptorSet writeInfo{};
 			writeInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 			writeInfo.dstSet = dstSet;
@@ -60,11 +51,8 @@ namespace Plaza {
 			return writeInfo;
 		}
 
-		static VkDescriptorImageInfo descriptorImageInfo(
-			VkImageLayout layout,
-			VkImageView imageView,
-			VkSampler sampler
-		) {
+		static VkDescriptorImageInfo descriptorImageInfo(VkImageLayout layout, VkImageView imageView,
+														 VkSampler sampler) {
 			VkDescriptorImageInfo imageInfo{};
 			imageInfo.imageLayout = layout;
 			imageInfo.imageView = imageView;
@@ -72,11 +60,7 @@ namespace Plaza {
 			return imageInfo;
 		}
 
-		static VkDescriptorBufferInfo descriptorBufferInfo(
-			VkBuffer& buffer,
-			uint32_t offset,
-			uint32_t range
-		) {
+		static VkDescriptorBufferInfo descriptorBufferInfo(VkBuffer& buffer, uint32_t offset, uint32_t range) {
 			VkDescriptorBufferInfo bufferInfo{};
 			bufferInfo.buffer = buffer;
 			bufferInfo.offset = offset;
@@ -84,12 +68,10 @@ namespace Plaza {
 			return bufferInfo;
 		}
 
-		static VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo(
-			uint32_t setLayoutCount,
-			VkDescriptorSetLayout* pSetLayouts,
-			uint32_t pushConstantRangeCount,
-			VkPushConstantRange* pPushConstantRanges
-		) {
+		static VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo(uint32_t setLayoutCount,
+																   VkDescriptorSetLayout* pSetLayouts,
+																   uint32_t pushConstantRangeCount,
+																   VkPushConstantRange* pPushConstantRanges) {
 			VkPipelineLayoutCreateInfo layoutInfo{};
 			layoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 			layoutInfo.setLayoutCount = setLayoutCount;
@@ -101,11 +83,7 @@ namespace Plaza {
 			return layoutInfo;
 		}
 
-		static VkPushConstantRange pushConstantRange(
-			VkShaderStageFlags stageFlags,
-			uint32_t offset,
-			uint32_t size
-		) {
+		static VkPushConstantRange pushConstantRange(VkShaderStageFlags stageFlags, uint32_t offset, uint32_t size) {
 			VkPushConstantRange pushConstantRange{};
 			pushConstantRange.stageFlags = stageFlags;
 			pushConstantRange.offset = offset;
@@ -113,17 +91,12 @@ namespace Plaza {
 			return pushConstantRange;
 		}
 
-		static VkAttachmentDescription attachmentDescription(
-			VkFormat format,
-			VkSampleCountFlagBits samples,
-			VkAttachmentLoadOp loadOp,
-			VkAttachmentStoreOp storeOp,
-			VkAttachmentLoadOp stencilLoadOp,
-			VkAttachmentStoreOp stencilStoreOp,
-			VkImageLayout initialLayout,
-			VkImageLayout finalLayout,
-			VkAttachmentDescriptionFlags flags = 0
-		) {
+		static VkAttachmentDescription attachmentDescription(VkFormat format, VkSampleCountFlagBits samples,
+															 VkAttachmentLoadOp loadOp, VkAttachmentStoreOp storeOp,
+															 VkAttachmentLoadOp stencilLoadOp,
+															 VkAttachmentStoreOp stencilStoreOp,
+															 VkImageLayout initialLayout, VkImageLayout finalLayout,
+															 VkAttachmentDescriptionFlags flags = 0) {
 			VkAttachmentDescription attachmentDescription{};
 			attachmentDescription.format = format;
 			attachmentDescription.samples = samples;
@@ -137,15 +110,10 @@ namespace Plaza {
 			return attachmentDescription;
 		}
 
-		static VkSubpassDependency subpassDependency(
-			uint32_t srcSubpass,
-			uint32_t dstSubpass,
-			VkPipelineStageFlags srcStageMask,
-			VkPipelineStageFlags dstStageMask,
-			VkAccessFlags srcAccessMask,
-			VkAccessFlags dstAccessMask,
-			VkDependencyFlags dependencyFlags
-		) {
+		static VkSubpassDependency subpassDependency(uint32_t srcSubpass, uint32_t dstSubpass,
+													 VkPipelineStageFlags srcStageMask,
+													 VkPipelineStageFlags dstStageMask, VkAccessFlags srcAccessMask,
+													 VkAccessFlags dstAccessMask, VkDependencyFlags dependencyFlags) {
 			VkSubpassDependency dependency{};
 			dependency.srcSubpass = srcSubpass;
 			dependency.dstSubpass = dstSubpass;
@@ -157,11 +125,9 @@ namespace Plaza {
 			return dependency;
 		}
 
-		static VkPipelineShaderStageCreateInfo pipelineShaderStageCreateInfo(
-			VkShaderStageFlagBits stage,
-			VkShaderModule module,
-			const char* pName = "main"
-		) {
+		static VkPipelineShaderStageCreateInfo pipelineShaderStageCreateInfo(VkShaderStageFlagBits stage,
+																			 VkShaderModule module,
+																			 const char* pName = "main") {
 			VkPipelineShaderStageCreateInfo shaderStageInfo{};
 			shaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 			shaderStageInfo.stage = stage;
@@ -172,8 +138,7 @@ namespace Plaza {
 
 		static VkPipelineVertexInputStateCreateInfo pipelineVertexInputStateCreateInfo(
 			std::vector<VkVertexInputBindingDescription>& bindings,
-			std::vector<VkVertexInputAttributeDescription>& attributes
-		) {
+			std::vector<VkVertexInputAttributeDescription>& attributes) {
 			VkPipelineVertexInputStateCreateInfo createInfo{};
 			createInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 			createInfo.pVertexBindingDescriptions = bindings.data();
@@ -185,8 +150,7 @@ namespace Plaza {
 
 		static VkPipelineInputAssemblyStateCreateInfo pipelineInputAssemblyStateCreateInfo(
 			VkPrimitiveTopology topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
-			VkBool32 primitiveRestartEnable = VK_FALSE
-		) {
+			VkBool32 primitiveRestartEnable = VK_FALSE) {
 			VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
 			inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
 			inputAssembly.topology = topology;
@@ -194,12 +158,7 @@ namespace Plaza {
 			return inputAssembly;
 		}
 
-		static VkViewport viewport(
-			glm::vec2 position,
-			glm::vec2 size,
-			float minDepth = 1.0f,
-			float maxDepth = 1.0f
-		) {
+		static VkViewport viewport(glm::vec2 position, glm::vec2 size, float minDepth = 1.0f, float maxDepth = 1.0f) {
 			VkViewport viewport{};
 			viewport.x = position.x;
 			viewport.y = position.y;
@@ -210,20 +169,15 @@ namespace Plaza {
 			return viewport;
 		}
 
-		static VkRect2D rect2D(
-			glm::vec2 offset,
-			glm::vec2 size
-		) {
+		static VkRect2D rect2D(glm::vec2 offset, glm::vec2 size) {
 			VkRect2D scissor{};
-			scissor.offset = { (int32_t)offset.x, (int32_t)offset.y };
-			scissor.extent = { (uint32_t)size.x, (uint32_t)size.y };
+			scissor.offset = {(int32_t)offset.x, (int32_t)offset.y};
+			scissor.extent = {(uint32_t)size.x, (uint32_t)size.y};
 			return scissor;
 		}
 
-		static VkPipelineViewportStateCreateInfo pipelineViewportStateCreateInfo(
-			uint32_t viewportCount = 1,
-			uint32_t scissorCount = 1
-		) {
+		static VkPipelineViewportStateCreateInfo pipelineViewportStateCreateInfo(uint32_t viewportCount = 1,
+																				 uint32_t scissorCount = 1) {
 			VkPipelineViewportStateCreateInfo viewportState{};
 			viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
 			viewportState.viewportCount = viewportCount;
@@ -232,17 +186,11 @@ namespace Plaza {
 		}
 
 		static VkPipelineRasterizationStateCreateInfo pipelineRasterizationStateCreateInfo(
-			VkBool32 depthClampEnable = VK_FALSE,
-			VkBool32 rasterizerDiscardEnable = VK_FALSE,
-			VkPolygonMode polygonMode = VK_POLYGON_MODE_FILL,
-			float lineWidth = 1.0f,
-			VkBool32 depthBiasEnable = VK_FALSE,
-			float depthBiasConstantFactor = 0.0f,
-			float depthBiasClamp = 0.0f,
-			float depthBiasSlopeFactor = 0.0f,
-			VkCullModeFlags cullMode = VK_CULL_MODE_BACK_BIT,
-			VkFrontFace frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE
-		) {
+			VkBool32 depthClampEnable = VK_FALSE, VkBool32 rasterizerDiscardEnable = VK_FALSE,
+			VkPolygonMode polygonMode = VK_POLYGON_MODE_FILL, float lineWidth = 1.0f,
+			VkBool32 depthBiasEnable = VK_FALSE, float depthBiasConstantFactor = 0.0f, float depthBiasClamp = 0.0f,
+			float depthBiasSlopeFactor = 0.0f, VkCullModeFlags cullMode = VK_CULL_MODE_BACK_BIT,
+			VkFrontFace frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE) {
 			VkPipelineRasterizationStateCreateInfo rasterizer{};
 			rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 			rasterizer.depthClampEnable = depthClampEnable;
@@ -260,8 +208,7 @@ namespace Plaza {
 
 		static VkPipelineMultisampleStateCreateInfo pipelineMultisampleStateCreateInfo(
 			VkSampleCountFlagBits rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
-			VkBool32 sampleShadingEnable = VK_FALSE
-		) {
+			VkBool32 sampleShadingEnable = VK_FALSE) {
 			VkPipelineMultisampleStateCreateInfo multisampling{};
 			multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 			multisampling.sampleShadingEnable = sampleShadingEnable;
@@ -270,12 +217,9 @@ namespace Plaza {
 		}
 
 		static VkPipelineDepthStencilStateCreateInfo pipelineDepthStencilStateCreateInfo(
-			VkBool32 depthTestEnable = VK_TRUE,
-			VkBool32 depthWriteEnable = VK_TRUE,
-			VkCompareOp depthCompareOp = VK_COMPARE_OP_LESS,
-			VkBool32 depthBoundsTestEnable = VK_FALSE,
-			VkBool32 stencilTestEnable = VK_FALSE
-		) {
+			VkBool32 depthTestEnable = VK_TRUE, VkBool32 depthWriteEnable = VK_TRUE,
+			VkCompareOp depthCompareOp = VK_COMPARE_OP_LESS, VkBool32 depthBoundsTestEnable = VK_FALSE,
+			VkBool32 stencilTestEnable = VK_FALSE) {
 			VkPipelineDepthStencilStateCreateInfo depthStencil{};
 			depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
 			depthStencil.depthTestEnable = depthTestEnable;
@@ -287,15 +231,12 @@ namespace Plaza {
 		}
 
 		static VkPipelineColorBlendAttachmentState pipelineColorBlendAttachmentState(
-			VkBool32 blendEnable = VK_TRUE,
-			VkBlendFactor srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
+			VkBool32 blendEnable = VK_TRUE, VkBlendFactor srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA,
 			VkBlendFactor dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
-			VkBlendOp colorBlendOp = VK_BLEND_OP_ADD,
-			VkBlendFactor srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
-			VkBlendFactor dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
-			VkBlendOp alphaBlendOp = VK_BLEND_OP_ADD,
-			VkColorComponentFlags colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT
-		) {
+			VkBlendOp colorBlendOp = VK_BLEND_OP_ADD, VkBlendFactor srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
+			VkBlendFactor dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO, VkBlendOp alphaBlendOp = VK_BLEND_OP_ADD,
+			VkColorComponentFlags colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+												   VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT) {
 			VkPipelineColorBlendAttachmentState colorBlendAttachment{};
 			colorBlendAttachment.blendEnable = blendEnable;
 			colorBlendAttachment.srcColorBlendFactor = srcColorBlendFactor;
@@ -309,12 +250,9 @@ namespace Plaza {
 		}
 
 		static VkPipelineColorBlendStateCreateInfo pipelineColorBlendStateCreateInfo(
-			uint32_t attachmentCount = 1,
-			const VkPipelineColorBlendAttachmentState* pAttachments = nullptr,
-			VkBool32 logicOpEnable = VK_FALSE,
-			VkLogicOp logicOp = VK_LOGIC_OP_COPY,
-			std::vector<float> blendConstants = { 0.0f, 0.0f, 0.0f, 0.0f }
-		) {
+			uint32_t attachmentCount = 1, const VkPipelineColorBlendAttachmentState* pAttachments = nullptr,
+			VkBool32 logicOpEnable = VK_FALSE, VkLogicOp logicOp = VK_LOGIC_OP_COPY,
+			std::vector<float> blendConstants = {0.0f, 0.0f, 0.0f, 0.0f}) {
 			VkPipelineColorBlendStateCreateInfo colorBlending{};
 			colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
 			colorBlending.logicOpEnable = logicOpEnable;
@@ -329,8 +267,7 @@ namespace Plaza {
 		}
 
 		static VkPipelineDynamicStateCreateInfo pipelineDynamicStateCreateInfo(
-			std::vector<VkDynamicState>& dynamicStates
-		) {
+			std::vector<VkDynamicState>& dynamicStates) {
 			VkPipelineDynamicStateCreateInfo dynamicState{};
 			dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
 			dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
@@ -339,22 +276,16 @@ namespace Plaza {
 		}
 
 		static VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo(
-			uint32_t stageCount,
-			VkPipelineShaderStageCreateInfo* pStages,
+			uint32_t stageCount, VkPipelineShaderStageCreateInfo* pStages,
 			VkPipelineVertexInputStateCreateInfo* pVertexInputState,
 			VkPipelineInputAssemblyStateCreateInfo* pInputAssemblyState,
 			VkPipelineViewportStateCreateInfo* pViewportState,
 			VkPipelineRasterizationStateCreateInfo* pRasterizationState,
 			VkPipelineMultisampleStateCreateInfo* pMultisampleState,
 			VkPipelineDepthStencilStateCreateInfo* pDepthStencilState,
-			VkPipelineColorBlendStateCreateInfo* pColorBlendState,
-			VkPipelineDynamicStateCreateInfo* pDynamicState,
-			VkPipelineLayout layout,
-			VkRenderPass renderPass,
-			uint32_t subpass,
-			VkPipeline basePipelineHandle = VK_NULL_HANDLE,
-			int32_t basePipelineIndex = 0
-		) {
+			VkPipelineColorBlendStateCreateInfo* pColorBlendState, VkPipelineDynamicStateCreateInfo* pDynamicState,
+			VkPipelineLayout layout, VkRenderPass renderPass, uint32_t subpass,
+			VkPipeline basePipelineHandle = VK_NULL_HANDLE, int32_t basePipelineIndex = 0) {
 			VkGraphicsPipelineCreateInfo pipelineInfo{};
 			pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 			pipelineInfo.stageCount = stageCount;
@@ -374,16 +305,10 @@ namespace Plaza {
 			return pipelineInfo;
 		}
 
-		static VkRenderPassBeginInfo renderPassBeginInfo(
-			VkRenderPass renderPass,
-			VkFramebuffer frameBuffer,
-			uint32_t renderAreaX,
-			uint32_t renderAreaY,
-			uint32_t offsetX,
-			uint32_t offsetY,
-			uint32_t clearValueCount,
-			VkClearValue* clearValue
-		) {
+		static VkRenderPassBeginInfo renderPassBeginInfo(VkRenderPass renderPass, VkFramebuffer frameBuffer,
+														 uint32_t renderAreaX, uint32_t renderAreaY, uint32_t offsetX,
+														 uint32_t offsetY, uint32_t clearValueCount,
+														 VkClearValue* clearValue) {
 			VkRenderPassBeginInfo renderPassInfo{};
 			renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 			renderPassInfo.renderPass = renderPass;
@@ -397,14 +322,8 @@ namespace Plaza {
 			return renderPassInfo;
 		}
 
-		static VkViewport viewport(
-			float x,
-			float y,
-			float width,
-			float height,
-			float minDepth = 0.0f,
-			float maxDepth = 1.0f
-		) {
+		static VkViewport viewport(float x, float y, float width, float height, float minDepth = 0.0f,
+								   float maxDepth = 1.0f) {
 			VkViewport view{};
 			view.x = x;
 			view.y = y;
@@ -415,27 +334,19 @@ namespace Plaza {
 			return view;
 		}
 
-		static VkExtent2D extent2D(
-			uint32_t width,
-			uint32_t height
-		) {
+		static VkExtent2D extent2D(uint32_t width, uint32_t height) {
 			VkExtent2D extent{};
 			extent.width = width;
 			extent.height = height;
 			return extent;
 		}
 
-		static VkRect2D rect2D(
-			int32_t offsetX,
-			int32_t offsetY,
-			uint32_t width,
-			uint32_t height
-		) {
+		static VkRect2D rect2D(int32_t offsetX, int32_t offsetY, uint32_t width, uint32_t height) {
 			VkRect2D rect{};
-			rect.offset = { offsetX, offsetY };
+			rect.offset = {offsetX, offsetY};
 			rect.extent.width = width;
 			rect.extent.height = height;
 			return rect;
 		}
-	}
-}
+	} // namespace plvk
+} // namespace Plaza

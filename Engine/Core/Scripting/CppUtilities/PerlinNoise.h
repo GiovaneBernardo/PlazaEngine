@@ -3,7 +3,7 @@
 
 namespace Plaza {
 	class PLAZA_API PerlinNoise {
-	public:
+	  public:
 		PerlinNoise() {
 			srand(time(0));
 			for (int i = 0; i < 256; ++i) {
@@ -17,7 +17,7 @@ namespace Plaza {
 
 		float Noise(glm::vec3 vec);
 
-	private:
+	  private:
 		int p[512];
 
 		static float Fade(float t);
@@ -26,4 +26,4 @@ namespace Plaza {
 
 		static float Grad(int hash, float x, float y, float z);
 	};
-}
+} // namespace Plaza

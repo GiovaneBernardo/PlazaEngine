@@ -7,13 +7,9 @@ namespace Plaza {
 		return Scene::GetActiveScene()->GetEntity(entity->uuid);
 	}
 
-	Entity* CppHelper::FindEntity(const std::string& name) {
-		return Scene::GetActiveScene()->GetEntityByName(name);
-	}
+	Entity* CppHelper::FindEntity(const std::string& name) { return Scene::GetActiveScene()->GetEntityByName(name); }
 
-	Entity* CppHelper::FindEntity(uint64_t uuid) {
-		return Scene::GetActiveScene()->GetEntity(uuid);
-	}
+	Entity* CppHelper::FindEntity(uint64_t uuid) { return Scene::GetActiveScene()->GetEntity(uuid); }
 
 	glm::vec3 CppHelper::MousePosToRayDirection(float fov, const glm::vec2& position, const glm::vec2& screenSize) {
 		float aspect = screenSize.x / screenSize.y;
@@ -27,6 +23,7 @@ namespace Plaza {
 	}
 
 	Entity* CppHelper::Instantiate(Entity* entityToInstantiate) {
-		return CppHelper::FindEntity(ECS::EntitySystem::Instantiate(Scene::GetActiveScene(), entityToInstantiate->uuid));
+		return CppHelper::FindEntity(
+			ECS::EntitySystem::Instantiate(Scene::GetActiveScene(), entityToInstantiate->uuid));
 	}
-}
+} // namespace Plaza

@@ -11,7 +11,8 @@ namespace Plaza {
 		metadata.mContentName = asset->mAssetName;
 		std::filesystem::path metadataPath = asset->mAssetPath;
 		metadataPath.replace_extension(Standards::metadataExtName).string();
-		AssetsSerializer::SerializeFile<MetadataStructure>(metadata, metadataPath.string(), Application::Get()->mSettings.mMetaDataSerializationMode);
+		AssetsSerializer::SerializeFile<MetadataStructure>(metadata, metadataPath.string(),
+														   Application::Get()->mSettings.mMetaDataSerializationMode);
 	}
 
 	Asset Metadata::ConvertMetadataToAsset(MetadataStructure metadata) {
@@ -20,4 +21,4 @@ namespace Plaza {
 		asset.mAssetName = metadata.mContentName;
 		return asset;
 	}
-}
+} // namespace Plaza

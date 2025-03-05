@@ -16,6 +16,5 @@ namespace Plaza {
 				this->currentContent = new NewProjectContent();
 			}
 		}
-	}
-}
-
+	} // namespace Editor
+} // namespace Plaza

@@ -5,14 +5,13 @@
 #include "Engine/Core/Engine.h"
 
 namespace Plaza {
-	enum class AudioFileFormat
-	{
+	enum class AudioFileFormat {
 		Unknown = 0,
 		MP3
 	};
 	class PLAZA_API AudioSource : public Component {
-	public:
-		float mPosition[3] = { 0.0f, 0.0f, 0.0f };
+	  public:
+		float mPosition[3] = {0.0f, 0.0f, 0.0f};
 		std::string mSourcePath;
 		uint64_t mAudioAssetUuid = 0;
 		ALuint mSource = 0;
@@ -32,21 +31,21 @@ namespace Plaza {
 		void SetLoop(bool loop);
 		void SetSpatial(bool spatial);
 
-		//AudioSource(AudioSource& other) {
+		// AudioSource(AudioSource& other) {
 		//	this->SetGain(other.mGain);
 		//	this->SetPitch(other.mPitch);
 		//	this->SetLoop(other.mLoop);
 		//	this->SetSpatial(other.mSpatial);
-		//}
+		// }
 
 		virtual void OnInstantiate(Scene* scene, uint64_t toInstantiate) override;
 		~AudioSource() override {
-			//this->Stop();
+			// this->Stop();
 		}
 
-		template <class Archive>
-		void serialize(Archive& archive) {
-			archive(cereal::base_class<Component>(this), PL_SER(mPosition), PL_SER(mSourcePath), PL_SER(mSource), PL_SER(mLoop), PL_SER(mSpatial), PL_SER(mPitch), PL_SER(mGain), PL_SER(mAudioAssetUuid));
+		template <class Archive> void serialize(Archive& archive) {
+			archive(cereal::base_class<Component>(this), PL_SER(mPosition), PL_SER(mSourcePath), PL_SER(mSource),
+					PL_SER(mLoop), PL_SER(mSpatial), PL_SER(mPitch), PL_SER(mGain), PL_SER(mAudioAssetUuid));
 
 			if (mAudioAssetUuid && AssetsManager::GetAsset(mAudioAssetUuid) != nullptr) {
 				this->mSourcePath = AssetsManager::GetAsset(mAudioAssetUuid)->mAssetPath.string();
@@ -54,4 +53,4 @@ namespace Plaza {
 			}
 		}
 	};
-}
+} // namespace Plaza

@@ -604,9 +604,10 @@ namespace Plaza {
 		float depthBiasSlopeFactor;
 		float lineWidth;
 
-		template <class Archive>
-		void serialize(Archive& archive) {
-			archive(PL_SER(depthClampEnable), PL_SER(rasterizerDiscardEnable), PL_SER(polygonMode), PL_SER(cullMode), PL_SER(frontFace), PL_SER(depthBiasEnable), PL_SER(depthBiasConstantFactor), PL_SER(depthBiasClamp), PL_SER(depthBiasSlopeFactor), PL_SER(lineWidth));
+		template <class Archive> void serialize(Archive& archive) {
+			archive(PL_SER(depthClampEnable), PL_SER(rasterizerDiscardEnable), PL_SER(polygonMode), PL_SER(cullMode),
+					PL_SER(frontFace), PL_SER(depthBiasEnable), PL_SER(depthBiasConstantFactor), PL_SER(depthBiasClamp),
+					PL_SER(depthBiasSlopeFactor), PL_SER(lineWidth));
 		}
 	};
 
@@ -620,9 +621,10 @@ namespace Plaza {
 		PlBlendOp alphaBlendOp;
 		PlColorComponentFlags colorWriteMask;
 
-		template <class Archive>
-		void serialize(Archive& archive) {
-			archive(PL_SER(blendEnable), PL_SER(srcColorBlendFactor), PL_SER(dstColorBlendFactor), PL_SER(colorBlendOp), PL_SER(srcAlphaBlendFactor), PL_SER(dstAlphaBlendFactor), PL_SER(alphaBlendOp), PL_SER(colorWriteMask));
+		template <class Archive> void serialize(Archive& archive) {
+			archive(PL_SER(blendEnable), PL_SER(srcColorBlendFactor), PL_SER(dstColorBlendFactor), PL_SER(colorBlendOp),
+					PL_SER(srcAlphaBlendFactor), PL_SER(dstAlphaBlendFactor), PL_SER(alphaBlendOp),
+					PL_SER(colorWriteMask));
 		}
 	};
 
@@ -630,26 +632,25 @@ namespace Plaza {
 		bool logicOpEnable;
 		PlLogicOp logicOp;
 		std::vector<PlPipelineColorBlendAttachmentState> attachments;
-		std::vector<float> blendConstants = { 1.0,1.0f, 1.0f,1.0f };
+		std::vector<float> blendConstants = {1.0, 1.0f, 1.0f, 1.0f};
 
-		template <class Archive>
-		void serialize(Archive& archive) {
+		template <class Archive> void serialize(Archive& archive) {
 			archive(PL_SER(logicOpEnable), PL_SER(logicOp), PL_SER(attachments), PL_SER(blendConstants));
 		}
 	};
 
 	struct PlStencilOpState {
-		PlStencilOp    failOp;
-		PlStencilOp    passOp;
-		PlStencilOp    depthFailOp;
-		PlCompareOp    compareOp;
-		uint32_t       compareMask;
-		uint32_t       writeMask;
-		uint32_t       reference;
+		PlStencilOp failOp;
+		PlStencilOp passOp;
+		PlStencilOp depthFailOp;
+		PlCompareOp compareOp;
+		uint32_t compareMask;
+		uint32_t writeMask;
+		uint32_t reference;
 
-		template <class Archive>
-		void serialize(Archive& archive) {
-			archive(PL_SER(failOp), PL_SER(passOp), PL_SER(depthFailOp), PL_SER(compareOp), PL_SER(compareMask), PL_SER(writeMask), PL_SER(reference));
+		template <class Archive> void serialize(Archive& archive) {
+			archive(PL_SER(failOp), PL_SER(passOp), PL_SER(depthFailOp), PL_SER(compareOp), PL_SER(compareMask),
+					PL_SER(writeMask), PL_SER(reference));
 		}
 	};
 
@@ -664,22 +665,22 @@ namespace Plaza {
 		float minDepthBounds;
 		float maxDepthBounds;
 
-		template <class Archive>
-		void serialize(Archive& archive) {
-			archive(PL_SER(depthTestEnable), PL_SER(depthWriteEnable), PL_SER(depthCompareOp), PL_SER(depthBoundsTestEnable), PL_SER(stencilTestEnable), PL_SER(front), PL_SER(back), PL_SER(minDepthBounds), PL_SER(maxDepthBounds));
+		template <class Archive> void serialize(Archive& archive) {
+			archive(PL_SER(depthTestEnable), PL_SER(depthWriteEnable), PL_SER(depthCompareOp),
+					PL_SER(depthBoundsTestEnable), PL_SER(stencilTestEnable), PL_SER(front), PL_SER(back),
+					PL_SER(minDepthBounds), PL_SER(maxDepthBounds));
 		}
 	};
 
 	struct PlViewport {
-		float    x;
-		float    y;
-		float    width;
-		float    height;
-		float    minDepth;
-		float    maxDepth;
+		float x;
+		float y;
+		float width;
+		float height;
+		float minDepth;
+		float maxDepth;
 
-		template <class Archive>
-		void serialize(Archive& archive) {
+		template <class Archive> void serialize(Archive& archive) {
 			archive(PL_SER(x), PL_SER(y), PL_SER(width), PL_SER(height), PL_SER(minDepth), PL_SER(maxDepth));
 		}
 	};
@@ -690,8 +691,7 @@ namespace Plaza {
 		uint32_t extentX;
 		uint32_t extentY;
 
-		template <class Archive>
-		void serialize(Archive& archive) {
+		template <class Archive> void serialize(Archive& archive) {
 			archive(PL_SER(offsetX), PL_SER(offsetY), PL_SER(extentX), PL_SER(extentY));
 		}
 	};
@@ -700,8 +700,7 @@ namespace Plaza {
 		uint32_t viewportCount;
 		uint32_t scissorsCount;
 
-		template <class Archive>
-		void serialize(Archive& archive) {
+		template <class Archive> void serialize(Archive& archive) {
 			archive(PL_SER(viewportCount), PL_SER(scissorsCount));
 		}
 	};
@@ -710,8 +709,7 @@ namespace Plaza {
 		PlSampleCount rasterizationSamples;
 		bool sampleShadingEnable;
 
-		template <class Archive>
-		void serialize(Archive& archive) {
+		template <class Archive> void serialize(Archive& archive) {
 			archive(PL_SER(rasterizationSamples), PL_SER(sampleShadingEnable));
 		}
 	};
@@ -721,8 +719,7 @@ namespace Plaza {
 		uint32_t stride;
 		PlVertexInputRate inputRate;
 
-		template <class Archive>
-		void serialize(Archive& archive) {
+		template <class Archive> void serialize(Archive& archive) {
 			archive(PL_SER(binding), PL_SER(stride), PL_SER(inputRate));
 		}
 	};
@@ -733,8 +730,7 @@ namespace Plaza {
 		PlTextureFormat format;
 		uint32_t offset;
 
-		template <class Archive>
-		void serialize(Archive& archive) {
+		template <class Archive> void serialize(Archive& archive) {
 			archive(PL_SER(location), PL_SER(binding), PL_SER(format), PL_SER(offset));
 		}
 	};
@@ -744,8 +740,7 @@ namespace Plaza {
 		std::string shadersPath;
 		std::string name;
 
-		template <class Archive>
-		void serialize(Archive& archive) {
+		template <class Archive> void serialize(Archive& archive) {
 			archive(PL_SER(stage), PL_SER(shadersPath), PL_SER(name));
 		}
 	};
@@ -755,8 +750,7 @@ namespace Plaza {
 		uint32_t offset;
 		uint32_t size;
 
-		template <class Archive>
-		void serialize(Archive& archive) {
+		template <class Archive> void serialize(Archive& archive) {
 			archive(PL_SER(stageFlags), PL_SER(offset), PL_SER(size));
 		}
 	};
@@ -778,20 +772,19 @@ namespace Plaza {
 		std::vector<PlPushConstantRange> pushConstants;
 		std::vector<uint64_t> specificUuids;
 
-		template <class Archive>
-		void serialize(Archive& archive) {
-			archive(PL_SER(pipelineName), PL_SER(renderMethod), PL_SER(shaderStages), PL_SER(vertexBindingDescriptions), PL_SER(vertexAttributeDescriptions), PL_SER(topology), PL_SER(primitiveRestartEnable), PL_SER(rasterization), PL_SER(colorBlendState),
-				PL_SER(depthStencilState), PL_SER(viewPortState), PL_SER(multiSampleState), PL_SER(dynamicStates), PL_SER(pushConstants), PL_SER(specificUuids));
+		template <class Archive> void serialize(Archive& archive) {
+			archive(PL_SER(pipelineName), PL_SER(renderMethod), PL_SER(shaderStages), PL_SER(vertexBindingDescriptions),
+					PL_SER(vertexAttributeDescriptions), PL_SER(topology), PL_SER(primitiveRestartEnable),
+					PL_SER(rasterization), PL_SER(colorBlendState), PL_SER(depthStencilState), PL_SER(viewPortState),
+					PL_SER(multiSampleState), PL_SER(dynamicStates), PL_SER(pushConstants), PL_SER(specificUuids));
 		}
 	};
 
 #pragma region Initializators
 	namespace pl {
-		static PlPipelineShaderStageCreateInfo pipelineShaderStageCreateInfo(
-			PlRenderStage stage,
-			std::string shadersPath,
-			std::string name
-		) {
+		static PlPipelineShaderStageCreateInfo pipelineShaderStageCreateInfo(PlRenderStage stage,
+																			 std::string shadersPath,
+																			 std::string name) {
 			PlPipelineShaderStageCreateInfo shaderStageInfo{};
 			shaderStageInfo.stage = stage;
 			shaderStageInfo.shadersPath = shadersPath;
@@ -799,12 +792,7 @@ namespace Plaza {
 			return shaderStageInfo;
 		}
 
-		static PlViewport viewport(
-			glm::vec2 position,
-			glm::vec2 size,
-			float minDepth = 1.0f,
-			float maxDepth = 1.0f
-		) {
+		static PlViewport viewport(glm::vec2 position, glm::vec2 size, float minDepth = 1.0f, float maxDepth = 1.0f) {
 			PlViewport viewport{};
 			viewport.x = position.x;
 			viewport.y = position.y;
@@ -815,10 +803,7 @@ namespace Plaza {
 			return viewport;
 		}
 
-		static PlRect2D rect2D(
-			glm::vec2 offset,
-			glm::vec2 size
-		) {
+		static PlRect2D rect2D(glm::vec2 offset, glm::vec2 size) {
 			PlRect2D scissor{};
 			scissor.offsetX = (int32_t)offset.x;
 			scissor.offsetY = (int32_t)offset.y;
@@ -827,10 +812,8 @@ namespace Plaza {
 			return scissor;
 		}
 
-		static PlPipelineViewportStateCreateInfo pipelineViewportStateCreateInfo(
-			uint32_t viewportCount,
-			uint32_t scissorsCount
-		) {
+		static PlPipelineViewportStateCreateInfo pipelineViewportStateCreateInfo(uint32_t viewportCount,
+																				 uint32_t scissorsCount) {
 			PlPipelineViewportStateCreateInfo viewportState{};
 			viewportState.viewportCount = viewportCount;
 			viewportState.scissorsCount = scissorsCount;
@@ -838,17 +821,10 @@ namespace Plaza {
 		}
 
 		static PlPipelineRasterizationStateCreateInfo pipelineRasterizationStateCreateInfo(
-			bool depthClampEnable = false,
-			bool rasterizerDiscardEnable = false,
-			PlPolygonMode polygonMode = PL_POLYGON_MODE_FILL,
-			float lineWidth = 1.0f,
-			bool depthBiasEnable = false,
-			float depthBiasConstantFactor = 0.0f,
-			float depthBiasClamp = 0.0f,
-			float depthBiasSlopeFactor = 0.0f,
-			PlCullMode cullMode = PL_CULL_MODE_BACK,
-			PlFrontFace frontFace = PL_FRONT_FACE_COUNTER_CLOCKWISE
-		) {
+			bool depthClampEnable = false, bool rasterizerDiscardEnable = false,
+			PlPolygonMode polygonMode = PL_POLYGON_MODE_FILL, float lineWidth = 1.0f, bool depthBiasEnable = false,
+			float depthBiasConstantFactor = 0.0f, float depthBiasClamp = 0.0f, float depthBiasSlopeFactor = 0.0f,
+			PlCullMode cullMode = PL_CULL_MODE_BACK, PlFrontFace frontFace = PL_FRONT_FACE_COUNTER_CLOCKWISE) {
 			PlPipelineRasterizationStateCreateInfo rasterizer{};
 			rasterizer.depthClampEnable = depthClampEnable;
 			rasterizer.rasterizerDiscardEnable = rasterizerDiscardEnable;
@@ -864,9 +840,7 @@ namespace Plaza {
 		}
 
 		static PlPipelineMultisampleStateCreateInfo pipelineMultisampleStateCreateInfo(
-			PlSampleCount rasterizationSamples = PL_SAMPLE_COUNT_1_BIT,
-			bool sampleShadingEnable = false
-		) {
+			PlSampleCount rasterizationSamples = PL_SAMPLE_COUNT_1_BIT, bool sampleShadingEnable = false) {
 			PlPipelineMultisampleStateCreateInfo multisampling{};
 			multisampling.sampleShadingEnable = sampleShadingEnable;
 			multisampling.rasterizationSamples = rasterizationSamples;
@@ -874,14 +848,9 @@ namespace Plaza {
 		}
 
 		static PlPipelineDepthStencilStateCreateInfo pipelineDepthStencilStateCreateInfo(
-			bool depthTestEnable = true,
-			bool depthWriteEnable = true,
-			PlCompareOp depthCompareOp = PL_COMPARE_OP_LESS,
-			bool depthBoundsTestEnable = false,
-			bool stencilTestEnable = false,
-			PlStencilOpState front = {},
-			PlStencilOpState back = {}
-		) {
+			bool depthTestEnable = true, bool depthWriteEnable = true, PlCompareOp depthCompareOp = PL_COMPARE_OP_LESS,
+			bool depthBoundsTestEnable = false, bool stencilTestEnable = false, PlStencilOpState front = {},
+			PlStencilOpState back = {}) {
 			PlPipelineDepthStencilStateCreateInfo depthStencil{};
 			depthStencil.depthTestEnable = depthTestEnable;
 			depthStencil.depthWriteEnable = depthWriteEnable;
@@ -896,15 +865,14 @@ namespace Plaza {
 		}
 
 		static PlPipelineColorBlendAttachmentState pipelineColorBlendAttachmentState(
-			bool blendEnable = true,
-			PlBlendFactor srcColorBlendFactor = PL_BLEND_FACTOR_SRC_ALPHA,
+			bool blendEnable = true, PlBlendFactor srcColorBlendFactor = PL_BLEND_FACTOR_SRC_ALPHA,
 			PlBlendFactor dstColorBlendFactor = PL_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA,
-			PlBlendOp colorBlendOp = PL_BLEND_OP_ADD,
-			PlBlendFactor srcAlphaBlendFactor = PL_BLEND_FACTOR_ONE,
-			PlBlendFactor dstAlphaBlendFactor = PL_BLEND_FACTOR_ZERO,
-			PlBlendOp alphaBlendOp = PL_BLEND_OP_ADD,
-			PlColorComponentFlags colorWriteMask = PlColorComponentFlags(PL_COLOR_COMPONENT_R_BIT | PL_COLOR_COMPONENT_G_BIT | PL_COLOR_COMPONENT_B_BIT | PL_COLOR_COMPONENT_A_BIT)
-		) {
+			PlBlendOp colorBlendOp = PL_BLEND_OP_ADD, PlBlendFactor srcAlphaBlendFactor = PL_BLEND_FACTOR_ONE,
+			PlBlendFactor dstAlphaBlendFactor = PL_BLEND_FACTOR_ZERO, PlBlendOp alphaBlendOp = PL_BLEND_OP_ADD,
+			PlColorComponentFlags colorWriteMask = PlColorComponentFlags(PL_COLOR_COMPONENT_R_BIT |
+																		 PL_COLOR_COMPONENT_G_BIT |
+																		 PL_COLOR_COMPONENT_B_BIT |
+																		 PL_COLOR_COMPONENT_A_BIT)) {
 			PlPipelineColorBlendAttachmentState colorBlendAttachment{};
 			colorBlendAttachment.blendEnable = blendEnable;
 			colorBlendAttachment.srcColorBlendFactor = srcColorBlendFactor;
@@ -918,11 +886,8 @@ namespace Plaza {
 		}
 
 		static PlPipelineColorBlendStateCreateInfo pipelineColorBlendStateCreateInfo(
-			std::vector<PlPipelineColorBlendAttachmentState> attachments,
-			bool logicOpEnable = false,
-			PlLogicOp logicOp = PL_LOGIC_OP_COPY,
-			std::vector<float> blendConstants = { 0.0f, 0.0f, 0.0f, 0.0f }
-		) {
+			std::vector<PlPipelineColorBlendAttachmentState> attachments, bool logicOpEnable = false,
+			PlLogicOp logicOp = PL_LOGIC_OP_COPY, std::vector<float> blendConstants = {0.0f, 0.0f, 0.0f, 0.0f}) {
 			PlPipelineColorBlendStateCreateInfo colorBlending{};
 			colorBlending.logicOpEnable = logicOpEnable;
 			colorBlending.logicOp = logicOp;
@@ -934,11 +899,7 @@ namespace Plaza {
 			return colorBlending;
 		}
 
-		static PlPushConstantRange pushConstantRange(
-			PlRenderStage stage,
-			uint32_t offset,
-			uint32_t size
-		) {
+		static PlPushConstantRange pushConstantRange(PlRenderStage stage, uint32_t offset, uint32_t size) {
 			PlPushConstantRange range{};
 			range.stageFlags = stage;
 			range.offset = offset;
@@ -946,10 +907,8 @@ namespace Plaza {
 			return range;
 		}
 
-		static PlVertexInputBindingDescription vertexInputBindingDescription(
-			uint32_t binding,
-			uint32_t stride,
-			PlVertexInputRate inputRate) {
+		static PlVertexInputBindingDescription vertexInputBindingDescription(uint32_t binding, uint32_t stride,
+																			 PlVertexInputRate inputRate) {
 			PlVertexInputBindingDescription description{};
 			description.binding = binding;
 			description.stride = stride;
@@ -957,11 +916,9 @@ namespace Plaza {
 			return description;
 		}
 
-		static PlVertexInputAttributeDescription vertexInputAttributeDescription(
-			uint32_t location,
-			uint32_t binding,
-			PlTextureFormat format,
-			uint32_t offset) {
+		static PlVertexInputAttributeDescription vertexInputAttributeDescription(uint32_t location, uint32_t binding,
+																				 PlTextureFormat format,
+																				 uint32_t offset) {
 			PlVertexInputAttributeDescription attribute{};
 			attribute.location = location;
 			attribute.binding = binding;
@@ -971,41 +928,33 @@ namespace Plaza {
 		}
 
 		static PlPipelineCreateInfo pipelineCreateInfo(
-			std::string pipelineName,
-			PlRenderPassMode renderMethod,
+			std::string pipelineName, PlRenderPassMode renderMethod,
 			std::vector<PlPipelineShaderStageCreateInfo> shaderStages,
 			std::vector<PlVertexInputBindingDescription> vertexBindingDescriptions,
-			std::vector<PlVertexInputAttributeDescription> vertexAttributeDescriptions,
-			PlPrimitiveTopology topology,
-			bool primitiveRestartEnable,
-			PlPipelineRasterizationStateCreateInfo rasterization,
+			std::vector<PlVertexInputAttributeDescription> vertexAttributeDescriptions, PlPrimitiveTopology topology,
+			bool primitiveRestartEnable, PlPipelineRasterizationStateCreateInfo rasterization,
 			PlPipelineColorBlendStateCreateInfo colorBlendState,
-			PlPipelineDepthStencilStateCreateInfo depthStencilState,
-			PlPipelineViewportStateCreateInfo viewPortState,
-			PlPipelineMultisampleStateCreateInfo multiSampleState,
-			std::vector<PlDynamicState> dynamicStates,
+			PlPipelineDepthStencilStateCreateInfo depthStencilState, PlPipelineViewportStateCreateInfo viewPortState,
+			PlPipelineMultisampleStateCreateInfo multiSampleState, std::vector<PlDynamicState> dynamicStates,
 			std::vector<PlPushConstantRange> pushConstants,
 			std::vector<uint64_t> specificUuids = std::vector<uint64_t>()) {
-
-			PlPipelineCreateInfo createInfo{
-				pipelineName,
-				renderMethod,
-			shaderStages,
-			 vertexBindingDescriptions,
-			 vertexAttributeDescriptions,
-			 topology,
-			 primitiveRestartEnable,
-			 rasterization,
-			 colorBlendState,
-			 depthStencilState,
-			 viewPortState,
-			 multiSampleState,
-			 dynamicStates,
-			 pushConstants,
-			 specificUuids
-			};
+			PlPipelineCreateInfo createInfo{pipelineName,
+											renderMethod,
+											shaderStages,
+											vertexBindingDescriptions,
+											vertexAttributeDescriptions,
+											topology,
+											primitiveRestartEnable,
+											rasterization,
+											colorBlendState,
+											depthStencilState,
+											viewPortState,
+											multiSampleState,
+											dynamicStates,
+											pushConstants,
+											specificUuids};
 			return createInfo;
 		}
-	}
+	} // namespace pl
 #pragma endregion
-}
+} // namespace Plaza

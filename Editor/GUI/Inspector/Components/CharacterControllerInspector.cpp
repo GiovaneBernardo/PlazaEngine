@@ -10,7 +10,7 @@
 #include "Editor/GUI/Utils/Utils.h"
 
 namespace Plaza::Editor {
-	//void ComponentsInspector::CharacterControllerInspector(Scene* scene, Entity* entity) {
+	// void ComponentsInspector::CharacterControllerInspector(Scene* scene, Entity* entity) {
 	//	CharacterController* component = scene->GetComponent<CharacterController>(entity->uuid);
 	//	if (Utils::ComponentInspectorHeader(characterController, "Character Controller Component")) {
 	//		ImGui::PushID("CharacterControllerInspector");
@@ -19,5 +19,5 @@ namespace Plaza::Editor {
 	//
 	//		ImGui::PopID();
 	//	}
-	//}
+	// }
 }

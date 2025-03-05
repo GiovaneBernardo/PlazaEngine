@@ -9,7 +9,7 @@ namespace Plaza {
 	namespace Editor {
 		Mesh* TerrainEditorTool::CreateHeightMapTerrain(unsigned int x, unsigned int y, unsigned int z) {
 			std::vector<glm::vec3> vertices = std::vector<glm::vec3>();
-			std::vector<unsigned int> indices = std::vector<unsigned int>();//x * z * 3
+			std::vector<unsigned int> indices = std::vector<unsigned int>(); // x * z * 3
 			std::vector<glm::vec3> normals = std::vector<glm::vec3>();
 			std::vector<glm::vec2> uvs = std::vector<glm::vec2>();
 
@@ -17,7 +17,8 @@ namespace Plaza {
 				for (unsigned int j = 0; j < z; ++j) {
 					vertices.push_back(glm::vec3(i, 1.0f, j));
 					normals.push_back(glm::vec3(0.0f, 1.0f, 0.0f));
-					uvs.push_back(glm::vec2(float(i ) / float(mSettings.repeatInterval), float(j ) / float(mSettings.repeatInterval)));
+					uvs.push_back(glm::vec2(float(i) / float(mSettings.repeatInterval),
+											float(j) / float(mSettings.repeatInterval)));
 				}
 			}
 
@@ -62,8 +63,9 @@ namespace Plaza {
 			}
 
 			std::vector<glm::vec3> tangents;
-			std::vector<unsigned int> materials{ 0 };
-			Mesh* mesh = Application::Get()->mRenderer->CreateNewMesh(vertices, normals, uvs, tangents, indices, materials, false, {}, {});
+			std::vector<unsigned int> materials{0};
+			Mesh* mesh = Application::Get()->mRenderer->CreateNewMesh(vertices, normals, uvs, tangents, indices,
+																	  materials, false, {}, {});
 			return mesh;
 		}
 		void TerrainEditorTool::CreateTerrain(unsigned int x, unsigned int y, unsigned int z) {
@@ -74,9 +76,8 @@ namespace Plaza {
 			Mesh* mesh = this->CreateHeightMapTerrain(x, y, z);
 			AssetsManager::AddMesh(mesh);
 
-			MeshRenderer* meshRenderer = new MeshRenderer(mesh, { AssetsManager::GetDefaultMaterial() }, false);
-			//FIX: entity->AddComponent<MeshRenderer>(meshRenderer);
-
+			MeshRenderer* meshRenderer = new MeshRenderer(mesh, {AssetsManager::GetDefaultMaterial()}, false);
+			// FIX: entity->AddComponent<MeshRenderer>(meshRenderer);
 		}
 
 		void TerrainEditorTool::UpdateGui() {
@@ -86,9 +87,10 @@ namespace Plaza {
 			Entity* selectedGameObject = Editor::selectedGameObject;
 
 			// Set the window to be the content size + header size
-			ImGuiWindowFlags  sceneWindowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoMove;
+			ImGuiWindowFlags sceneWindowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoMove;
 
-			ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoNavFocus;
+			ImGuiWindowFlags windowFlags =
+				ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoNavFocus;
 			windowFlags |= ImGuiWindowFlags_NoScrollbar;
 
 			ImGui::SetNextWindowSize(ImVec2(appSizes.sceneSize.x, appSizes.sceneSize.y));
@@ -96,7 +98,7 @@ namespace Plaza {
 			ImGuiStyle& style = ImGui::GetStyle();
 
 			// Adjust padding and margin sizes
-			style.WindowPadding = ImVec2(0.0f, 0.0f);  // Change window padding
+			style.WindowPadding = ImVec2(0.0f, 0.0f); // Change window padding
 			if (ImGui::Begin("Terrain Tool", &Gui::isSceneOpen, windowFlags)) {
 				ImGui::BeginTable("Terrain Editor Tool Settings", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg);
 				Utils::AddTableInt("X", &mSettings.x);
@@ -110,8 +112,7 @@ namespace Plaza {
 					TerrainEditorTool::CreateTerrain(mSettings.x, mSettings.y, mSettings.z);
 				}
 			};
-			if (ImGui::IsWindowFocused())
-			{
+			if (ImGui::IsWindowFocused()) {
 				if (Application::Get()->focusedMenu != "TerrainEditorTool") {
 					glfwSetInputMode(Application::Get()->mWindow->glfwWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 				}
@@ -127,7 +128,6 @@ namespace Plaza {
 			ImGui::Checkbox("Raise Tool", &mSettings.raiseTool);
 
 			ImGui::Checkbox("Smooth Tool", &mSettings.smoothTool);
-
 
 			if (mEditTerrain && glfwGetMouseButton(Application::Get()->mWindow->glfwWindow, 0) == GLFW_PRESS)
 				OnMouseClick(GLFW_MOUSE_BUTTON_LEFT, GLFW_PRESS, 0);
@@ -180,7 +180,7 @@ namespace Plaza {
 					mesh->normals[index2] += normal;
 				}
 
-				//mesh->vertices[nearestVertexIndex].y += 10.0f;
+				// mesh->vertices[nearestVertexIndex].y += 10.0f;
 				VulkanRenderer::GetRenderer()->UpdateMeshVertices(*mesh);
 			}
 		}
@@ -215,7 +215,8 @@ namespace Plaza {
 						if (count > 0) {
 							float averageHeight = sumHeight / count;
 							float smoothingFactor = mSettings.intensity; // Adjust smoothing effect
-							mesh->vertices[vertexIndex].y = glm::mix(mesh->vertices[vertexIndex].y, averageHeight, smoothingFactor);
+							mesh->vertices[vertexIndex].y =
+								glm::mix(mesh->vertices[vertexIndex].y, averageHeight, smoothingFactor);
 						}
 					}
 				}
@@ -245,35 +246,53 @@ namespace Plaza {
 		}
 
 		void TerrainEditorTool::OnMouseClick(int button, int action, int mods) {
-			if (Application::Get()->focusedMenu != "Editor") //!Gui::sFocusedLayer == GuiLayer::SCENE || 
+			if (Application::Get()->focusedMenu != "Editor") //! Gui::sFocusedLayer == GuiLayer::SCENE ||
 				return;
 
 			if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && mEditTerrain) {
 				Application::Get()->mThreadsManager->mFrameRendererAfterGeometry->AddToQueue([&]() {
 					float xposGame = Callbacks::lastX - Application::Get()->appSizes->hierarchySize.x;
 					float yposGame = Callbacks::lastY - Application::Get()->appSizes->sceneImageStart.y - 35;
-					//yposGame = Application::Get()->appSizes->sceneSize.y - (yposGame - 35);
-					VulkanRenderer::GetRenderer()->mRenderGraph->GetTexture<VulkanTexture>("SceneDepth")->mLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-					glm::vec4 clickPosition = VulkanRenderer::GetRenderer()->mRenderGraph->GetTexture<VulkanTexture>("SceneDepth")->ReadTexture(glm::vec2(xposGame, yposGame), sizeof(float) + sizeof(uint8_t), 1, VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT, true);
-					if (clickPosition.x == 0.0f && clickPosition.y == 0.0f && clickPosition.z == 0.0f && clickPosition.w == 0.0f)
+					// yposGame = Application::Get()->appSizes->sceneSize.y - (yposGame - 35);
+					VulkanRenderer::GetRenderer()->mRenderGraph->GetTexture<VulkanTexture>("SceneDepth")->mLayout =
+						VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+					glm::vec4 clickPosition =
+						VulkanRenderer::GetRenderer()
+							->mRenderGraph->GetTexture<VulkanTexture>("SceneDepth")
+							->ReadTexture(glm::vec2(xposGame, yposGame), sizeof(float) + sizeof(uint8_t), 1,
+										  VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT, true);
+					if (clickPosition.x == 0.0f && clickPosition.y == 0.0f && clickPosition.z == 0.0f &&
+						clickPosition.w == 0.0f)
 						return;
 
 					std::cout << "Depth: \n";
-					std::cout << "X: " << clickPosition.x << " Y: " << clickPosition.y << " Z: " << clickPosition.z << " W: " << clickPosition.w << "\n";
+					std::cout << "X: " << clickPosition.x << " Y: " << clickPosition.y << " Z: " << clickPosition.z
+							  << " W: " << clickPosition.w << "\n";
 
-					clickPosition = glm::vec4(Renderer::ReconstructWorldPositionFromDepth(glm::vec2(xposGame, yposGame), Application::Get()->appSizes->sceneSize, clickPosition.x, Application::Get()->activeCamera), 1.0f);
+					clickPosition =
+						glm::vec4(Renderer::ReconstructWorldPositionFromDepth(
+									  glm::vec2(xposGame, yposGame), Application::Get()->appSizes->sceneSize,
+									  clickPosition.x, Application::Get()->activeCamera),
+								  1.0f);
 
 					std::cout << "World: \n";
-					std::cout << "X: " << clickPosition.x << " Y: " << clickPosition.y << " Z: " << clickPosition.z << " W: " << clickPosition.w << "\n";
+					std::cout << "X: " << clickPosition.x << " Y: " << clickPosition.y << " Z: " << clickPosition.z
+							  << " W: " << clickPosition.w << "\n";
 					Entity* entity = Scene::GetActiveScene()->GetEntity(mLastTerrainUuid);
 					if (!entity)
 						return;
 
-					glm::vec4 localPosition = glm::inverse(Scene::GetActiveScene()->GetComponent<TransformComponent>(entity->uuid)->GetWorldMatrix()) * clickPosition;
+					glm::vec4 localPosition =
+						glm::inverse(
+							Scene::GetActiveScene()->GetComponent<TransformComponent>(entity->uuid)->GetWorldMatrix()) *
+						clickPosition;
 
 					Mesh* mesh = Scene::GetActiveScene()->GetComponent<MeshRenderer>(entity->uuid)->GetMesh();
 
-					uint32_t nearestVertexIndex = (glm::round<int>(localPosition.x) * mSettings.x) + (glm::round<int>(localPosition.z));//(mSettings.x / localPosition.x) * (mSettings.z / localPosition.z);
+					uint32_t nearestVertexIndex =
+						(glm::round<int>(localPosition.x) * mSettings.x) +
+						(glm::round<int>(
+							localPosition.z)); //(mSettings.x / localPosition.x) * (mSettings.z / localPosition.z);
 					if (nearestVertexIndex > mesh->vertices.size() - 1)
 						return;
 
@@ -282,15 +301,12 @@ namespace Plaza {
 					if (mSettings.smoothTool)
 						SmoothTool(mesh, nearestVertexIndex);
 
-					//std::cout << "Clicked at: " << "X: " << localPosition.x << " Y: " << localPosition.y << " Z: " << localPosition.z << "\n";
-					//std::cout << "Nearest Index: " << nearestVertexIndex << "\n";
-					});
+					// std::cout << "Clicked at: " << "X: " << localPosition.x << " Y: " << localPosition.y << " Z: " <<
+					// localPosition.z << "\n"; std::cout << "Nearest Index: " << nearestVertexIndex << "\n";
+				});
 			}
-
 		}
 
-		void TerrainEditorTool::OnKeyPress(int key, int scancode, int action, int mods) {
-
-		}
-	}
-}
+		void TerrainEditorTool::OnKeyPress(int key, int scancode, int action, int mods) {}
+	} // namespace Editor
+} // namespace Plaza

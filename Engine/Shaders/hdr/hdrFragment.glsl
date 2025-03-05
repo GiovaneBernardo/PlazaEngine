@@ -8,7 +8,7 @@ uniform bool hdr;
 uniform float exposure;
 
 void main()
-{             
+{
     float expo = 0.75f;
     float gamma = 3.6f;
     // Fetch the HDR color from the texture

@@ -3,9 +3,7 @@
 #include "Engine/Core/Scene.h"
 
 namespace Plaza {
-	void GuiButton::CallScriptsCallback() {
-		PL_CORE_INFO("GUI Button Callback not implemented with scripting")
-	}
+	void GuiButton::CallScriptsCallback() { PL_CORE_INFO("GUI Button Callback not implemented with scripting") }
 
 	bool GuiButton::MouseIsInsideButton(glm::vec2 mousePos) {
 #ifdef EDITOR_MODE
@@ -23,4 +21,4 @@ namespace Plaza {
 		else
 			return false;
 	}
-}
+} // namespace Plaza

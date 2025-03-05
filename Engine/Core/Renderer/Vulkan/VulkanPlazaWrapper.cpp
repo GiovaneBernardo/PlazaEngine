@@ -3,12 +3,11 @@
 #include "Engine/Core/Engine.h"
 
 namespace Plaza {
-	VmaAllocator PlVkBuffer::GetVmaAllocator() {
-		return VulkanRenderer::GetRenderer()->mVmaAllocator;
-	}
+	VmaAllocator PlVkBuffer::GetVmaAllocator() { return VulkanRenderer::GetRenderer()->mVmaAllocator; }
 
 	static std::mutex vmaMutex;
-	void PlVkBuffer::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VmaMemoryUsage vmaUsage, VmaAllocationCreateFlags flags, unsigned int buffersCount) {
+	void PlVkBuffer::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VmaMemoryUsage vmaUsage,
+								  VmaAllocationCreateFlags flags, unsigned int buffersCount) {
 		VkBufferCreateInfo bufferInfo{};
 		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 		bufferInfo.size = size;
@@ -28,9 +27,7 @@ namespace Plaza {
 		}
 	}
 
-	void PlVkBuffer::CreateMemory(VmaAllocationCreateFlags flags, unsigned int buffersCount) {
-
-	}
+	void PlVkBuffer::CreateMemory(VmaAllocationCreateFlags flags, unsigned int buffersCount) {}
 
 	void PlVkBuffer::Destroy() {
 		static std::mutex destroyMutex;
@@ -47,7 +44,7 @@ namespace Plaza {
 		memcpy(data, newData, size);
 		vmaUnmapMemory(GetVmaAllocator(), mAllocations[index]);
 	}
-}
+} // namespace Plaza
 
 PL_SER_REGISTER_TYPE(Plaza::PlVkBuffer);
 PL_SER_REGISTER_POLYMORPHIC_RELATION(Plaza::PlBuffer, Plaza::PlVkBuffer);

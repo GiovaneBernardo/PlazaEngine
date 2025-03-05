@@ -3,7 +3,7 @@
 namespace Plaza {
 	namespace Editor {
 		class ProjectManagerGui {
-		public:
+		  public:
 			class ProjectItem;
 			void Init();
 			void Update();
@@ -12,13 +12,12 @@ namespace Plaza {
 			void SetupMenuBar();
 			static void SetupProjectsTreeNode();
 
-
 			void NewProjectButton();
 			void NewProjectClick();
 			void OpenProjectButton();
 			void OpenProjectClick();
 			class ProjectManagerContent {
-			public:
+			  public:
 				/// <summary>
 				/// Update the content of dockspace to show the Projects and the button to create a new project
 				/// </summary>
@@ -27,7 +26,7 @@ namespace Plaza {
 			};
 
 			class NewProjectContent : public ProjectManagerContent {
-			public:
+			  public:
 				/// <summary>
 				/// Update the content of dockspace to show the New Project window
 				/// </summary>
@@ -37,9 +36,7 @@ namespace Plaza {
 
 			ProjectManagerContent* currentContent;
 
-			ProjectManagerGui() {
-				currentContent = new ProjectManagerContent();
-			}
+			ProjectManagerGui() { currentContent = new ProjectManagerContent(); }
 		};
-	}
-}
+	} // namespace Editor
+} // namespace Plaza

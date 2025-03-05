@@ -29,7 +29,7 @@ vec3 Uncharted2Tonemap(vec3 color)
 	return ((color*(A*color+C*B)+D*E)/(color*(A*color+B)+D*F))-E/F;
 }
 
-vec3 gammaCorrect(vec3 color) 
+vec3 gammaCorrect(vec3 color)
 {
     return pow(color, vec3(1.0 / 2.2));
 }
@@ -53,9 +53,9 @@ void main() {
 
 	//// Tone mapping
 	//color = Uncharted2Tonemap(color * 4.5);
-	//color = color * (1.0f / Uncharted2Tonemap(vec3(11.2f)));	
+	//color = color * (1.0f / Uncharted2Tonemap(vec3(11.2f)));
 	//// Gamma correction
 	//color = pow(color, vec3(1.0f / 2.2));
-	
+
 	FragColor = vec4(color, 1.0);
 }

@@ -11,8 +11,7 @@ namespace Plaza::Editor {
 		if (Utils::ComponentInspectorHeader(component, "Camera")) {
 			ImGui::PushID("CameraInspector");
 
-
 			ImGui::PopID();
 		}
 	}
-}
+} // namespace Plaza::Editor

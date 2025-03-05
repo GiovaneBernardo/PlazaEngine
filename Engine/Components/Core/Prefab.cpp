@@ -16,7 +16,6 @@ namespace Plaza {
 	void Prefab::GetEntityAndChildrenComponents(Scene* scene, Entity* entity) {
 		mEntities.emplace(entity->uuid, *entity);
 		for (ComponentPool* pool : scene->mComponentPools) {
-
 			if (mComponentPools.size() <= pool->mComponentMask)
 				mComponentPools.resize(pool->mComponentMask + 1, nullptr);
 			if (mComponentPools[pool->mComponentMask] == nullptr) {
@@ -43,4 +42,4 @@ namespace Plaza {
 	void Prefab::LoadToScene(Scene* dstScene) {
 		ECS::EntitySystem::Instantiate(mEntities, mComponentPools, dstScene, mMainEntityUuid, 0);
 	}
-}
+} // namespace Plaza

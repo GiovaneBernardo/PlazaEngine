@@ -2,8 +2,7 @@
 #include "AssetsImporter.h"
 #include "ThirdParty/glm/gtx/hash.hpp"
 #include "Engine/Core/Renderer/Mesh.h"
-//#include "ThirdParty/OpenFBX/src/ofbx.h"
-
+// #include "ThirdParty/OpenFBX/src/ofbx.h"
 
 #ifdef WIN32
 #include <d3d11.h>
@@ -20,22 +19,22 @@ struct Vec3Hash {
 	}
 };
 
-
 namespace Plaza {
 
-	Entity* AssetsImporter::ImportGLTF(AssetImported asset, std::filesystem::path outPath, AssetsImporterSettings settings) {
+	Entity* AssetsImporter::ImportGLTF(AssetImported asset, std::filesystem::path outPath,
+									   AssetsImporterSettings settings) {
 		return nullptr;
-		//FILE* fileOpen = fopen(asset.mPath.c_str(), "rb");
+		// FILE* fileOpen = fopen(asset.mPath.c_str(), "rb");
 
-		//if (!fileOpen) return nullptr;
+		// if (!fileOpen) return nullptr;
 
-		//fseek(fileOpen, 0, SEEK_END);
-		//long fileSize = ftell(fileOpen);
-		//fseek(fileOpen, 0, SEEK_SET);
-		//auto* content = new ofbx::u8[fileSize];
-		//fread(content, 1, fileSize, fileOpen);
+		// fseek(fileOpen, 0, SEEK_END);
+		// long fileSize = ftell(fileOpen);
+		// fseek(fileOpen, 0, SEEK_SET);
+		// auto* content = new ofbx::u8[fileSize];
+		// fread(content, 1, fileSize, fileOpen);
 
-		//ofbx::LoadFlags flags =
+		// ofbx::LoadFlags flags =
 		//	//		ofbx::LoadFlags::IGNORE_MODELS |
 		//	ofbx::LoadFlags::IGNORE_BLEND_SHAPES |
 		//	ofbx::LoadFlags::IGNORE_CAMERAS |
@@ -51,18 +50,18 @@ namespace Plaza {
 		//	//		ofbx::LoadFlags::IGNORE_MESHES |
 		//	ofbx::LoadFlags::IGNORE_ANIMATIONS;
 
-		//ofbx::IScene* loadedScene = ofbx::load((ofbx::u8*)content, fileSize, (ofbx::u16)flags);
-		//delete[] content;
-		//fclose(fileOpen);
-		//FILE* fp = fopen(asset.mPath.c_str(), "wb");
-		//if (!fp) return nullptr;
-		//int indicesOffset = 0;
-		//int meshCount = loadedScene->getMeshCount();
+		// ofbx::IScene* loadedScene = ofbx::load((ofbx::u8*)content, fileSize, (ofbx::u16)flags);
+		// delete[] content;
+		// fclose(fileOpen);
+		// FILE* fp = fopen(asset.mPath.c_str(), "wb");
+		// if (!fp) return nullptr;
+		// int indicesOffset = 0;
+		// int meshCount = loadedScene->getMeshCount();
 
 		//// output unindexed geometry
-		//Entity* mainEntity = nullptr;
-		//std::unordered_map<ofbx::u64, uint64_t> meshIndexEntityMap = std::unordered_map<ofbx::u64, uint64_t>();
-		//for (int meshIndex = 0; meshIndex < meshCount; ++meshIndex) {
+		// Entity* mainEntity = nullptr;
+		// std::unordered_map<ofbx::u64, uint64_t> meshIndexEntityMap = std::unordered_map<ofbx::u64, uint64_t>();
+		// for (int meshIndex = 0; meshIndex < meshCount; ++meshIndex) {
 		//	const ofbx::Mesh& mesh = *loadedScene->getMesh(meshIndex);
 		//	Entity* entity;
 		//	if (!mainEntity)
@@ -77,16 +76,15 @@ namespace Plaza {
 		//	if (parent) {
 		//		auto parentIt = meshIndexEntityMap.find(parent->id);
 		//		if (parentIt != meshIndexEntityMap.end()) {
-		//			entity->ChangeParent(Scene::GetActiveScene()->GetEntity(entity->GetParent().uuid), Scene::GetActiveScene()->GetEntity(parentIt->second));
+		//			entity->ChangeParent(Scene::GetActiveScene()->GetEntity(entity->GetParent().uuid),
+		//Scene::GetActiveScene()->GetEntity(parentIt->second));
 		//		}
 		//	}
-
 
 		//	const ofbx::GeometryData& geom = mesh.getGeometryData();
 		//	const ofbx::Vec3Attributes positions = geom.getPositions();
 		//	const ofbx::Vec3Attributes normals = geom.getNormals();
 		//	const ofbx::Vec2Attributes uvs = geom.getUVs();
-
 
 		//	Mesh* finalMesh = new Mesh();
 		//	finalMesh->vertices.resize(positions.count);
@@ -128,41 +126,31 @@ namespace Plaza {
 		//	MeshRenderer* meshRenderer = new MeshRenderer(finalMesh, AssetsManager::GetDefaultMaterial());
 		//	entity->AddComponent<MeshRenderer>(meshRenderer);
 		//}
-		//fclose(fp);
+		// fclose(fp);
 
-		//return mainEntity;
-		// 
-		// 
+		// return mainEntity;
+		//
+		//
 
-
-
-
-
-
-
-
-
-
-
-		//Assimp::Importer importer;
-		//const aiScene* scene = importer.ReadFile(asset.mPath,
-		//	aiProcess_JoinIdenticalVertices 
+		// Assimp::Importer importer;
+		// const aiScene* scene = importer.ReadFile(asset.mPath,
+		//	aiProcess_JoinIdenticalVertices
 		//);
-		//if (nullptr == scene) {
+		// if (nullptr == scene) {
 		//	cout << "ERROR::ASSIMP::" << importer.GetErrorString() << endl;
 		//	return nullptr;
-		//}
+		// }
 		//
-		//return Scene::GetActiveScene()->GetEntity(AssetsImporter::ProcessNode(scene->mRootNode, scene, Scene::GetActiveScene()->GetEntity(Scene::GetActiveScene()->mainSceneEntity->uuid))->uuid);
+		// return Scene::GetActiveScene()->GetEntity(AssetsImporter::ProcessNode(scene->mRootNode, scene,
+		// Scene::GetActiveScene()->GetEntity(Scene::GetActiveScene()->mainSceneEntity->uuid))->uuid);
 
-
-		//if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, asset.mPath.c_str())) {
+		// if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, asset.mPath.c_str())) {
 		//	throw std::runtime_error(warn + err);
-		//}
-		//Entity* mainEntity = nullptr; //= new Entity();
+		// }
+		// Entity* mainEntity = nullptr; //= new Entity();
 		//
-		//const std::vector<float>& positions = attrib.vertices;
-		//for (const auto& shape : shapes) {
+		// const std::vector<float>& positions = attrib.vertices;
+		// for (const auto& shape : shapes) {
 		//	Entity* newEntity;
 		//	if (!mainEntity)
 		//	{
@@ -210,11 +198,12 @@ namespace Plaza {
 		//		indices.push_back(uniqueVertices[vertex]);
 		//	}
 		//
-		//	Mesh& mesh = Application::Get()->mRenderer->CreateNewMesh(vertices, normals, uvs, std::vector<glm::vec3>(), std::vector<glm::vec3>(), indices, *AssetsManager::GetDefaultMaterial(), false);// new Mesh();
-		//	MeshRenderer* meshRenderer = new MeshRenderer(mesh, AssetsManager::GetDefaultMaterial());
+		//	Mesh& mesh = Application::Get()->mRenderer->CreateNewMesh(vertices, normals, uvs, std::vector<glm::vec3>(),
+		//std::vector<glm::vec3>(), indices, *AssetsManager::GetDefaultMaterial(), false);// new Mesh(); 	MeshRenderer*
+		//meshRenderer = new MeshRenderer(mesh, AssetsManager::GetDefaultMaterial());
 		//	newEntity->AddComponent<MeshRenderer>(meshRenderer);
-		//}
-		//AssetsSerializer::SerializePrefab(mainEntity, asset.mPath);
-		//return Scene::GetActiveScene()->GetEntity(mainEntity->uuid);
+		// }
+		// AssetsSerializer::SerializePrefab(mainEntity, asset.mPath);
+		// return Scene::GetActiveScene()->GetEntity(mainEntity->uuid);
 	}
-}
+} // namespace Plaza

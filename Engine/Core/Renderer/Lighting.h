@@ -2,7 +2,7 @@
 
 namespace Plaza {
 	class Lighting {
-	public:
+	  public:
 		struct LightStruct {
 			alignas(16) glm::vec3 color;
 			alignas(0) float radius;
@@ -43,4 +43,4 @@ namespace Plaza {
 		std::vector<Tile> mTiles;
 		std::vector<LightStruct> mLights;
 	};
-}
+} // namespace Plaza

@@ -60,7 +60,7 @@ vec3 GetNormalFromMap() {
 
 void main() {
     vec3 albedo;
-    if(material.diffuseIndex > -1) { 
+    if(material.diffuseIndex > -1) {
         vec4 textureColor = pow(texture(textures[material.diffuseIndex], fragTexCoord), vec4(vec3(ubo.gamma), 1.0f));
         //vec4 textureColor = pow(texture(textures[material.diffuseIndex], fragTexCoord), vec4(vec3(1.0f / 2.2f), 1.0f));
         if(textureColor.w <= 0.1f)

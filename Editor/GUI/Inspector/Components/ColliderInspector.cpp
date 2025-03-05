@@ -56,7 +56,8 @@ namespace Plaza::Editor {
 
 				physx::PxMaterial* defaultMaterial = Physics::defaultMaterial;
 				if (ImGui::MenuItem("Box")) {
-					physx::PxBoxGeometry geometry(transform.mLocalScale.x / 2.1, transform.mLocalScale.y / 2.1, transform.mLocalScale.z / 2.1);
+					physx::PxBoxGeometry geometry(transform.mLocalScale.x / 2.1, transform.mLocalScale.y / 2.1,
+												  transform.mLocalScale.z / 2.1);
 					physx::PxShape* shape = Physics::m_physics->createShape(geometry, *defaultMaterial);
 					collider->AddShape(new ColliderShape(shape, ColliderShape::ColliderShapeEnum::BOX, 0));
 				}
@@ -81,7 +82,6 @@ namespace Plaza::Editor {
 					}
 					if (scene->HasComponent<RigidBody>(collider->mUuid)) {
 						AddChildrenMeshShape(scene, collider, collider->mUuid);
-
 					}
 				}
 				if (ImGui::MenuItem("Convex Mesh")) {
@@ -90,16 +90,14 @@ namespace Plaza::Editor {
 					}
 					if (scene->HasComponent<RigidBody>(collider->mUuid)) {
 						AddChildrenMeshShape(scene, collider, collider->mUuid);
-
 					}
 				}
 
 				ImGui::EndPopup();
 			}
 
-			//for (physx::PxShape* shape : collider->mShapes) {
+			// for (physx::PxShape* shape : collider->mShapes) {
 			//	ImGui::Text(shape->getName());
-
 
 			//}
 
@@ -110,4 +108,4 @@ namespace Plaza::Editor {
 			std::cout << "Button outside header clicked" << std::endl;
 		}
 	}
-}
+} // namespace Plaza::Editor

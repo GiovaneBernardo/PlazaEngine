@@ -19,7 +19,8 @@ namespace Plaza {
 		blurringBuffer->InitRenderBufferObject(GL_DEPTH24_STENCIL8, width, height);
 	*/
 
-	void FrameBuffer::InitColorAttachment(GLenum textureTarget, GLenum internalFormat, int width, int height, GLenum format, GLenum type, GLint param) {
+	void FrameBuffer::InitColorAttachment(GLenum textureTarget, GLenum internalFormat, int width, int height,
+										  GLenum format, GLenum type, GLint param) {
 		glGenTextures(1, &this->colorBuffer);
 		glBindTexture(textureTarget, this->colorBuffer);
 		glTexImage2D(textureTarget, 0, internalFormat, width, height, 0, format, type, NULL);
@@ -29,9 +30,8 @@ namespace Plaza {
 		glBindTexture(this->target, 0);
 	}
 
-	void FrameBuffer::InitDepthAttachment(GLint level, GLenum internalFormat, int width, int height, GLenum format, GLenum type) {
-
-	}
+	void FrameBuffer::InitDepthAttachment(GLint level, GLenum internalFormat, int width, int height, GLenum format,
+										  GLenum type) {}
 
 	void FrameBuffer::DrawAttachments(GLenum attachments[], int width, int height) {
 		glDrawBuffers(sizeof(attachments) / sizeof(attachments[0]), attachments);
@@ -39,21 +39,11 @@ namespace Plaza {
 		glViewport(0, 0, width, height);
 	}
 
-	void FrameBuffer::UpdateSize()
-	{
+	void FrameBuffer::UpdateSize() {}
 
-	}
+	void FrameBuffer::Bind() { glBindFramebuffer(GL_FRAMEBUFFER, this->buffer); }
 
-	void FrameBuffer::Bind() {
-		glBindFramebuffer(GL_FRAMEBUFFER, this->buffer);
-	}
+	void FrameBuffer::Unbind() { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
 
-	void FrameBuffer::Unbind() {
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	}
-
-	void FrameBuffer::Terminate()
-	{
-		glDeleteBuffers(1, &this->buffer);
-	}
-}
+	void FrameBuffer::Terminate() { glDeleteBuffers(1, &this->buffer); }
+} // namespace Plaza

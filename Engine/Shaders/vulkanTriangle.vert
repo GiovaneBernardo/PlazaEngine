@@ -37,7 +37,7 @@ layout(location = 16) out vec4 TangentFragPos;
 layout(location = 17) out vec4 worldPos;
 
 out gl_PerVertex {
-	vec4 gl_Position;   
+	vec4 gl_Position;
 };
 
 void main() {
@@ -58,7 +58,7 @@ void main() {
     //    vec3 N = normalize(normalMatrix * aNormal);
     //    T = normalize(T - dot(T, N) * N);
     //    vec3 B = cross(N, T);
-    //    mat3 TBN = transpose(mat3(T, B, N));    
+    //    mat3 TBN = transpose(mat3(T, B, N));
     //    vs_out.TangentLightPos = TBN * lightPos;
     //    vs_out.TangentViewPos  = TBN * viewPos;
     //    vs_out.TangentFragPos  = TBN * vs_out.FragPos;

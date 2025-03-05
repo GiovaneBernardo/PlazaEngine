@@ -16,4 +16,4 @@ namespace Plaza {
 		sClientLogger = spdlog::stdout_color_mt("APP");
 		sClientLogger->set_level(spdlog::level::trace);
 	}
-}
+} // namespace Plaza

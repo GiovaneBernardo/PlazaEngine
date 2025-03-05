@@ -5,8 +5,9 @@
 namespace Plaza {
 	namespace Editor {
 		class MaterialFile : public File {
-		public:
-			MaterialFile(std::string name, std::string directory, std::string extension) : File(name, directory, extension) {}
+		  public:
+			MaterialFile(std::string name, std::string directory, std::string extension)
+				: File(name, directory, extension) {}
 
 			void DoubleClick();
 			void Delete();
@@ -17,5 +18,5 @@ namespace Plaza {
 			void Popup();
 			void DragDrop();
 		};
-	}
-}
+	} // namespace Editor
+} // namespace Plaza

@@ -7,8 +7,7 @@
 namespace Plaza {
 	namespace Utils {
 		namespace Vector {
-			template<typename T>
-			inline int indexOf(std::vector<T> vector, T item) {
+			template <typename T> inline int indexOf(std::vector<T> vector, T item) {
 				auto it = std::find(vector.begin(), vector.end(), item);
 
 				if (it != vector.end()) {
@@ -20,6 +19,6 @@ namespace Plaza {
 					return -1;
 				}
 			}
-		}
-	}
-}
+		} // namespace Vector
+	} // namespace Utils
+} // namespace Plaza

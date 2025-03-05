@@ -28,7 +28,7 @@ namespace Plaza::Editor {
 						sMaterialsSearch->SetOpen(true);
 						sMaterialsSearch->mCallback = [&, index](uint64_t uuid) {
 							meshRenderer->ChangeMaterial(AssetsManager::mMaterials.at(uuid).get(), index);
-							};
+						};
 					}
 					ImGui::SameLine();
 					if (ImGui::Button("Remove Button")) {
@@ -42,7 +42,9 @@ namespace Plaza::Editor {
 							ImGui::PopID();
 							continue;
 						}
-						File file = File(material->mAssetName, AssetsManager::GetAsset(material->mAssetUuid)->mAssetPath.string(), Standards::materialExtName);
+						File file = File(material->mAssetName,
+										 AssetsManager::GetAsset(material->mAssetUuid)->mAssetPath.string(),
+										 Standards::materialExtName);
 						Plaza::Editor::MaterialFileInspector(material);
 
 						ImGui::TreePop();
@@ -52,9 +54,7 @@ namespace Plaza::Editor {
 
 				if (ImGui::Button("Add Material")) {
 					sMaterialsSearch->SetOpen(true);
-					sMaterialsSearch->mCallback = [&](uint64_t uuid) {
-						meshRenderer->mMaterialsUuids.push_back(uuid);
-						};
+					sMaterialsSearch->mCallback = [&](uint64_t uuid) { meshRenderer->mMaterialsUuids.push_back(uuid); };
 				}
 				ImGui::TreePop();
 			}
@@ -64,4 +64,4 @@ namespace Plaza::Editor {
 			ImGui::PopID();
 		}
 	}
-}
+} // namespace Plaza::Editor

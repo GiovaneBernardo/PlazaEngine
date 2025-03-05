@@ -2,9 +2,7 @@
 #include "Input.h"
 #include "Cursor.h"
 namespace Plaza {
-	void Input::Update() {
-		Cursor::Update();
-	}
+	void Input::Update() { Cursor::Update(); }
 
 	bool Input::GetKeyDown(int key) {
 		if (Application::Get()->focusedMenu == mCheckFocusedMenu) {
@@ -12,18 +10,9 @@ namespace Plaza {
 		}
 	}
 
-	bool Input::GetKeyDownOnce()
-	{
-		return false;
-	}
-	bool Input::GetKeyReleased()
-	{
-		return false;
-	}
-	bool Input::GetKeyReleasedOnce()
-	{
-		return false;
-	}
+	bool Input::GetKeyDownOnce() { return false; }
+	bool Input::GetKeyReleased() { return false; }
+	bool Input::GetKeyReleasedOnce() { return false; }
 
 	bool Input::GetMouseDown(int button) {
 		if (Application::Get()->focusedMenu == mCheckFocusedMenu) {
@@ -33,13 +22,11 @@ namespace Plaza {
 
 	glm::vec2 Input::GetScreenSize() {
 #ifdef EDITOR_MODE
-		return  glm::vec2(Application::Get()->appSizes->sceneSize.x, Application::Get()->appSizes->sceneSize.y);
+		return glm::vec2(Application::Get()->appSizes->sceneSize.x, Application::Get()->appSizes->sceneSize.y);
 #else
 		return Application::Get()->appSizes->sceneSize;
 #endif
 	}
 
-	void Input::SetFocusedMenuCheck(const std::string& menu) {
-		mCheckFocusedMenu = menu;
-	}
-}
+	void Input::SetFocusedMenuCheck(const std::string& menu) { mCheckFocusedMenu = menu; }
+} // namespace Plaza

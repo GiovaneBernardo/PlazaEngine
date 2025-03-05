@@ -117,8 +117,8 @@ float ShadowCalculation(vec3 fragPosWorldSpace)
         for(int y = -pcfCount; y <= pcfCount; ++y)
         {
             float pcfDepth = texture(shadowsDepthMap, vec3(projCoords.xy + vec2(x, y) * texelSize, layer)).r;
-            shadow += (currentDepth - bias) > pcfDepth ? 1.0 : 0.0;        
-        }    
+            shadow += (currentDepth - bias) > pcfDepth ? 1.0 : 0.0;
+        }
     }
     shadow /= totalTexels;
     return shadow;
@@ -172,7 +172,7 @@ uniform mat4 model;
 #define COLOR_MAX_MIN 65000
 
 void main()
-{       
+{
     vec3 color = texture(texture_diffuse, fs_in.TexCoords).rgb;
     if(texture_diffuse_rgba != vec4(300, 300, 300, 300)){
          color = clamp(texture_diffuse_rgba.rgb, -COLOR_MAX_MIN, COLOR_MAX_MIN);
@@ -223,7 +223,7 @@ void main()
     float nDotV = max(dot(n, v), 0.0);
 
     vec3  F0 = mix (vec3 (0.04), color, metallic);
-    vec3 F = fresnelSchlick(vDotH, F0);   
+    vec3 F = fresnelSchlick(vDotH, F0);
 
     vec3 kS = F;
     vec3 kD = 1.0 - kS;

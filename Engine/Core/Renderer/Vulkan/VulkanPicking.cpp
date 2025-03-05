@@ -26,8 +26,9 @@ namespace Plaza {
 		this->InitializePicking();
 		this->InitializeOutline();
 
-		//VulkanRenderer::GetRenderer()->AddTrackerToImage(this->mPickingTextureImage, "Picking Texture");
-		//VulkanRenderer::GetRenderer()->AddTrackerToImage(this->mDepthImageView, "Picking Depth Texture", nullptr, VK_IMAGE_LAYOUT_GENERAL);
+		// VulkanRenderer::GetRenderer()->AddTrackerToImage(this->mPickingTextureImage, "Picking Texture");
+		// VulkanRenderer::GetRenderer()->AddTrackerToImage(this->mDepthImageView, "Picking Depth Texture", nullptr,
+		// VK_IMAGE_LAYOUT_GENERAL);
 	}
 
 	void VulkanPicking::InitializeImageView(VkImageView& imageView, VkImage& image, VkFormat format) {
@@ -42,7 +43,8 @@ namespace Plaza {
 		imageCreateInfo.format = format;
 		imageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 		imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		imageCreateInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+		imageCreateInfo.usage =
+			VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 		imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 
 		if (vkCreateImage(VulkanRenderer::GetRenderer()->mDevice, &imageCreateInfo, nullptr, &image) != VK_SUCCESS) {
@@ -59,7 +61,8 @@ namespace Plaza {
 			memoryRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 		VkDeviceMemory imageMemory;
-		if (vkAllocateMemory(VulkanRenderer::GetRenderer()->mDevice, &allocateInfo, nullptr, &imageMemory) != VK_SUCCESS) {
+		if (vkAllocateMemory(VulkanRenderer::GetRenderer()->mDevice, &allocateInfo, nullptr, &imageMemory) !=
+			VK_SUCCESS) {
 			throw std::runtime_error("failed to allocate image memory!");
 		}
 		vkBindImageMemory(VulkanRenderer::GetRenderer()->mDevice, image, imageMemory, 0);
@@ -88,10 +91,7 @@ namespace Plaza {
 	}
 
 	void VulkanPicking::InitializeFramebuffer() {
-		std::array<VkImageView, 2> attachments = {
-			mPickingTextureImageView,
-			mDepthImageView
-		};
+		std::array<VkImageView, 2> attachments = {mPickingTextureImageView, mDepthImageView};
 
 		VkFramebufferCreateInfo framebufferInfo{};
 		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -102,19 +102,20 @@ namespace Plaza {
 		framebufferInfo.height = Application::Get()->appSizes->sceneSize.y;
 		framebufferInfo.layers = 1;
 
-		if (vkCreateFramebuffer(VulkanRenderer::GetRenderer()->mDevice, &framebufferInfo, nullptr, &mFramebuffer) != VK_SUCCESS) {
+		if (vkCreateFramebuffer(VulkanRenderer::GetRenderer()->mDevice, &framebufferInfo, nullptr, &mFramebuffer) !=
+			VK_SUCCESS) {
 			throw std::runtime_error("failed to create framebuffer!");
 		}
-
 	}
 
 	void VulkanPicking::InitializeDescriptorSets() {
 		VkDescriptorSetLayoutCreateInfo layoutInfo{};
 		layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-		layoutInfo.bindingCount = 0;//static_cast<uint32_t>(bindings.size());
-		//layoutInfo.pBindings = bindings.data();
+		layoutInfo.bindingCount = 0; // static_cast<uint32_t>(bindings.size());
+		// layoutInfo.pBindings = bindings.data();
 
-		if (vkCreateDescriptorSetLayout(VulkanRenderer::GetRenderer()->mDevice, &layoutInfo, nullptr, &this->mDescriptorSetLayout) != VK_SUCCESS) {
+		if (vkCreateDescriptorSetLayout(VulkanRenderer::GetRenderer()->mDevice, &layoutInfo, nullptr,
+										&this->mDescriptorSetLayout) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create descriptor set layout!");
 		}
 	}
@@ -161,11 +162,13 @@ namespace Plaza {
 		dependency.srcAccessMask = 0;
 		dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 		dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-		dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-		dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+		dependency.srcStageMask =
+			VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+		dependency.dstStageMask =
+			VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
 		dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
-		std::array<VkAttachmentDescription, 2> attachments = { colorAttachment, depthAttachment };
+		std::array<VkAttachmentDescription, 2> attachments = {colorAttachment, depthAttachment};
 		VkRenderPassCreateInfo renderPassInfo{};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 		renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
@@ -175,29 +178,38 @@ namespace Plaza {
 		renderPassInfo.dependencyCount = 1;
 		renderPassInfo.pDependencies = &dependency;
 
-		if (vkCreateRenderPass(VulkanRenderer::GetRenderer()->mDevice, &renderPassInfo, nullptr, &this->mRenderPickingTexturePostEffects->mRenderPass) != VK_SUCCESS) {
+		if (vkCreateRenderPass(VulkanRenderer::GetRenderer()->mDevice, &renderPassInfo, nullptr,
+							   &this->mRenderPickingTexturePostEffects->mRenderPass) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create render pass!");
 		}
 	}
 
 	void VulkanPicking::InitializePicking() {
-		const std::string pickingVertexPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "/Shaders/Vulkan/picking/picking.vert");
-		const std::string pickingFragmentPath = VulkanShadersCompiler::Compile(Application::Get()->enginePath + "/Shaders/Vulkan/picking/picking.frag");
+		const std::string pickingVertexPath =
+			VulkanShadersCompiler::Compile(Application::Get()->enginePath + "/Shaders/Vulkan/picking/picking.vert");
+		const std::string pickingFragmentPath =
+			VulkanShadersCompiler::Compile(Application::Get()->enginePath + "/Shaders/Vulkan/picking/picking.frag");
 
 		this->mRenderPickingTexturePostEffects = new VulkanPlazaPipeline();
 
 		this->InitializeRenderPass();
 
-		this->InitializeImageView(this->mPickingTextureImageView, this->mPickingTextureImage, VK_FORMAT_R32G32B32A32_UINT);
+		this->InitializeImageView(this->mPickingTextureImageView, this->mPickingTextureImage,
+								  VK_FORMAT_R32G32B32A32_UINT);
 
 		VkDeviceMemory imageMemory;
 		VkFormat depthFormat = VulkanRenderer::GetRenderer()->FindDepthFormat();
-		VulkanRenderer::GetRenderer()->CreateImage(this->mResolution.x, this->mResolution.y, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, this->mDepthTextureImage, imageMemory);
-		this->mDepthImageView = VulkanRenderer::GetRenderer()->CreateImageView(this->mDepthTextureImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+		VulkanRenderer::GetRenderer()->CreateImage(this->mResolution.x, this->mResolution.y, depthFormat,
+												   VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+												   VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, this->mDepthTextureImage,
+												   imageMemory);
+		this->mDepthImageView = VulkanRenderer::GetRenderer()->CreateImageView(this->mDepthTextureImage, depthFormat,
+																			   VK_IMAGE_ASPECT_DEPTH_BIT);
 		this->InitializeFramebuffer();
 		std::cout << "3 \n";
 
-		this->mRenderPickingTexturePostEffects->mShaders = new VulkanShaders(pickingVertexPath, pickingFragmentPath, "");
+		this->mRenderPickingTexturePostEffects->mShaders =
+			new VulkanShaders(pickingVertexPath, pickingFragmentPath, "");
 
 		VkPipelineRasterizationStateCreateInfo rasterizer{};
 		rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
@@ -217,7 +229,8 @@ namespace Plaza {
 		depthStencil.stencilTestEnable = VK_FALSE;
 
 		VkPipelineColorBlendAttachmentState colorBlendAttachment{};
-		colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+		colorBlendAttachment.colorWriteMask =
+			VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 		colorBlendAttachment.blendEnable = VK_FALSE;
 		colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
 		colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
@@ -239,27 +252,23 @@ namespace Plaza {
 
 		std::cout << "0 \n";
 		this->mRenderPickingTexturePostEffects->mShaders->InitializeFull(
-			VulkanRenderer::GetRenderer()->mDevice,
-			this->mPipelineLayoutInfo,
-			true,
-			this->mResolution.x,
-			this->mResolution.y,
-			{}, {}, {}, {}, rasterizer, {}, colorBlending, {},
-			this->mRenderPickingTexturePostEffects->mRenderPass,
-			depthStencil);
+			VulkanRenderer::GetRenderer()->mDevice, this->mPipelineLayoutInfo, true, this->mResolution.x,
+			this->mResolution.y, {}, {}, {}, {}, rasterizer, {}, colorBlending, {},
+			this->mRenderPickingTexturePostEffects->mRenderPass, depthStencil);
 		std::cout << "end \n";
 	}
 
 	void VulkanPicking::InitializeOutline() {
-		//const std::string outlineVertexPath = Application::Get()->enginePath + "/Shaders/Vulkan/picking/outline.vert";
-		//const std::string outlineFragmentPath = Application::Get()->enginePath + "/Shaders/Vulkan/picking/outline.frag";
+		// const std::string outlineVertexPath = Application::Get()->enginePath +
+		// "/Shaders/Vulkan/picking/outline.vert"; const std::string outlineFragmentPath =
+		// Application::Get()->enginePath + "/Shaders/Vulkan/picking/outline.frag";
 		//
-		//this->mRenderPickingTexturePostEffects = new VulkanPostEffects();
+		// this->mRenderPickingTexturePostEffects = new VulkanPostEffects();
 		//
-		//this->mOutlinePostEffects->mRenderPass = VulkanRenderer::GetRenderer()->mRenderPass;
-		//this->mOutlinePostEffects->mShaders = new VulkanShaders(outlineVertexPath, outlineFragmentPath, "");
+		// this->mOutlinePostEffects->mRenderPass = VulkanRenderer::GetRenderer()->mRenderPass;
+		// this->mOutlinePostEffects->mShaders = new VulkanShaders(outlineVertexPath, outlineFragmentPath, "");
 		//
-		//this->mOutlinePostEffects->mShaders->InitializeFull(
+		// this->mOutlinePostEffects->mShaders->InitializeFull(
 		//	VulkanRenderer::GetRenderer()->mDevice,
 		//	this->mPipelineLayoutInfo,
 		//	true,
@@ -275,37 +284,39 @@ namespace Plaza {
 		if (!mesh || mesh->vertices.size() < 3) {
 			return;
 		}
-		
-		VkDeviceSize offsets[] = { 0, 0 };
+
+		VkDeviceSize offsets[] = {0, 0};
 		VkCommandBuffer activeCommandBuffer = commandBuffer;
-		
+
 		VulkanPicking::PushConstants pushData{};
 		pushData.projection = Application::Get()->activeCamera->GetProjectionMatrix();
 		pushData.view = Application::Get()->activeCamera->GetViewMatrix();
 		pushData.model = Scene::GetActiveScene()->GetComponent<TransformComponent>(meshRenderer.mUuid)->mWorldMatrix;
 		pushData.uuid1 = (uint32_t)(meshRenderer.mUuid >> 32);
 		pushData.uuid2 = (uint32_t)(meshRenderer.mUuid & 0xFFFFFFFF);
-		
-		vkCmdPushConstants(commandBuffer, this->mRenderPickingTexturePostEffects->mShaders->mPipelineLayout, VK_SHADER_STAGE_ALL, 0, sizeof(VulkanPicking::PushConstants), &pushData);
 
-		vkCmdDrawIndexed(activeCommandBuffer, static_cast<uint32_t>(mesh->indices.size()), 1, mesh->indicesOffset, mesh->verticesOffset, mesh->instanceOffset);
+		vkCmdPushConstants(commandBuffer, this->mRenderPickingTexturePostEffects->mShaders->mPipelineLayout,
+						   VK_SHADER_STAGE_ALL, 0, sizeof(VulkanPicking::PushConstants), &pushData);
+
+		vkCmdDrawIndexed(activeCommandBuffer, static_cast<uint32_t>(mesh->indices.size()), 1, mesh->indicesOffset,
+						 mesh->verticesOffset, mesh->instanceOffset);
 	}
 
 	void VulkanPicking::DrawSelectedObjectsUuid(Scene* scene) {
 		PLAZA_PROFILE_SECTION("DrawSelectedObjectsUuid");
 
-		//VkCommandBuffer& commandBuffer = *VulkanRenderer::GetRenderer()->mActiveCommandBuffer;
+		// VkCommandBuffer& commandBuffer = *VulkanRenderer::GetRenderer()->mActiveCommandBuffer;
 		VkCommandBuffer commandBuffer = VulkanRenderer::GetRenderer()->BeginSingleTimeCommands();
 
 		VkRenderPassBeginInfo renderPassInfo{};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 		std::array<VkClearValue, 2> clearValues{};
-		clearValues[0].color = { {0.0f, 0.0f, 0.0f, 1.0f} };
-		clearValues[1].depthStencil = { 1.0f, 0 };
+		clearValues[0].color = {{0.0f, 0.0f, 0.0f, 1.0f}};
+		clearValues[1].depthStencil = {1.0f, 0};
 		renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
 		renderPassInfo.pClearValues = clearValues.data();
 		renderPassInfo.renderPass = this->mRenderPickingTexturePostEffects->mRenderPass;
-		renderPassInfo.framebuffer = this->mFramebuffer;//VulkanRenderer::GetRenderer()->mFinalSceneFramebuffer;
+		renderPassInfo.framebuffer = this->mFramebuffer; // VulkanRenderer::GetRenderer()->mFinalSceneFramebuffer;
 		renderPassInfo.renderArea.extent.width = this->mResolution.x;
 		renderPassInfo.renderArea.extent.height = this->mResolution.y;
 
@@ -319,23 +330,32 @@ namespace Plaza {
 		viewport.maxDepth = 1.0f;
 
 		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->mRenderPickingTexturePostEffects->mShaders->mPipeline);
+		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+						  this->mRenderPickingTexturePostEffects->mShaders->mPipeline);
 
 		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
 		VkRect2D scissor{};
-		scissor.offset = { 0, 0 };
+		scissor.offset = {0, 0};
 		scissor.extent.width = this->mResolution.x;
 		scissor.extent.height = this->mResolution.y;
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-		VkDeviceSize offsets[1] = { 0 };
-		vkCmdBindVertexBuffers(commandBuffer, 0, 1, &VulkanRenderer::GetRenderer()->mMainVertexBuffer->GetBuffer(), offsets);
-		vkCmdBindVertexBuffers(commandBuffer, 1, 1, &VulkanRenderer::GetRenderer()->mMainInstanceMatrixBuffers[VulkanRenderer::GetRenderer()->mCurrentFrame], offsets);
-		//vkCmdBindVertexBuffers(commandBuffer, 2, 1, &VulkanRenderer::GetRenderer()->mMainInstanceMaterialBuffers[VulkanRenderer::GetRenderer()->mCurrentFrame], offsets);
-		vkCmdBindIndexBuffer(commandBuffer, VulkanRenderer::GetRenderer()->mMainIndexBuffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT32);
+		VkDeviceSize offsets[1] = {0};
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, &VulkanRenderer::GetRenderer()->mMainVertexBuffer->GetBuffer(),
+							   offsets);
+		vkCmdBindVertexBuffers(
+			commandBuffer, 1, 1,
+			&VulkanRenderer::GetRenderer()->mMainInstanceMatrixBuffers[VulkanRenderer::GetRenderer()->mCurrentFrame],
+			offsets);
+		// vkCmdBindVertexBuffers(commandBuffer, 2, 1,
+		// &VulkanRenderer::GetRenderer()->mMainInstanceMaterialBuffers[VulkanRenderer::GetRenderer()->mCurrentFrame],
+		// offsets);
+		vkCmdBindIndexBuffer(commandBuffer, VulkanRenderer::GetRenderer()->mMainIndexBuffer->GetBuffer(), 0,
+							 VK_INDEX_TYPE_UINT32);
 
-		//vkCmdDrawIndexedIndirect(commandBuffer, VulkanRenderer::GetRenderer()->mIndirectBuffer, 0, VulkanRenderer::GetRenderer()->mIndirectDrawCount, sizeof(VkDrawIndexedIndirectCommand));
+		// vkCmdDrawIndexedIndirect(commandBuffer, VulkanRenderer::GetRenderer()->mIndirectBuffer, 0,
+		// VulkanRenderer::GetRenderer()->mIndirectDrawCount, sizeof(VkDrawIndexedIndirectCommand));
 
 		for (const uint64_t& uuid : SceneView<MeshRenderer>(scene)) {
 			this->DrawMeshToPickingTexture(*scene->GetComponent<MeshRenderer>(uuid), commandBuffer);
@@ -345,9 +365,7 @@ namespace Plaza {
 		VulkanRenderer::GetRenderer()->EndSingleTimeCommands(commandBuffer);
 	}
 
-	void VulkanPicking::DrawOutline() {
-
-	}
+	void VulkanPicking::DrawOutline() {}
 
 	std::pair<uint32_t, uint32_t> reverseHash(float normalizedValue) {
 		// Denormalize the value to get the original hash value
@@ -367,7 +385,10 @@ namespace Plaza {
 		// Create a staging buffer
 		VkBuffer stagingBuffer;
 		VkDeviceMemory stagingBufferMemory;
-		VulkanRenderer::GetRenderer()->CreateBuffer(this->mResolution.x * this->mResolution.y * (sizeof(uint32_t) * 4), VK_BUFFER_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+		VulkanRenderer::GetRenderer()->CreateBuffer(
+			this->mResolution.x * this->mResolution.y * (sizeof(uint32_t) * 4), VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer,
+			stagingBufferMemory);
 
 		// Copy image to staging buffer
 		VkCommandBuffer commandBuffer = VulkanRenderer::GetRenderer()->BeginSingleTimeCommands();
@@ -382,15 +403,17 @@ namespace Plaza {
 		region.bufferRowLength = 0;
 		region.bufferImageHeight = 0;
 		region.imageSubresource = subResource;
-		region.imageOffset = { 0, 0, 0 };
-		region.imageExtent = { (unsigned int)this->mResolution.x, (unsigned int)this->mResolution.y, 1 };
+		region.imageOffset = {0, 0, 0};
+		region.imageExtent = {(unsigned int)this->mResolution.x, (unsigned int)this->mResolution.y, 1};
 
-		vkCmdCopyImageToBuffer(commandBuffer, this->mPickingTextureImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, stagingBuffer, 1, &region);
+		vkCmdCopyImageToBuffer(commandBuffer, this->mPickingTextureImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+							   stagingBuffer, 1, &region);
 		VulkanRenderer::GetRenderer()->EndSingleTimeCommands(commandBuffer);
 
 		// Map staging buffer memory
 		void* data;
-		vkMapMemory(VulkanRenderer::GetRenderer()->mDevice, stagingBufferMemory, 0, this->mResolution.x * this->mResolution.y * (sizeof(uint32_t) * 4), 0, &data);
+		vkMapMemory(VulkanRenderer::GetRenderer()->mDevice, stagingBufferMemory, 0,
+					this->mResolution.x * this->mResolution.y * (sizeof(uint32_t) * 4), 0, &data);
 
 		// Read pixel data
 		// Assuming RGBA8 format
@@ -422,12 +445,8 @@ namespace Plaza {
 		return this->ReadPickingTexture(pos);
 	}
 
-	void VulkanPicking::UpdateAndPushConstants(VkCommandBuffer commandBuffer) {
+	void VulkanPicking::UpdateAndPushConstants(VkCommandBuffer commandBuffer) {}
 
-	}
+	void VulkanPicking::Terminate() {}
 
-	void VulkanPicking::Terminate() {
-
-	}
-
-}
+} // namespace Plaza

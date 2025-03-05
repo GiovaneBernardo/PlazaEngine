@@ -3,7 +3,6 @@
 #include "EditorSettings.h"
 namespace Plaza::Editor {
 	void EditorSettingsSerializer::Serialize(std::string filePath) {
-
 		if (filePath.empty()) {
 			filePath = Application::Get()->enginePathAppData + "Settings.yaml";
 		}
@@ -13,6 +12,6 @@ namespace Plaza::Editor {
 		if (filePath.empty()) {
 			filePath = Application::Get()->enginePathAppData + "Settings.yaml";
 		}
-		//this->ReapplyAllSettings();
+		// this->ReapplyAllSettings();
 	}
-}
+} // namespace Plaza::Editor

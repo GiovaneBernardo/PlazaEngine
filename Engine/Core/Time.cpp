@@ -13,18 +13,15 @@ void Plaza::Time::Update() {
 	float timeDifference = currentTime - previousTime;
 	frameCount++;
 
-
 	// If a second has passed.
-	if (timeDifference >= 1.0f / 20.0f)
-	{
+	if (timeDifference >= 1.0f / 20.0f) {
 		// Display the frame count here any way you want.
-		//std::cout << frameCount << std::endl;
-		fps = (1.0f / timeDifference) * frameCount;//frameCount;
+		// std::cout << frameCount << std::endl;
+		fps = (1.0f / timeDifference) * frameCount; // frameCount;
 		msPerFrame = (timeDifference / frameCount) * 1000;
 		frameCount = 0;
 		previousTime = glfwGetTime();
 	}
-
 
 	float currentFrame = static_cast<float>(glfwGetTime());
 	deltaTime = currentFrame - lastFrame;

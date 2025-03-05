@@ -10,17 +10,13 @@ bool visualizingNormals = false;
 namespace Plaza::Editor {
 	void callback(float) {
 		Application::Get()->editorCamera->Update(Scene::GetActiveScene());
-		//Application::Get()->editorCamera = new Plaza::Camera(*Application::Get()->editorCamera);
-		//Application::Get()->activeCamera = Application::Get()->editorCamera;
+		// Application::Get()->editorCamera = new Plaza::Camera(*Application::Get()->editorCamera);
+		// Application::Get()->activeCamera = Application::Get()->editorCamera;
 	}
-	void callbacke(glm::vec3) {
-
-	}
-	void callbacke2(glm::vec3) {
-		Application::Get()->editorCamera->Update(Scene::GetActiveScene());
-	}
-	static bool DecomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale)
-	{
+	void callbacke(glm::vec3) {}
+	void callbacke2(glm::vec3) { Application::Get()->editorCamera->Update(Scene::GetActiveScene()); }
+	static bool DecomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation,
+								   glm::vec3& scale) {
 		// From glm::decompose in matrix_decompose.inl
 
 		using namespace glm;
@@ -33,11 +29,9 @@ namespace Plaza::Editor {
 			return false;
 
 		// First, isolate perspective.  This is the messiest.
-		if (
-			epsilonNotEqual(LocalMatrix[0][3], static_cast<T>(0), epsilon<T>()) ||
+		if (epsilonNotEqual(LocalMatrix[0][3], static_cast<T>(0), epsilon<T>()) ||
 			epsilonNotEqual(LocalMatrix[1][3], static_cast<T>(0), epsilon<T>()) ||
-			epsilonNotEqual(LocalMatrix[2][3], static_cast<T>(0), epsilon<T>()))
-		{
+			epsilonNotEqual(LocalMatrix[2][3], static_cast<T>(0), epsilon<T>())) {
 			// Clear the perspective partition
 			LocalMatrix[0][3] = LocalMatrix[1][3] = LocalMatrix[2][3] = static_cast<T>(0);
 			LocalMatrix[3][3] = static_cast<T>(1);
@@ -87,20 +81,20 @@ namespace Plaza::Editor {
 			rotation.z = 0;
 		}
 
-
 		return true;
 	}
 	static glm::vec3 DrawGizmo(glm::vec3 vector) {
 		glm::mat4 projection = Application::Get()->activeCamera->GetProjectionMatrix();
 		glm::mat4 view = Application::Get()->activeCamera->GetViewMatrix();
 		glm::mat4 rotationMatrix = glm::eulerAngleXYZ(vector.x, vector.y, vector.z);
-		glm::mat4 gizmoTransform = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f))
-			* glm::toMat4(glm::quat(vector))
-			* glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+		glm::mat4 gizmoTransform = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f)) *
+								   glm::toMat4(glm::quat(vector)) *
+								   glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
 
-		//glm::mat4 gizmoTransform = glm::lookAt(glm::vec3(0), vector, glm::vec3(0, 1, 0));
+		// glm::mat4 gizmoTransform = glm::lookAt(glm::vec3(0), vector, glm::vec3(0, 1, 0));
 
-		ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(projection), ImGuizmo::OPERATION::ROTATE, ImGuizmo::MODE::WORLD, glm::value_ptr(gizmoTransform));
+		ImGuizmo::Manipulate(glm::value_ptr(view), glm::value_ptr(projection), ImGuizmo::OPERATION::ROTATE,
+							 ImGuizmo::MODE::WORLD, glm::value_ptr(gizmoTransform));
 
 		if (ImGuizmo::IsUsing()) {
 			glm::vec3 position, rotation, scale;
@@ -111,7 +105,7 @@ namespace Plaza::Editor {
 	}
 
 	void ComponentsInspector::SceneInspector(Scene* scene, Entity* entity) {
-		Shadows* shadows = VulkanRenderer::GetRenderer()->mShadows;//Application::Get()->mRenderer->mShadows;
+		Shadows* shadows = VulkanRenderer::GetRenderer()->mShadows; // Application::Get()->mRenderer->mShadows;
 		/* Draw Gizmo for rotating Sun */
 		shadows->mLightDirection = DrawGizmo(shadows->mLightDirection);
 
@@ -119,7 +113,8 @@ namespace Plaza::Editor {
 		if (ImGui::TreeNodeEx("Shadows", ImGuiTreeNodeFlags_DefaultOpen)) {
 			glm::vec3& lightDir = shadows->mLightDirection;
 			Utils::DragFloat3("Light Direction: ", lightDir, 0.1f, callbacke, -360.0f, 360.0f);
-			ImGui::DragInt("Depth Map Resolution: ", reinterpret_cast<int*>(&shadows->mShadowResolution), 1024, 0, *"%d");
+			ImGui::DragInt("Depth Map Resolution: ", reinterpret_cast<int*>(&shadows->mShadowResolution), 1024, 0,
+						   *"%d");
 			ImGui::DragFloat3("Light Distance: ", &shadows->mLightDirection.x);
 
 			ImGui::TreePop();
@@ -129,10 +124,8 @@ namespace Plaza::Editor {
 		if (ImGui::TreeNodeEx("Rendering", ImGuiTreeNodeFlags_DefaultOpen)) {
 			if (ImGui::Checkbox("Visualize Normals", &visualizingNormals)) {
 				if (visualizingNormals) {
-
 				}
 				else {
-
 				}
 			}
 			ImGui::TreePop();
@@ -142,7 +135,8 @@ namespace Plaza::Editor {
 		if (ImGui::TreeNodeEx("Editor Camera", ImGuiTreeNodeFlags_DefaultOpen)) {
 			Utils::DragFloat("Zoom: ", Application::Get()->editorCamera->Zoom, 0.1f, callback, 0.0f);
 			Utils::DragFloat("Movement Speed: ", Application::Get()->editorCamera->MovementSpeed, 0.1f, callback, 0.0f);
-			Utils::DragFloat("Camera Sensitivity: ", Application::Get()->editorCamera->MouseSensitivity, 0.1f, callback, 0.0f);
+			Utils::DragFloat("Camera Sensitivity: ", Application::Get()->editorCamera->MouseSensitivity, 0.1f, callback,
+							 0.0f);
 			Utils::DragFloat("Nearplane: ", Application::Get()->editorCamera->nearPlane, 0.1f, callback, -10000.0f);
 			Utils::DragFloat("Farplane: ", Application::Get()->editorCamera->farPlane, 0.1f, callback, 0.0f);
 
@@ -157,13 +151,12 @@ namespace Plaza::Editor {
 			Utils::DragFloat("X: ", Application::Get()->appSizes->sceneSize.x, 0.1f, callback);
 			Utils::DragFloat("Y: ", Application::Get()->appSizes->sceneSize.y, 0.1f, callback);
 
-
-			//Utils::DragFloat("Farplane: ", Application::Get()->editorCamera->farPlane, 0.1f, callback, 0.0f);
-			//Utils::DragFloat("Farplane: ", Application::Get()->editorCamera->farPlane, 0.1f, callback, 0.0f);
-			//Utils::DragFloat("Farplane: ", Application::Get()->editorCamera->farPlane, 0.1f, callback, 0.0f);
+			// Utils::DragFloat("Farplane: ", Application::Get()->editorCamera->farPlane, 0.1f, callback, 0.0f);
+			// Utils::DragFloat("Farplane: ", Application::Get()->editorCamera->farPlane, 0.1f, callback, 0.0f);
+			// Utils::DragFloat("Farplane: ", Application::Get()->editorCamera->farPlane, 0.1f, callback, 0.0f);
 
 			ImGui::TreePop();
 		}
 		EditorInspector::Update();
 	}
-}
+} // namespace Plaza::Editor

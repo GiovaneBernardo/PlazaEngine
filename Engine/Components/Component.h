@@ -8,7 +8,7 @@ namespace Plaza {
 	class Scene;
 	class PLAZA_API Entity;
 	class PLAZA_API Component {
-	public:
+	  public:
 		uint64_t mUuid = 0;
 		bool mEnabled = true;
 
@@ -18,13 +18,10 @@ namespace Plaza {
 		Entity* GetGameObject();
 		virtual ~Component() = default;
 		Component() {
-			//this->componentUuid = Plaza::UUID::NewUUID();
+			// this->componentUuid = Plaza::UUID::NewUUID();
 		}
 		virtual void OnInstantiate(Scene* scene, uint64_t toInstantiate) {};
 
-		template <class Archive>
-		void serialize(Archive& archive) {
-			archive(PL_SER(mUuid), PL_SER(mEnabled));
-		}
+		template <class Archive> void serialize(Archive& archive) { archive(PL_SER(mUuid), PL_SER(mEnabled)); }
 	};
-}
+} // namespace Plaza

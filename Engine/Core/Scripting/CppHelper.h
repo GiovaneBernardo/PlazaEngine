@@ -26,16 +26,16 @@
 
 namespace Plaza {
 	class PLAZA_API Mathf {
-	public:
+	  public:
 		static inline constexpr float sDeg2Rad = 3.14159265359f / 180.0f;
 		static inline constexpr float sRad2Deg = 180.0f / 3.14159265359f;
 	};
 	class PLAZA_API CppHelper {
-	public:
+	  public:
 		static Entity* NewEntity(const std::string& name);
 		static Entity* FindEntity(const std::string& name);
 		static Entity* FindEntity(uint64_t uuid);
 		static Entity* Instantiate(Entity* entityToInstantiate);
 		static glm::vec3 MousePosToRayDirection(float fov, const glm::vec2& position, const glm::vec2& screenSize);
 	};
-}
+} // namespace Plaza

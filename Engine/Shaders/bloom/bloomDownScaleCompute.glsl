@@ -76,7 +76,7 @@ void main()
     {
         vec2 uv        = (vec2(base_index) + 0.5) * u_texel_size;
         vec2 uv_offset = vec2(i % TILE_SIZE, i / TILE_SIZE) * u_texel_size;
-        
+
         vec4 color = textureLod(u_input_texture, uv + uv_offset, u_mip_level);
         store_lds(i, color);
     }
@@ -115,6 +115,6 @@ void main()
     {
       c = quadratic_threshold(c, u_threshold.x, u_threshold.yzw);
     }
-    
+
 	imageStore(u_output_image, pixel_coords, max(c, 0.0001f));
 }

@@ -4,13 +4,15 @@
 #include <ThirdParty/cereal/cereal/archives/json.hpp>
 namespace Plaza::Editor {
 	void Cache::Load() {
-		Cache cache = Cache::DeSerialize(Application::Get()->enginePathAppData + "/" + "cache" + Standards::editorCacheExtName);
+		Cache cache =
+			Cache::DeSerialize(Application::Get()->enginePathAppData + "/" + "cache" + Standards::editorCacheExtName);
 		Project::Load(cache.mLastOpenProjectPath);
 	}
 
 	void Cache::Serialize(const std::string filePath) {
 		Cache cache;
-		cache.mLastOpenProjectPath = Application::Get()->projectPath + "/" + Application::Get()->activeProject->mAssetName + Standards::projectExtName;
+		cache.mLastOpenProjectPath = Application::Get()->projectPath + "/" +
+									 Application::Get()->activeProject->mAssetName + Standards::projectExtName;
 		cache.mLastOpenProjectName = Application::Get()->activeProject->mAssetName;
 		std::ofstream os(filePath);
 		{
@@ -33,4 +35,4 @@ namespace Plaza::Editor {
 		os.close();
 		return cache;
 	}
-}
+} // namespace Plaza::Editor

@@ -5,7 +5,7 @@
 #include "Engine/Core/ModelLoader/ModelLoader.h"
 namespace Plaza::Editor {
 	static class ModelFileInspector {
-	public:
+	  public:
 		static Model* model;
 		static File* lastFile;
 		ModelFileInspector(File* file) {
@@ -23,7 +23,7 @@ namespace Plaza::Editor {
 			lastFile = file;
 		}
 	};
-}
+} // namespace Plaza::Editor
 
 inline Model* Plaza::Editor::ModelFileInspector::model = nullptr;
 inline File* Plaza::Editor::ModelFileInspector::lastFile = nullptr;

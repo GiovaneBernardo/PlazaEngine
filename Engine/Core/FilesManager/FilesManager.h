@@ -4,8 +4,9 @@
 
 namespace Plaza {
 	class FilesManager {
-	public:
-		static std::filesystem::path  CopyPasteFile(const std::filesystem::path& from, const std::filesystem::path& to, bool override = true);
+	  public:
+		static std::filesystem::path CopyPasteFile(const std::filesystem::path& from, const std::filesystem::path& to,
+												   bool override = true);
 		static std::filesystem::path CreateFileCopy(const std::filesystem::path& from, bool override = true);
 		static void CreateNewDirectory(const std::filesystem::path& path);
 
@@ -23,4 +24,4 @@ namespace Plaza {
 		static void OpenFolder(const std::filesystem::path& path);
 		static void SaveFile(const std::filesystem::path& path, void* data, size_t size);
 	};
-}
+} // namespace Plaza

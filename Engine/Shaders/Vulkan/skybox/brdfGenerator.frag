@@ -18,7 +18,7 @@ float random(vec2 co)
 	return fract(sin(sn) * c);
 }
 
-vec2 hammersley2d(uint i, uint N) 
+vec2 hammersley2d(uint i, uint N)
 {
 	// Radical inverse based on http://holger.dammertz.org/stuff/notes_HammersleyOnHemisphere.html
 	uint bits = (i << 16u) | (i >> 16u);
@@ -31,7 +31,7 @@ vec2 hammersley2d(uint i, uint N)
 }
 
 // Based on http://blog.selfshadow.com/publications/s2013-shading-course/karis/s2013_pbs_epic_slides.pdf
-vec3 importanceSample_GGX(vec2 Xi, float roughness, vec3 normal) 
+vec3 importanceSample_GGX(vec2 Xi, float roughness, vec3 normal)
 {
 	// Maps a 2D point to a hemisphere with spread based on roughness
 	float alpha = roughness * roughness;
@@ -60,7 +60,7 @@ float G_SchlicksmithGGX(float dotNL, float dotNV, float roughness)
 
 vec2 BRDF(float NoV, float roughness)
 {
-	// Normal always points along z-axis for the 2D lookup 
+	// Normal always points along z-axis for the 2D lookup
 	const vec3 N = vec3(0.0, 0.0, 1.0);
 	vec3 V = vec3(sqrt(1.0 - NoV*NoV), 0.0, NoV);
 
@@ -72,7 +72,7 @@ vec2 BRDF(float NoV, float roughness)
 
 		float dotNL = max(dot(N, L), 0.5);
 		float dotNV = max(dot(N, V), 0.5);
-		float dotVH = max(dot(V, H), 0.5); 
+		float dotVH = max(dot(V, H), 0.5);
 		float dotNH = max(dot(H, N), 0.5);
 
 		if (dotNL > 0.0) {
@@ -85,7 +85,7 @@ vec2 BRDF(float NoV, float roughness)
 	return LUT / float(NUM_SAMPLES);
 }
 
-void main() 
+void main()
 {
 	outColor = vec4(BRDF(inUV.s, inUV.t), 0.0, 1.0);
 }

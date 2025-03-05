@@ -1,4 +1,4 @@
-#pragma once 
+#pragma once
 #include <mutex>
 #include <queue>
 #include <algorithm>
@@ -9,8 +9,8 @@
 
 namespace Plaza {
 	class Thread {
-	public:
-		Thread() {};
+	  public:
+		Thread(){};
 		void RunParallel() {
 			if (mRunning)
 				return;
@@ -23,7 +23,7 @@ namespace Plaza {
 						mRunning = false;
 				}
 				mRunning = false;
-				});
+			});
 			mThread.detach();
 		}
 		void AddToParallelQueue(std::function<void()> function) {
@@ -45,7 +45,7 @@ namespace Plaza {
 				if (task) {
 					task();
 				}
-				});
+			});
 		}
 
 		void AddToQueue(std::function<void()> function) {
@@ -66,10 +66,11 @@ namespace Plaza {
 				}
 			}
 		}
-	private:
+
+	  private:
 		bool mRunning = false;
 		std::mutex mQueueMutex;
 		std::deque<std::function<void()>> mQueue = std::deque<std::function<void()>>();
 		std::thread mThread;
 	};
-}
+} // namespace Plaza

@@ -11,21 +11,19 @@ namespace Plaza {
 	};
 
 	class GuiItem {
-	public:
+	  public:
 		uint64_t mGuiUuid = 0;
 		std::string mGuiName = "";
 		uint64_t mComponentUuid = 0;
 		GuiType mGuiType = GuiType::PL_GUI_RECTANGLE;
-		//GuiMesh mGuiMesh;
+		// GuiMesh mGuiMesh;
 
 		bool mRecalculateVertices = true;
 
 		uint64_t mGuiParentUuid = 0;
 		std::vector<uint64_t> mGuiChildren = std::vector<uint64_t>();
 
-		GuiItem(std::string guiName) : mGuiName(guiName) {
-			mGuiUuid = Plaza::UUID::NewUUID();
-		}
+		GuiItem(std::string guiName) : mGuiName(guiName) { mGuiUuid = Plaza::UUID::NewUUID(); }
 
 		GuiItem() { mGuiUuid = Plaza::UUID::NewUUID(); }
 
@@ -46,15 +44,17 @@ namespace Plaza {
 		static void UpdateSelfAndChildrenTransform(GuiItem* item, glm::mat4& parentTransform);
 
 		glm::mat4 mTransform = glm::mat4(1.0f);
-	private:
+
+	  private:
 		glm::vec2 mPosition = glm::vec2(0.0f);
 		glm::vec2 mSize = glm::vec2(1.0f);
 
 		glm::vec2 mWorldPosition = glm::vec2(0.0f);
-	public:
-		template <class Archive>
-		void serialize(Archive& archive) {
-			archive(PL_SER(mGuiUuid), PL_SER(mGuiName), PL_SER(mGuiType), PL_SER(mComponentUuid), PL_SER(mGuiParentUuid), PL_SER(mGuiChildren), PL_SER(mPosition), PL_SER(mSize));
+
+	  public:
+		template <class Archive> void serialize(Archive& archive) {
+			archive(PL_SER(mGuiUuid), PL_SER(mGuiName), PL_SER(mGuiType), PL_SER(mComponentUuid),
+					PL_SER(mGuiParentUuid), PL_SER(mGuiChildren), PL_SER(mPosition), PL_SER(mSize));
 		}
 	};
-}
+} // namespace Plaza

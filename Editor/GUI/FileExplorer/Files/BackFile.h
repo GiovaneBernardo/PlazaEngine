@@ -5,8 +5,9 @@
 namespace Plaza {
 	namespace Editor {
 		class BackFile : public File {
-		public:
-			BackFile(std::string name, std::string directory, std::string extension) : File(name, directory, extension) {}
+		  public:
+			BackFile(std::string name, std::string directory, std::string extension)
+				: File(name, directory, extension) {}
 
 			void DoubleClick();
 			void Delete();
@@ -16,5 +17,5 @@ namespace Plaza {
 			void Paste();
 			void Popup();
 		};
-	}
-}
+	} // namespace Editor
+} // namespace Plaza

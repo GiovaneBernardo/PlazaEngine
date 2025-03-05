@@ -4,9 +4,7 @@
 #include "Engine/Core/Scene.h"
 
 namespace Plaza {
-	static inline glm::vec3 ConvertUfbxVec3(ufbx_vec3 vec) {
-		return glm::vec3(vec.x, vec.y, vec.z);
-	}
+	static inline glm::vec3 ConvertUfbxVec3(ufbx_vec3 vec) { return glm::vec3(vec.x, vec.y, vec.z); }
 	static inline glm::quat ConvertUfbxQuat(ufbx_quat const& quaternionUfbx) {
 		glm::vec4 vec4GLM;
 		vec4GLM.x = quaternionUfbx.x;
@@ -17,8 +15,7 @@ namespace Plaza {
 	};
 	static glm::mat4 ConvertUfbxMatrix(ufbx_matrix const& mat4Ufbx) {
 		glm::mat4 mat4Glm;
-		for (unsigned int column = 0; column < 4; ++column)
-		{
+		for (unsigned int column = 0; column < 4; ++column) {
 			mat4Glm[0][column] = mat4Ufbx.cols[column].x;
 			mat4Glm[1][column] = mat4Ufbx.cols[column].y;
 			mat4Glm[2][column] = mat4Ufbx.cols[column].z;
@@ -27,7 +24,7 @@ namespace Plaza {
 		return mat4Glm;
 	}
 	static glm::mat4 ConvertUfbxMatrix2(ufbx_matrix const& mat4Ufbx) {
-		glm::mat4 inverseBindMatrix = glm::identity<glm::mat4>();//glm::mat4(1.0f);  // Identity matrix
+		glm::mat4 inverseBindMatrix = glm::identity<glm::mat4>(); // glm::mat4(1.0f);  // Identity matrix
 
 		inverseBindMatrix[0][0] = mat4Ufbx.m00;
 		inverseBindMatrix[0][1] = mat4Ufbx.m10;
@@ -54,17 +51,18 @@ namespace Plaza {
 	}
 
 	Bone* Animation::GetRootBone() {
-		if (!mRootBone && VulkanRenderer::GetRenderer()->mBones.find(mRootBoneUuid) != VulkanRenderer::GetRenderer()->mBones.end()) {
+		if (!mRootBone &&
+			VulkanRenderer::GetRenderer()->mBones.find(mRootBoneUuid) != VulkanRenderer::GetRenderer()->mBones.end()) {
 			mRootBone = &VulkanRenderer::GetRenderer()->mBones.at(mRootBoneUuid);
 		}
 		return mRootBone;
 	}
 
-	void AnimationComponent::GetAnimation(std::string filePath, std::map<uint64_t, Plaza::Bone>& bonesMap, unsigned int index) {
+	void AnimationComponent::GetAnimation(std::string filePath, std::map<uint64_t, Plaza::Bone>& bonesMap,
+										  unsigned int index) {
 		this->mAnimations.clear();
-		ufbx_load_opts opts = { };
-		opts.target_axes = ufbx_axes_right_handed_y_up,
-			opts.target_unit_meters = 1.0f;
+		ufbx_load_opts opts = {};
+		opts.target_axes = ufbx_axes_right_handed_y_up, opts.target_unit_meters = 1.0f;
 		opts.target_axes = {
 			.right = UFBX_COORDINATE_AXIS_POSITIVE_X,
 			.up = UFBX_COORDINATE_AXIS_POSITIVE_Y,
@@ -88,20 +86,25 @@ namespace Plaza {
 
 		for (const ufbx_skin_deformer* skin : scene->skin_deformers) {
 			for (const ufbx_skin_cluster* cluster : skin->clusters) {
-				//VulkanRenderer::GetRenderer()->mBones.at(cluster->bone_node->bone->element_id).mOffset = (ConvertUfbxMatrix2(cluster->geometry_to_bone));
+				// VulkanRenderer::GetRenderer()->mBones.at(cluster->bone_node->bone->element_id).mOffset =
+				// (ConvertUfbxMatrix2(cluster->geometry_to_bone));
 				if (cluster->bone_node->parent && cluster->bone_node->parent->bone) {
-					VulkanRenderer::GetRenderer()->mBones.at(cluster->bone_node->bone->element_id).mParentId = cluster->bone_node->parent->bone->element_id;
+					VulkanRenderer::GetRenderer()->mBones.at(cluster->bone_node->bone->element_id).mParentId =
+						cluster->bone_node->parent->bone->element_id;
 
-					std::vector<uint64_t>& childrenVector = VulkanRenderer::GetRenderer()->mBones.at(cluster->bone_node->parent->bone->element_id).mChildren;
+					std::vector<uint64_t>& childrenVector =
+						VulkanRenderer::GetRenderer()
+							->mBones.at(cluster->bone_node->parent->bone->element_id)
+							.mChildren;
 
-					if (std::find(childrenVector.begin(), childrenVector.end(), cluster->bone_node->bone->element_id) == childrenVector.end()) {
+					if (std::find(childrenVector.begin(), childrenVector.end(), cluster->bone_node->bone->element_id) ==
+						childrenVector.end()) {
 						childrenVector.push_back(cluster->bone_node->bone->element_id);
 					}
 				}
 			}
 		}
-		for (const ufbx_anim_stack* stack : scene->anim_stacks)
-		{
+		for (const ufbx_anim_stack* stack : scene->anim_stacks) {
 			if (stack->time_end - stack->time_begin <= 0.0f) {
 				continue;
 			}
@@ -120,24 +123,21 @@ namespace Plaza {
 			if (!animation.GetRootBone()) {
 				animation.SetRootBone(&VulkanRenderer::GetRenderer()->mBones.at(scene->bones[0]->element_id));
 			}
-			//animation.mRootParentTransform = ConvertUfbxMatrix2(scene->root_node->geometry_to_world);
+			// animation.mRootParentTransform = ConvertUfbxMatrix2(scene->root_node->geometry_to_world);
 			animation.mStartTime = (float)bake->playback_time_begin;
 			animation.mEndTime = (float)bake->playback_time_end;
-			for (const ufbx_baked_node& bakeNode : bake->nodes)
-			{
+			for (const ufbx_baked_node& bakeNode : bake->nodes) {
 				ufbx_node* sceneNode = scene->nodes[bakeNode.typed_id];
 
 				// Translation:
 				std::map<float, glm::vec3> positions = std::map<float, glm::vec3>();
-				for (const ufbx_baked_vec3& keyframe : bakeNode.translation_keys)
-				{
+				for (const ufbx_baked_vec3& keyframe : bakeNode.translation_keys) {
 					positions[keyframe.time] = glm::vec3(keyframe.value.x, keyframe.value.y, keyframe.value.z);
 				}
 
 				// Rotation:
 				std::map<float, glm::quat> rotations = std::map<float, glm::quat>();
-				for (const ufbx_baked_quat& keyframe : bakeNode.rotation_keys)
-				{
+				for (const ufbx_baked_quat& keyframe : bakeNode.rotation_keys) {
 					rotations[keyframe.time] = ConvertUfbxQuat(keyframe.value);
 				}
 
@@ -151,10 +151,14 @@ namespace Plaza {
 					keyframes[key].orientation = value;
 				}
 				for (const auto& [key, value] : keyframes) {
-					animation.mKeyframes[boneUuid].push_back(Bone::Keyframe{ key, ConvertUfbxVec3(ufbx_evaluate_baked_vec3(bakeNode.translation_keys, key)), ConvertUfbxQuat(ufbx_evaluate_baked_quat(bakeNode.rotation_keys, key)), ConvertUfbxVec3(ufbx_evaluate_baked_vec3(bakeNode.scale_keys, key)) });
+					animation.mKeyframes[boneUuid].push_back(
+						Bone::Keyframe{key, ConvertUfbxVec3(ufbx_evaluate_baked_vec3(bakeNode.translation_keys, key)),
+									   ConvertUfbxQuat(ufbx_evaluate_baked_quat(bakeNode.rotation_keys, key)),
+									   ConvertUfbxVec3(ufbx_evaluate_baked_vec3(bakeNode.scale_keys, key))});
 				}
 				if (animation.mKeyframes[boneUuid].size() == 0) {
-					animation.mKeyframes[boneUuid].push_back(Bone::Keyframe{ 0.0f, glm::vec3(0.0f), glm::quat(glm::vec3(0.0f)), glm::vec3(1.0f) });
+					animation.mKeyframes[boneUuid].push_back(
+						Bone::Keyframe{0.0f, glm::vec3(0.0f), glm::quat(glm::vec3(0.0f)), glm::vec3(1.0f)});
 				}
 			}
 
@@ -163,4 +167,4 @@ namespace Plaza {
 
 		ufbx_free_scene(scene);
 	}
-}
+} // namespace Plaza

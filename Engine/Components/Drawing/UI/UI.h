@@ -1,4 +1,2 @@
 #pragma once
-namespace Plaza::Drawing {
-
-}
+namespace Plaza::Drawing {}

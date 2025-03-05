@@ -2,15 +2,15 @@
 
 namespace Plaza::Editor {
 	class Inspector {
-	public:
+	  public:
 		class FileInspector {
-		public:
+		  public:
 			static void CreateInspector();
 			static void CreateRespectiveInspector(File* file);
 		};
 
 		class ComponentInspector {
-		public:
+		  public:
 			static vector<Component*> components;
 
 			static void CreateInspector(Scene* scene);
@@ -18,7 +18,5 @@ namespace Plaza::Editor {
 
 			static void CreateRespectiveInspector(Scene* scene, Component* component);
 		};
-
-
 	};
-}
+} // namespace Plaza::Editor

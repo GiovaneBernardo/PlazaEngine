@@ -7,9 +7,7 @@ namespace Plaza {
 		Editor::GuiState layerStateToExecute = Editor::GuiState::FOCUSED;
 	};
 	class Callbacks {
-	public:
-
-
+	  public:
 		static bool rightClickPressed;
 		static bool mouseFirstCallback;
 		static bool firstMouse;
@@ -33,9 +31,9 @@ namespace Plaza {
 			sOnMouseFunctions.push_back(callbackFunction);
 		}
 
-	private:
+	  private:
 		static inline std::vector<CallbackFunction> sOnKeyPressFunctions = std::vector<CallbackFunction>();
 		static inline std::vector<CallbackFunction> sOnKeyEventFunctions = std::vector<CallbackFunction>();
 		static inline std::vector<CallbackFunction> sOnMouseFunctions = std::vector<CallbackFunction>();
 	};
-}
+} // namespace Plaza

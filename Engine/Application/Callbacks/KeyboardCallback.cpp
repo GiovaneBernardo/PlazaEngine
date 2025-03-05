@@ -37,4 +37,4 @@ namespace Plaza {
 				Application::Get()->activeCamera->MovementSpeedTemporaryBoost = 1.0f;
 		}
 	}
-}
+} // namespace Plaza

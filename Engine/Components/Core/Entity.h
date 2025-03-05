@@ -1,6 +1,6 @@
-#pragma  once
+#pragma once
 #include <variant>
-//#include "Engine/Core/Scene.h"
+// #include "Engine/Core/Scene.h"
 #include "Engine/Components/Component.h"
 #include <vector>
 #include <string>
@@ -9,33 +9,30 @@
 #include "Engine/Core/Engine.h"
 #include <bitset>
 
-//#include "Engine/Core/Scene.h"
-
+// #include "Engine/Core/Scene.h"
 
 namespace cereal {
-	template <class Archive, size_t N>
-	void save(Archive& archive, const std::bitset<N>& bits) {
+	template <class Archive, size_t N> void save(Archive& archive, const std::bitset<N>& bits) {
 		std::string bitString = bits.to_string();
 		archive(bitString);
 	}
 
-	template <class Archive, size_t N>
-	void load(Archive& archive, std::bitset<N>& bits) {
+	template <class Archive, size_t N> void load(Archive& archive, std::bitset<N>& bits) {
 		std::string bitString;
 		archive(bitString);
 		bits = std::bitset<N>(bitString);
 	}
-}
+} // namespace cereal
 namespace Plaza {
 #define MAX_COMPONENTS 128
 	typedef std::bitset<MAX_COMPONENTS> ComponentMask;
 	class Scene;
 	struct PLAZA_API Entity {
-	public:
+	  public:
 		uint64_t uuid = 0;
 		ComponentMask mComponentMask;
 		uint64_t parentUuid = 0;
-		uint64_t prefabUuid = 0; // The uuid of the prefab it belongs to
+		uint64_t prefabUuid = 0;		   // The uuid of the prefab it belongs to
 		uint64_t equivalentPrefabUuid = 0; // The uuid of the entity in the prefab it belongs to
 		bool isPrefab = false;
 		std::vector<uint64_t> childrenUuid;
@@ -48,15 +45,15 @@ namespace Plaza {
 
 		void Rename(std::string newName) {}
 
-		template <class Archive>
-		void serialize(Archive& archive) {
-			archive(PL_SER(uuid), PL_SER(parentUuid), PL_SER(prefabUuid), PL_SER(equivalentPrefabUuid), PL_SER(childrenUuid), PL_SER(name), PL_SER(mComponentMask));
+		template <class Archive> void serialize(Archive& archive) {
+			archive(PL_SER(uuid), PL_SER(parentUuid), PL_SER(prefabUuid), PL_SER(equivalentPrefabUuid),
+					PL_SER(childrenUuid), PL_SER(name), PL_SER(mComponentMask));
 		}
 
-	private:
+	  private:
 	};
 
-}
+} // namespace Plaza
 
 /*
 #include <iostream>

@@ -11,7 +11,7 @@
 
 namespace Plaza {
 	class PLAZA_API Animation : public Asset {
-	public:
+	  public:
 		float mStartTime = 0.0f;
 		float mEndTime = 0.0f;
 		float mCurrentTime = 0.0f;
@@ -35,39 +35,35 @@ namespace Plaza {
 			this->mRootBoneUuid = newRootBone->mId;
 		}
 
-		void SetRootBoneUuid(uint64_t uuid) {
-			this->mRootBoneUuid = uuid;
+		void SetRootBoneUuid(uint64_t uuid) { this->mRootBoneUuid = uuid; }
+
+		template <class Archive> void serialize(Archive& archive) {
+			archive(PL_SER(mAssetUuid), PL_SER(mAssetName), PL_SER(mStartTime), PL_SER(mEndTime), PL_SER(mCurrentTime),
+					PL_SER(mAnimationSpeed), PL_SER(mKeyframes), PL_SER(mRootBoneUuid));
 		}
 
-		template <class Archive>
-		void serialize(Archive& archive) {
-			archive(PL_SER(mAssetUuid), PL_SER(mAssetName), PL_SER(mStartTime), PL_SER(mEndTime), PL_SER(mCurrentTime), PL_SER(mAnimationSpeed), PL_SER(mKeyframes), PL_SER(mRootBoneUuid));
-		}
-
-		//template <class Archive>
-		//void serialize(Archive& archive) {
+		// template <class Archive>
+		// void serialize(Archive& archive) {
 		//	archive(mUuid, mName, mStartTime, mEndTime, mCurrentTime, mAnimationSpeed, mKeyframes, mRootBoneUuid);
-		//}
-	private:
+		// }
+	  private:
 		Bone* mRootBone = nullptr;
 		bool mIsPlaying = false;
 		std::vector<int64_t> mBonesIds = std::vector<int64_t>();
 	};
 
 	PLAZA_API class AnimationComponent : public Component {
-	public:
-		float mImportScale = 1.0f;//0.01f;
+	  public:
+		float mImportScale = 1.0f; // 0.01f;
 		std::vector<Animation> mAnimations = std::vector<Animation>();
 		void GetAnimation(std::string filePath, std::map<uint64_t, Plaza::Bone>& bonesMap, unsigned int index = 0);
-		void AddAnimation(Animation animation) {
-			mAnimations.push_back(animation);
-		}
+		void AddAnimation(Animation animation) { mAnimations.push_back(animation); }
 
-		template <class Archive>
-		void serialize(Archive& archive) {
+		template <class Archive> void serialize(Archive& archive) {
 			archive(cereal::base_class<Component>(this), mImportScale, mAnimations);
 		}
-	private:
+
+	  private:
 		friend class Animation;
 	};
-}
+} // namespace Plaza

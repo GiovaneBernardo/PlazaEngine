@@ -1,10 +1,10 @@
-//#pragma once
-//#include "Renderer.h"
+// #pragma once
+// #include "Renderer.h"
 //
-//namespace Plaza {
+// namespace Plaza {
 //	class ComputeShaders {
 //	public:
 //		virtual void Init() = 0;
 //		virtual void Terminate() = 0;
 //	};
-//}
+// }

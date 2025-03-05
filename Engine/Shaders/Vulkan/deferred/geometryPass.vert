@@ -50,15 +50,15 @@ layout(std430, binding = 1) readonly buffer BoneMatrices {
 };
 
 //layout(std430, binding = 2) readonly buffer RenderGroups {
-//    uint renderGroupOffsets[]; // This takes the instance id, returns an index that will be the starting point of the material offsets, thus converting the vertex material index (from 0 to ...) into an index that takes into account prior materials 
+//    uint renderGroupOffsets[]; // This takes the instance id, returns an index that will be the starting point of the material offsets, thus converting the vertex material index (from 0 to ...) into an index that takes into account prior materials
 //	uint renderGroupMaterialsOffsets[]; // This takes the converted vertex material index and returns the real material index
 //};
 
 layout(std430, binding = 2) readonly buffer RenderGroupOffsetsBuffer {
-    uint renderGroupOffsets[]; 
+    uint renderGroupOffsets[];
 };
 
-layout(std430, binding = 3) readonly buffer RenderGroupMaterialsOffsetsBuffer { 
+layout(std430, binding = 3) readonly buffer RenderGroupMaterialsOffsetsBuffer {
 	uint renderGroupMaterialsOffsets[];
 };
 
@@ -78,7 +78,7 @@ layout(location = 18) out flat int affected;
 layout(location = 6) out mat3 outTBN;
 
 out gl_PerVertex {
-	vec4 gl_Position;   
+	vec4 gl_Position;
 };
 
 void main() {

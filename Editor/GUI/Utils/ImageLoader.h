@@ -6,4 +6,4 @@ namespace Plaza::Editor::Utils {
 	static ImTextureID LoadImageToImGuiTexture(const char* path) {
 		return Application::Get()->mRenderer->LoadImGuiTexture(path)->GetImGuiTextureID();
 	}
-}
+} // namespace Plaza::Editor::Utils

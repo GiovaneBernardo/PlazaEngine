@@ -4,7 +4,7 @@
 #include <mutex>
 namespace Plaza::Editor {
 	class Filewatcher {
-	public:
+	  public:
 		static void Start(std::string path);
 		static void UpdateOnMainThread();
 		static void AddToMainThread(const std::function<void()>& function);
@@ -14,4 +14,4 @@ namespace Plaza::Editor {
 		static std::queue<std::function<void()>> taskQueue;
 		static std::mutex queueMutex;
 	};
-}
+} // namespace Plaza::Editor

@@ -3,7 +3,8 @@
 namespace Plaza {
 	namespace Editor {
 		void ProjectManagerGui::ProjectItem::Setup() {
-			ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoFocusOnAppearing;
+			ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
+										   ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoFocusOnAppearing;
 			windowFlags |= ImGuiWindowFlags_NoScrollbar;
 
 			if (ImGui::BeginChild(ImGui::GetID(name.c_str()), ImVec2(500, 100), false, windowFlags)) {
@@ -16,9 +17,7 @@ namespace Plaza {
 				OnClick();
 			}
 		}
-		
-		void ProjectManagerGui::ProjectItem::OnClick() {
-			std::cout << "Clicked" << std::endl;
-		}
-	}
-}
+
+		void ProjectManagerGui::ProjectItem::OnClick() { std::cout << "Clicked" << std::endl; }
+	} // namespace Editor
+} // namespace Plaza

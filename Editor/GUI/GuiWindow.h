@@ -22,17 +22,15 @@ namespace Plaza {
 		};
 
 		class GuiWindow {
-		public:
-			GuiWindow(GuiLayer layer, bool startOpen = true) : mLayer(layer), mIsOpen(startOpen) {
-
-			}
+		  public:
+			GuiWindow(GuiLayer layer, bool startOpen = true) : mLayer(layer), mIsOpen(startOpen) {}
 			virtual void Init() = 0;
 			virtual void Update(Scene* scene) = 0;
 			virtual void OnKeyPress(int key, int scancode, int action, int mods) {};
 
-			//virtual void HandleKeyEvent();
-			//virtual void HandleFocusedKeyEvent();
-			//virtual void HandleHoveredKeyEvent();
+			// virtual void HandleKeyEvent();
+			// virtual void HandleFocusedKeyEvent();
+			// virtual void HandleHoveredKeyEvent();
 
 			const bool IsHovered() { return mHovered; };
 			const bool IsFocused() { return mFocused; };
@@ -40,34 +38,25 @@ namespace Plaza {
 			/// <summary>
 			/// Only call this after the window creation
 			/// </summary>
-			void UpdateHovered() {
-				mHovered = ImGui::IsWindowHovered() || ImGui::IsItemHovered();
-			}
+			void UpdateHovered() { mHovered = ImGui::IsWindowHovered() || ImGui::IsItemHovered(); }
 
 			/// <summary>
 			/// Only call this after the window creation
 			/// </summary>
-			void UpdateFocused() {
-				mFocused = ImGui::IsWindowFocused() || ImGui::IsItemFocused();
-			}
+			void UpdateFocused() { mFocused = ImGui::IsWindowFocused() || ImGui::IsItemFocused(); }
 
-			GuiLayer GetLayer() {
-				return mLayer;
-			}
-			bool IsOpen() {
-				return mIsOpen;
-			}
-			void SetOpen(bool value) {
-				mIsOpen = value;
-			}
+			GuiLayer GetLayer() { return mLayer; }
+			bool IsOpen() { return mIsOpen; }
+			void SetOpen(bool value) { mIsOpen = value; }
 
 			bool mExpanded = true;
 			bool mIsOpen = true;
-		private:
+
+		  private:
 			GuiLayer mLayer = GuiLayer::UNKNOWN;
 			GuiState mState = GuiState::UNKNOWN;
 			bool mHovered = false;
 			bool mFocused = false;
 		};
-	}
-}
+	} // namespace Editor
+} // namespace Plaza

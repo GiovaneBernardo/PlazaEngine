@@ -3,14 +3,14 @@
 #include "Editor/GUI/Style/EditorStyle.h"
 #include "Editor/GUI/guiMain.h"
 #include "Editor/GUI/FileExplorer/FileIcon.h"
-//#include "Engine/Core/Renderer/Renderer.h"
-
+// #include "Engine/Core/Renderer/Renderer.h"
 
 namespace Plaza {
 	namespace Editor {
 		class File {
-		public:
-			File(std::string name, std::string directory, std::string extension) : name(name), directory(directory), extension(extension) {
+		  public:
+			File(std::string name, std::string directory, std::string extension)
+				: name(name), directory(directory), extension(extension) {
 				const auto& it = Icon::textures.find(extension);
 				if (it != Icon::textures.end()) {
 					this->textureId = it->second.id;
@@ -42,5 +42,5 @@ namespace Plaza {
 			virtual void Popup() {}
 			virtual void DragDrop() {}
 		};
-	}
-}
+	} // namespace Editor
+} // namespace Plaza

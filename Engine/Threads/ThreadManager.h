@@ -1,9 +1,9 @@
-#pragma once 
+#pragma once
 #include "Threads.h"
 
 namespace Plaza {
 	class ThreadsManager {
-	public:
+	  public:
 		Thread* mAssetsLoadingThread = new Thread();
 		Thread* mFrameStartThread = new Thread();
 		Thread* mFrameEndThread = new Thread();
@@ -11,15 +11,8 @@ namespace Plaza {
 		Thread* mFrameRendererBeforeFenceThread = new Thread();
 		Thread* mFrameRendererAfterFenceThread = new Thread();
 		Thread* mFrameRendererAfterGeometry = new Thread();
-		void Init(){
-
-		}
-		void UpdateFrameStartThread() {
-			mFrameStartThread->Update();
-		}
-		void UpdateFrameEndThread() {
-			mFrameEndThread->Update();
-		}
-
+		void Init() {}
+		void UpdateFrameStartThread() { mFrameStartThread->Update(); }
+		void UpdateFrameEndThread() { mFrameEndThread->Update(); }
 	};
-}
+} // namespace Plaza

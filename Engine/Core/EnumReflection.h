@@ -7,11 +7,10 @@
 
 namespace Plaza {
 	class EnumReflection {
-	public:
-		template<typename T>
-		static void RegisterEnum() {
+	  public:
+		template <typename T> static void RegisterEnum() {
 			static_assert(std::is_enum<T>::value, "T must be an enum type.");
-			
+
 			const int enumSize = magic_enum::enum_count<T>();
 			if (sEnumNamesByTypeRawName.find(typeid(T).name()) == sEnumNamesByTypeRawName.end()) {
 				std::vector<const char*> names = std::vector<const char*>();
@@ -22,8 +21,7 @@ namespace Plaza {
 			}
 		}
 
-		template<typename T>
-		static void RegisterBitmaskEnum() {
+		template <typename T> static void RegisterBitmaskEnum() {
 			static_assert(std::is_enum<T>::value, "T must be an enum type.");
 
 			const int enumSize = magic_enum::enum_count<T>();
@@ -41,8 +39,6 @@ namespace Plaza {
 		static bool IsBitmask(const char* typeRawName) {
 			return sBitmaskEnums.find(typeRawName) != sBitmaskEnums.end();
 		}
-
-
 
 		static const char* GetEnumName(const char* typeRawName, int index) {
 			const auto& it = sEnumNamesByTypeRawName.find(typeRawName);
@@ -70,8 +66,10 @@ namespace Plaza {
 		static bool HasTypeRawName(const char* rawName) {
 			return sEnumNamesByTypeRawName.find(std::string(rawName)) != sEnumNamesByTypeRawName.end();
 		}
-	public:
-		static inline std::map<std::string, std::vector<const char*>> sEnumNamesByTypeRawName = std::map<std::string, std::vector<const char*>>();
+
+	  public:
+		static inline std::map<std::string, std::vector<const char*>> sEnumNamesByTypeRawName =
+			std::map<std::string, std::vector<const char*>>();
 		static inline std::set<const char*> sBitmaskEnums = std::set<const char*>();
 	};
-}
+} // namespace Plaza

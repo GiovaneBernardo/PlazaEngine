@@ -6,7 +6,7 @@ namespace Plaza {
 	class MeshRenderer;
 	class VulkanMesh;
 	class VulkanPicking : public Picking {
-	public:
+	  public:
 		struct PushConstants {
 			glm::mat4 projection;
 			glm::mat4 view;
@@ -34,7 +34,8 @@ namespace Plaza {
 
 		VkImageView mPickingTextureImageView = VK_NULL_HANDLE;
 		VkImageView mDepthImageView = VK_NULL_HANDLE;
-	private:
+
+	  private:
 		VkFramebuffer mFramebuffer = VK_NULL_HANDLE;
 		VkBuffer mStagingBuffer = VK_NULL_HANDLE;
 		VkDeviceMemory mStagingBufferMemory = VK_NULL_HANDLE;
@@ -56,4 +57,4 @@ namespace Plaza {
 		void UpdateAndPushConstants(VkCommandBuffer commandBuffer);
 		void DrawMeshToPickingTexture(const MeshRenderer& meshRenderer, VkCommandBuffer& commandBuffer);
 	};
-}
+} // namespace Plaza

@@ -7,17 +7,18 @@ namespace Plaza {
 }
 namespace Plaza::Editor {
 	class RenderGraphEditor : public NodeEditor {
-	public:
-		RenderGraphEditor(GuiLayer layer, bool startOpen = true) : NodeEditor("RenderGraphEditor", layer, startOpen) { }
+	  public:
+		RenderGraphEditor(GuiLayer layer, bool startOpen = true) : NodeEditor("RenderGraphEditor", layer, startOpen) {}
 		void Init() override;
 		void Process() override;
 		void SpawnLockedNodes() override;
-		//void Update() override;
-		//void OnKeyPress(int key, int scancode, int action, int mods) override;
+		// void Update() override;
+		// void OnKeyPress(int key, int scancode, int action, int mods) override;
 
-		//ax::NodeEditor::EditorContext* mContext = nullptr;
+		// ax::NodeEditor::EditorContext* mContext = nullptr;
 		void LoadRenderGraphNodes(PlazaRenderGraph* renderGraph);
-	public:
+
+	  public:
 		struct TextureNodeStruct {
 			uint64_t descriptorCount = 0;
 			PlImageUsage imageUsage = PlImageUsage::PL_IMAGE_USAGE_COLOR_ATTACHMENT;
@@ -30,9 +31,10 @@ namespace Plaza::Editor {
 			std::string name = "";
 			std::string resourceName = "";
 
-			template <class Archive>
-			void serialize(Archive& archive) {
-				archive(PL_SER(descriptorCount), PL_SER(imageUsage), PL_SER(imageType), PL_SER(viewType), PL_SER(format), PL_SER(resolution), PL_SER(mipCount), PL_SER(layersCount), PL_SER(name), PL_SER(resourceName));
+			template <class Archive> void serialize(Archive& archive) {
+				archive(PL_SER(descriptorCount), PL_SER(imageUsage), PL_SER(imageType), PL_SER(viewType),
+						PL_SER(format), PL_SER(resolution), PL_SER(mipCount), PL_SER(layersCount), PL_SER(name),
+						PL_SER(resourceName));
 			}
 		};
 
@@ -46,10 +48,10 @@ namespace Plaza::Editor {
 			std::string name = "";
 			std::string resourceName = "";
 
-			template <class Archive>
-			void serialize(Archive& archive) {
-				archive(PL_SER(type), PL_SER(maxItems), PL_SER(stride), PL_SER(bufferCount), PL_SER(bufferUsage), PL_SER(memoryUsage), PL_SER(name), PL_SER(resourceName));
+			template <class Archive> void serialize(Archive& archive) {
+				archive(PL_SER(type), PL_SER(maxItems), PL_SER(stride), PL_SER(bufferCount), PL_SER(bufferUsage),
+						PL_SER(memoryUsage), PL_SER(name), PL_SER(resourceName));
 			}
 		};
 	};
-}
+} // namespace Plaza::Editor

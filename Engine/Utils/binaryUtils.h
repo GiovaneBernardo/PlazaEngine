@@ -17,5 +17,5 @@ namespace Plaza {
 			stream.read(&content[0], nameLength);
 			return content;
 		}
-	}
-}
+	} // namespace Utils
+} // namespace Plaza

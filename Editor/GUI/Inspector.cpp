@@ -19,9 +19,10 @@ namespace Plaza::Editor {
 
 	void Inspector::FileInspector::CreateRespectiveInspector(File* file) {
 		if (!file->name.empty()) {
-			std::string extension = std::filesystem::path{ file->directory }.extension().string();
+			std::string extension = std::filesystem::path{file->directory}.extension().string();
 			if (extension == Standards::materialExtName) {
-				Editor::MaterialFileInspector(AssetsManager::GetMaterial(AssetsManager::GetAsset(std::filesystem::path(file->directory))->mAssetUuid));
+				Editor::MaterialFileInspector(AssetsManager::GetMaterial(
+					AssetsManager::GetAsset(std::filesystem::path(file->directory))->mAssetUuid));
 			}
 			else if (extension == Standards::modelExtName) {
 				Editor::TextEditor(file);
@@ -34,7 +35,8 @@ namespace Plaza::Editor {
 		if (Editor::selectedGameObject) {
 			ImGui::SetCursorPosY(50);
 			ImGui::Indent(10);
-			bool selectedEntityIsSceneEntity = Editor::selectedGameObject->uuid == Scene::GetActiveScene()->mainSceneEntity->uuid;
+			bool selectedEntityIsSceneEntity =
+				Editor::selectedGameObject->uuid == Scene::GetActiveScene()->mainSceneEntity->uuid;
 			if (selectedEntityIsSceneEntity) {
 				Editor::ComponentsInspector::SceneInspector(Scene::GetActiveScene(), nullptr);
 			}
@@ -70,7 +72,7 @@ namespace Plaza::Editor {
 		}
 		else if (MeshRenderer* meshRenderer = dynamic_cast<MeshRenderer*>(component)) {
 			Plaza::Editor::ComponentsInspector::MeshRendererInspector(scene, scene->GetEntity(component->mUuid));
-			//Plaza::Editor::MaterialInspector::MaterialInspector(Editor::selectedGameObject);
+			// Plaza::Editor::MaterialInspector::MaterialInspector(Editor::selectedGameObject);
 		}
 		else if (Camera* camera = dynamic_cast<Camera*>(component)) {
 			Plaza::Editor::ComponentsInspector::CameraInspector(scene, scene->GetEntity(component->mUuid));
@@ -103,4 +105,4 @@ namespace Plaza::Editor {
 			Plaza::Editor::ComponentsInspector::GuiComponentInspector(scene, scene->GetEntity(component->mUuid));
 		}
 	}
-}
+} // namespace Plaza::Editor

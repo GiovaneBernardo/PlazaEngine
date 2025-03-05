@@ -4,14 +4,12 @@
 
 namespace Plaza {
 	ALCdevice* Audio::sAudioDevice = nullptr;
-	int InitAL(ALCdevice*& device, char*** argv, int* argc)
-	{
+	int InitAL(ALCdevice*& device, char*** argv, int* argc) {
 		ALCcontext* ctx;
 
 		/* Open and initialize a device */
 		device = NULL;
-		if (argc && argv && *argc > 1 && strcmp((*argv)[0], "-device") == 0)
-		{
+		if (argc && argv && *argc > 1 && strcmp((*argv)[0], "-device") == 0) {
 			device = alcOpenDevice((*argv)[1]);
 			if (!device)
 				fprintf(stderr, "Failed to open \"%s\", trying default\n", (*argv)[1]);
@@ -20,15 +18,13 @@ namespace Plaza {
 		}
 		if (!device)
 			device = alcOpenDevice(NULL);
-		if (!device)
-		{
+		if (!device) {
 			fprintf(stderr, "Could not open a device!\n");
 			return 1;
 		}
 
 		ctx = alcCreateContext(device, NULL);
-		if (ctx == NULL || alcMakeContextCurrent(ctx) == ALC_FALSE)
-		{
+		if (ctx == NULL || alcMakeContextCurrent(ctx) == ALC_FALSE) {
 			if (ctx != NULL)
 				alcDestroyContext(ctx);
 			alcCloseDevice(device);
@@ -47,9 +43,9 @@ namespace Plaza {
 
 		// Init listener
 		Application::Get()->activeCamera;
-		ALfloat listenerPos[] = { 0.0f,0.0f,0.0f };
-		ALfloat listenerVel[] = { 0.0,0.0f,0.0 };
-		ALfloat listenerOri[] = { 0.0,0.0, -1.0, 0.0,1.0,0.0 };
+		ALfloat listenerPos[] = {0.0f, 0.0f, 0.0f};
+		ALfloat listenerVel[] = {0.0, 0.0f, 0.0};
+		ALfloat listenerOri[] = {0.0, 0.0, -1.0, 0.0, 1.0, 0.0};
 		alListenerfv(AL_POSITION, listenerPos);
 		alListenerfv(AL_VELOCITY, listenerVel);
 		alListenerfv(AL_ORIENTATION, listenerOri);
@@ -65,16 +61,13 @@ namespace Plaza {
 			glm::vec3 position = Application::Get()->activeCamera->Position;
 			// Init listener
 			Application::Get()->activeCamera;
-			ALfloat listenerPos[] = { position.x, position.y, position.z };
-			ALfloat listenerVel[] = { 0.0,0.0f,0.0 };
+			ALfloat listenerPos[] = {position.x, position.y, position.z};
+			ALfloat listenerVel[] = {0.0, 0.0f, 0.0};
 
 			glm::vec3 forward = Application::Get()->activeCamera->Front;
 			glm::vec3 up = Application::Get()->activeCamera->Up;
 			glm::vec3 right = Application::Get()->activeCamera->Right;
-			float listenerOrientation[6] = {
-				forward.x, forward.y, forward.z,
-				up.x, up.y, up.z
-			};
+			float listenerOrientation[6] = {forward.x, forward.y, forward.z, up.x, up.y, up.z};
 			alListenerfv(AL_POSITION, listenerPos);
 			alListenerfv(AL_VELOCITY, listenerVel);
 			alListenerfv(AL_ORIENTATION, listenerOrientation);
@@ -86,4 +79,4 @@ namespace Plaza {
 			component->SetPosition(scene->GetComponent<TransformComponent>(uuid)->GetWorldPosition());
 		}
 	}
-}
+} // namespace Plaza

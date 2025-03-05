@@ -1,7 +1,7 @@
 #pragma once
 namespace Plaza::Editor {
 	class Cache {
-	public:
+	  public:
 		std::string mLastOpenProjectPath = "";
 		std::string mLastOpenProjectName = "";
 		static void Serialize(const std::string filePath);
@@ -9,9 +9,8 @@ namespace Plaza::Editor {
 
 		static void Load();
 
-		template<class Archive>
-		void serialize(Archive& archive) {
+		template <class Archive> void serialize(Archive& archive) {
 			archive(mLastOpenProjectPath, mLastOpenProjectName);
 		}
 	};
-}
+} // namespace Plaza::Editor

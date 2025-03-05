@@ -4,24 +4,13 @@
 
 namespace Plaza {
 	class AssetsLoader {
-	public:
+	  public:
 		static inline const std::unordered_set<std::string> mSupportedLoadFormats = {
-			Standards::metadataExtName,
-			Standards::modelExtName,
-			Standards::prefabExtName,
-			Standards::materialExtName,
-			Standards::animationExtName,
-			Standards::sceneExtName
-		};
+			Standards::metadataExtName, Standards::modelExtName,	 Standards::prefabExtName,
+			Standards::materialExtName, Standards::animationExtName, Standards::sceneExtName};
 
-		static inline const std::unordered_set<std::string> mSupportedTextureLoadFormats = {
-			".png",
-			".jpg",
-			".jpeg",
-			".dds",
-			".hdr",
-			".tga"
-		};
+		static inline const std::unordered_set<std::string> mSupportedTextureLoadFormats = {".png", ".jpg", ".jpeg",
+																							".dds", ".hdr", ".tga"};
 
 		static void LoadAsset(Asset* asset);
 		static void LoadMetadata(Asset* asset);
@@ -35,7 +24,6 @@ namespace Plaza {
 		static std::shared_ptr<Model> LoadModel(Asset* asset);
 		static Animation& LoadAnimation(Asset* asset, SerializationMode serializationMode);
 
-	private:
-
+	  private:
 	};
-}
+} // namespace Plaza

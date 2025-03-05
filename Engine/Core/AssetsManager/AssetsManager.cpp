@@ -25,7 +25,7 @@ namespace Plaza {
 				map.emplace(static_cast<AssetType>(i), std::unordered_set<uint64_t>());
 			}
 			return map;
-			}();
+		}();
 
 		AssetsManager::mAssetTypeByExtension.emplace(Standards::metadataExtName, AssetType::METADATA);
 		AssetsManager::mAssetTypeByExtension.emplace(Standards::modelExtName, AssetType::MODEL);
@@ -81,7 +81,7 @@ namespace Plaza {
 	}
 
 	void AssetsManager::RenameAsset(Asset* asset, std::string oldPath, std::string newPath) {
-		asset->mAssetName = std::filesystem::path{ newPath }.filename().string();
+		asset->mAssetName = std::filesystem::path{newPath}.filename().string();
 		auto it = AssetsManager::mAssetsUuidByPath.find(oldPath);
 		AssetsManager::mAssetsUuidByPath.emplace(newPath, it->second);
 		AssetsManager::mAssetsUuidByPath.erase(it);
@@ -99,30 +99,31 @@ namespace Plaza {
 
 		std::filesystem::path metaDataNewPath(newPath);
 		metaDataNewPath.replace_extension(Standards::metadataExtName);
-		std::shared_ptr<Metadata::MetadataStructure> metaData = AssetsSerializer::DeSerializeFile<Metadata::MetadataStructure>(metaDataOldPath.string(), Application::Get()->mSettings.mMetaDataSerializationMode);
+		std::shared_ptr<Metadata::MetadataStructure> metaData =
+			AssetsSerializer::DeSerializeFile<Metadata::MetadataStructure>(
+				metaDataOldPath.string(), Application::Get()->mSettings.mMetaDataSerializationMode);
 
 		// Rename the non metadata file
 		std::filesystem::path contentOldPath(oldPath);
-		contentOldPath.replace_extension(std::filesystem::path{ metaData->mContentName }.extension().string());
+		contentOldPath.replace_extension(std::filesystem::path{metaData->mContentName}.extension().string());
 
 		std::filesystem::path contentNewPath(newPath);
-		contentNewPath.replace_extension(std::filesystem::path{ metaData->mContentName }.extension().string());
+		contentNewPath.replace_extension(std::filesystem::path{metaData->mContentName}.extension().string());
 		AssetsManager::RenameAsset(contentAsset, contentOldPath.string(), contentNewPath.string());
-
-
 
 		// Rename the medadata and change its content
 		std::filesystem::rename(metaDataOldPath, metaDataNewPath);
 		metaData->mAssetName = metaDataNewPath.filename().string();
-		contentNewPath.replace_extension(std::filesystem::path{ newPath }.extension().string());
+		contentNewPath.replace_extension(std::filesystem::path{newPath}.extension().string());
 		metaData->mContentName = contentNewPath.filename().string();
-		AssetsSerializer::SerializeFile<Metadata::MetadataStructure>(*metaData.get(), metaDataNewPath.string(), Application::Get()->mSettings.mMetaDataSerializationMode);
+		AssetsSerializer::SerializeFile<Metadata::MetadataStructure>(
+			*metaData.get(), metaDataNewPath.string(), Application::Get()->mSettings.mMetaDataSerializationMode);
 	}
 
 	void AssetsManager::AfterRename(Asset* renamedAsset, std::string oldPath, std::string newPath) {
 		AssetType type = AssetsManager::GetExtensionType(renamedAsset->GetExtension());
 		switch (type) {
-			//case AssetType::SCRIPT:
+			// case AssetType::SCRIPT:
 			//	AssetsManager::RemoveScript(renamedAsset->mAssetUuid);
 			//	AssetsManager::AddScript(static_cast<Script*>(renamedAsset));
 			//	break;
@@ -145,7 +146,8 @@ namespace Plaza {
 
 	void AssetsManager::AddAsset(Asset* asset) {
 		AssetsManager::mAssets.emplace(asset->mAssetUuid, asset);
-		AssetsManager::mTypeMap.find(mAssetTypeByExtension.at(asset->GetExtension()))->second.emplace(asset->mAssetUuid);
+		AssetsManager::mTypeMap.find(mAssetTypeByExtension.at(asset->GetExtension()))
+			->second.emplace(asset->mAssetUuid);
 		AssetsManager::mAssetsUuidByPath.emplace(asset->mAssetPath, asset->mAssetUuid);
 	}
 
@@ -153,13 +155,9 @@ namespace Plaza {
 		return AssetsManager::mAssetsUuidByPath.find(path) != AssetsManager::mAssetsUuidByPath.end();
 	}
 
-	void AssetsManager::AddModel(std::shared_ptr<Model> model) {
-		mModels.emplace(model->mAssetUuid, model);
-	}
+	void AssetsManager::AddModel(std::shared_ptr<Model> model) { mModels.emplace(model->mAssetUuid, model); }
 
-	void AssetsManager::AddPrefab(std::shared_ptr<Prefab> prefab) {
-		mPrefabs.emplace(prefab->mAssetUuid, prefab);
-	}
+	void AssetsManager::AddPrefab(std::shared_ptr<Prefab> prefab) { mPrefabs.emplace(prefab->mAssetUuid, prefab); }
 
 	Prefab* AssetsManager::GetPrefab(uint64_t uuid) {
 		const auto& it = mPrefabs.find(uuid);
@@ -182,9 +180,7 @@ namespace Plaza {
 		return false;
 	}
 
-	void AssetsManager::AddMesh(Mesh* mesh) {
-		AssetsManager::mLoadedMeshes.emplace(mesh->uuid, mesh);
-	}
+	void AssetsManager::AddMesh(Mesh* mesh) { AssetsManager::mLoadedMeshes.emplace(mesh->uuid, mesh); }
 
 	Mesh* AssetsManager::GetMesh(uint64_t uuid) {
 		const auto& it = mLoadedMeshes.find(uuid);
@@ -193,9 +189,7 @@ namespace Plaza {
 		return nullptr;
 	}
 
-	bool AssetsManager::HasMesh(uint64_t uuid) {
-		return  mLoadedMeshes.find(uuid) != mLoadedMeshes.end();
-	}
+	bool AssetsManager::HasMesh(uint64_t uuid) { return mLoadedMeshes.find(uuid) != mLoadedMeshes.end(); }
 
 	Animation& AssetsManager::AddAnimation(Animation animation) {
 		AssetsManager::mLoadedAnimations.emplace(animation.mAssetUuid, animation);
@@ -257,7 +251,7 @@ namespace Plaza {
 			}
 		}
 		if (materials.size() == 0)
-			return { AssetsManager::GetDefaultMaterial() };
+			return {AssetsManager::GetDefaultMaterial()};
 		return materials;
 	}
 
@@ -269,15 +263,15 @@ namespace Plaza {
 		PhysicsMaterial material(staticFriction, dynamicFriction, restitution);
 		bool materialDoesntExists = mPhysicsMaterials.find(material) == mPhysicsMaterials.end();
 		if (materialDoesntExists) {
-			mPhysicsMaterials[material] = std::make_shared<PhysicsMaterial>(staticFriction, dynamicFriction, restitution);
-			mPhysicsMaterials[material]->mPhysxMaterial = Physics::InitializePhysicsMaterial(staticFriction, dynamicFriction, restitution);
+			mPhysicsMaterials[material] =
+				std::make_shared<PhysicsMaterial>(staticFriction, dynamicFriction, restitution);
+			mPhysicsMaterials[material]->mPhysxMaterial =
+				Physics::InitializePhysicsMaterial(staticFriction, dynamicFriction, restitution);
 		}
 		return *mPhysicsMaterials.find(material)->second.get();
 	}
 
-	void AssetsManager::AddScript(Script* script) {
-		mScripts.emplace(script->mAssetUuid, script);
-	}
+	void AssetsManager::AddScript(Script* script) { mScripts.emplace(script->mAssetUuid, script); }
 
 	Script* AssetsManager::GetScript(uint64_t uuid) {
 		auto it = mScripts.find(uuid);
@@ -306,7 +300,8 @@ namespace Plaza {
 		std::string contentPath = Plaza::Utils::ReadBinaryString(binaryFile);
 		std::string extension = Plaza::Utils::ReadBinaryString(binaryFile);
 
-		std::string assetFinalPath = path.parent_path().string() + "/" + std::filesystem::path{ contentPath }.filename().string();
+		std::string assetFinalPath =
+			path.parent_path().string() + "/" + std::filesystem::path{contentPath}.filename().string();
 
 		binaryFile.close();
 
@@ -337,13 +332,14 @@ namespace Plaza {
 	void AssetsManager::ChangeAssetPath(uint64_t assetUuid, std::string newPath) {
 		AssetsManager::RemoveAssetUuidPath(assetUuid);
 		AssetsManager::GetAsset(assetUuid)->mAssetPath = newPath;
-		AssetsManager::mAssetsUuidByPath.emplace(std::filesystem::path{ newPath }, assetUuid);
+		AssetsManager::mAssetsUuidByPath.emplace(std::filesystem::path{newPath}, assetUuid);
 	}
 
 	Asset* AssetsManager::GetAssetOrImport(std::string path, uint64_t uuid, std::string outDirectory) {
 		Asset* asset = AssetsManager::GetAsset(path);
 		if (!asset) {
-			std::string importedAssetPath = AssetsImporter::ImportAsset(path, uuid, AssetsImporterSettings{ outDirectory });
+			std::string importedAssetPath =
+				AssetsImporter::ImportAsset(path, uuid, AssetsImporterSettings{outDirectory});
 			asset = AssetsManager::GetAsset(importedAssetPath);
 			if (asset)
 				AssetsLoader::LoadAsset(asset);
@@ -353,7 +349,9 @@ namespace Plaza {
 
 	void AssetsManager::ReadFolderContent(std::string path, bool readSubFolders) {
 		PL_CORE_INFO("Reading at path: " + path);
-		for (auto entry = filesystem::recursive_directory_iterator(path, filesystem::directory_options::skip_permission_denied); entry != filesystem::end(entry); ++entry) {
+		for (auto entry =
+				 filesystem::recursive_directory_iterator(path, filesystem::directory_options::skip_permission_denied);
+			 entry != filesystem::end(entry); ++entry) {
 			if (entry->is_directory() && entry->path().filename().string().ends_with(".ignore")) {
 				entry.disable_recursion_pending();
 			}
@@ -361,4 +359,4 @@ namespace Plaza {
 			AssetsReader::ReadAssetAtPath(entry->path());
 		}
 	}
-}
+} // namespace Plaza

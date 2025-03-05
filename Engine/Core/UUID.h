@@ -4,7 +4,7 @@
 
 namespace Plaza {
 	class PLAZA_API UUID {
-	public:
+	  public:
 		static uint64_t NewUUID();
 	};
-}
+} // namespace Plaza

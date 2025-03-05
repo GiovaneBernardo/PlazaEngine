@@ -4,7 +4,7 @@
 
 namespace Plaza {
 	void ScriptFactory::InitializeRegistry() {
-		//sRegistry = new std::unordered_map<std::string, CppScriptCreator>();
+		// sRegistry = new std::unordered_map<std::string, CppScriptCreator>();
 	}
 
 	void ScriptFactory::RegisterScript(const std::string& name, CppScriptCreator creator, CppScriptDeleter deleter) {
@@ -15,7 +15,7 @@ namespace Plaza {
 	CppScript* ScriptFactory::CreateScript(const std::string& name) {
 		auto it = GetCreateRegistry().find(name);
 		if (it != GetCreateRegistry().end()) {
-			return it->second();  // Call the creation function
+			return it->second(); // Call the creation function
 		}
 		return nullptr;
 	}
@@ -27,11 +27,7 @@ namespace Plaza {
 		}
 	}
 
-	std::unordered_map<std::string, CppScriptCreator>& ScriptFactory::GetCreateRegistry() {
-		return sCreateRegistry;
-	};
+	std::unordered_map<std::string, CppScriptCreator>& ScriptFactory::GetCreateRegistry() { return sCreateRegistry; };
 
-	std::unordered_map<std::string, CppScriptDeleter>& ScriptFactory::GetDeleteRegistry() {
-		return sDeleteRegistry;
-	};
-}
+	std::unordered_map<std::string, CppScriptDeleter>& ScriptFactory::GetDeleteRegistry() { return sDeleteRegistry; };
+} // namespace Plaza

@@ -9,19 +9,25 @@
 namespace Plaza {
 	void AssetsSerializer::SerializeAssetByExtension(Asset* asset) {
 		if (asset->GetExtension() == Standards::metadataExtName)
-			AssetsSerializer::SerializeFile<Metadata::MetadataStructure>(*static_cast<Metadata::MetadataStructure*>(asset), asset->mAssetPath.string(), Application::Get()->mSettings.mMetaDataSerializationMode);
-		//else
+			AssetsSerializer::SerializeFile<Metadata::MetadataStructure>(
+				*static_cast<Metadata::MetadataStructure*>(asset), asset->mAssetPath.string(),
+				Application::Get()->mSettings.mMetaDataSerializationMode);
+		// else
 		//	AssetsManager::NewAsset<Asset>(asset->mAssetUuid, asset->mAssetPath.string());
 
 		if (asset->GetExtension() == Standards::materialExtName)
-			AssetsSerializer::SerializeFile<Material>(*static_cast<Material*>(AssetsManager::GetMaterial(asset->mAssetUuid)), asset->mAssetPath.string(), Application::Get()->mSettings.mMaterialSerializationMode);
+			AssetsSerializer::SerializeFile<Material>(
+				*static_cast<Material*>(AssetsManager::GetMaterial(asset->mAssetUuid)), asset->mAssetPath.string(),
+				Application::Get()->mSettings.mMaterialSerializationMode);
 		else if (asset->GetExtension() == Standards::animationExtName)
-			AssetsSerializer::SerializeFile<Animation>(*static_cast<Animation*>(AssetsManager::GetAnimation(asset->mAssetUuid)), asset->mAssetPath.string(), Application::Get()->mSettings.mAnimationSerializationMode);
+			AssetsSerializer::SerializeFile<Animation>(
+				*static_cast<Animation*>(AssetsManager::GetAnimation(asset->mAssetUuid)), asset->mAssetPath.string(),
+				Application::Get()->mSettings.mAnimationSerializationMode);
 		else if (asset->GetExtension() == Standards::sceneExtName)
-			AssetsSerializer::SerializeFile<Scene>(*static_cast<Scene*>(asset), asset->mAssetPath.string(), Application::Get()->mSettings.mSceneSerializationMode);
-
+			AssetsSerializer::SerializeFile<Scene>(*static_cast<Scene*>(asset), asset->mAssetPath.string(),
+												   Application::Get()->mSettings.mSceneSerializationMode);
 	}
-}
+} // namespace Plaza
 
 CEREAL_REGISTER_TYPE(Plaza::Texture);
 CEREAL_REGISTER_POLYMORPHIC_RELATION(Plaza::Asset, Plaza::Texture);

@@ -2,7 +2,7 @@
 
 namespace Plaza::Editor {
 	class PLAZA_API ComponentsInspector {
-	public:
+	  public:
 		static void AnimationComponentInspector(Scene* scene, Entity* entity);
 		static void AudioListenerInspector(Scene* scene, Entity* entity);
 		static void AudioSourceInspector(Scene* scene, Entity* entity);
@@ -17,4 +17,4 @@ namespace Plaza::Editor {
 		static void TextRendererInspector(Scene* scene, Entity* entity);
 		static void TransformInspector(Scene* scene, Entity* entity);
 	};
-}
+} // namespace Plaza::Editor

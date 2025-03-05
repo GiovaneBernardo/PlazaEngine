@@ -9,9 +9,9 @@ layout(push_constant) uniform PushConstants{
     mat4 matrix;
 } pushConstants;
 
-out gl_PerVertex 
+out gl_PerVertex
 {
-	vec4 gl_Position;   
+	vec4 gl_Position;
 };
 
 void main(void)

@@ -2,7 +2,7 @@
 #include "Engine/Core/Any.h"
 namespace Plaza::Editor {
 	class PrimitivesInspector {
-	public:
+	  public:
 		static void Init();
 
 		static bool InspectAny(Any& any, const std::string& fieldName, const std::string& comboPopupName = "");
@@ -21,6 +21,7 @@ namespace Plaza::Editor {
 		static bool InspectVector3(const std::string& name, glm::vec3& value);
 		static bool InspectVector4(const std::string& name, glm::vec4& value);
 
-		static inline std::map<const char*, std::function<bool()>> sFunctionsByRawName = std::map<const char*, std::function<bool()>>();
+		static inline std::map<const char*, std::function<bool()>> sFunctionsByRawName =
+			std::map<const char*, std::function<bool()>>();
 	};
-}
+} // namespace Plaza::Editor

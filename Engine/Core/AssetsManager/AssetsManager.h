@@ -21,14 +21,14 @@ namespace Plaza {
 	class Mesh;
 	class Script;
 	class AssetsListStructure : public std::unordered_map<uint64_t, Asset*> {
-	public:
-
+	  public:
 	};
 
 	class PLAZA_API AssetsManager {
-	public:
+	  public:
 		static inline AssetsListStructure mAssets = AssetsListStructure();
-		static inline std::map<std::filesystem::path, uint64_t> mAssetsUuidByPath = std::map<std::filesystem::path, uint64_t>();
+		static inline std::map<std::filesystem::path, uint64_t> mAssetsUuidByPath =
+			std::map<std::filesystem::path, uint64_t>();
 		static inline std::map<std::string, AssetType> mAssetTypeByExtension = std::map<std::string, AssetType>();
 		static inline std::set<AssetType> mAssetsTypesWithMetaData = std::set<AssetType>();
 
@@ -44,8 +44,8 @@ namespace Plaza {
 		static inline std::unordered_map<uint64_t, Script*> mScripts;
 		static inline std::unordered_map<std::string, std::filesystem::path> mShaders;
 
-
-		static inline std::unordered_map<AssetType, std::unordered_set<uint64_t>> mTypeMap = std::unordered_map<AssetType, std::unordered_set<uint64_t>>();
+		static inline std::unordered_map<AssetType, std::unordered_set<uint64_t>> mTypeMap =
+			std::unordered_map<AssetType, std::unordered_set<uint64_t>>();
 
 		static void Init();
 
@@ -59,27 +59,19 @@ namespace Plaza {
 		static void RenameMetaData(Asset* asset, std::string oldPath, std::string newPath);
 		static void AfterRename(Asset* renamedAsset, std::string oldPath, std::string newPath);
 
-		template<typename T>
-		static T* NewAsset(uint64_t uuid, std::string path) {
+		template <typename T> static T* NewAsset(uint64_t uuid, std::string path) {
 			T* newAsset = new T();
 			newAsset->mAssetUuid = uuid;
-			newAsset->mAssetPath = std::filesystem::path{ path };
+			newAsset->mAssetPath = std::filesystem::path{path};
 			newAsset->mAssetName = newAsset->mAssetPath.filename().string();
 			AssetsManager::AddAsset(static_cast<Asset*>(newAsset));
 			return newAsset;
 		}
-		template<typename T>
-		static T* NewAsset(std::string path) {
-			return NewAsset<T>(Plaza::UUID::NewUUID(), path);
-		}
-		template<typename T>
-		static T* NewAsset(std::shared_ptr<Asset> asset) {
+		template <typename T> static T* NewAsset(std::string path) { return NewAsset<T>(Plaza::UUID::NewUUID(), path); }
+		template <typename T> static T* NewAsset(std::shared_ptr<Asset> asset) {
 			return NewAsset<T>(asset->mAssetUuid, asset->mAssetPath.string());
 		}
-		template<typename T>
-		static T* NewAsset() {
-			return NewAsset<T>(Plaza::UUID::NewUUID(), "");
-		}
+		template <typename T> static T* NewAsset() { return NewAsset<T>(Plaza::UUID::NewUUID(), ""); }
 
 		static Asset* GetAsset(uint64_t uuid);
 		static Asset* GetAsset(std::filesystem::path path);
@@ -132,17 +124,13 @@ namespace Plaza {
 		static Asset* GetAssetOrImport(std::string path, uint64_t uuid = 0, std::string outDirectory = "");
 
 #ifndef COMPILING_GAME_DLL
-		template <b::embed_string_literal identifier>
-		static const char* GetEmbedResource() {
+		template <b::embed_string_literal identifier> static const char* GetEmbedResource() {
 			return b::embed<identifier>().data();
 		}
 #else
-		template <std::basic_string identifier>
-		static const char* GetEmbedResource() {
-			return nullptr;
-		}
+		template <std::basic_string identifier> static const char* GetEmbedResource() { return nullptr; }
 #endif
 
 		static void ReadFolderContent(std::string path, bool readSubFolders);
 	};
-}
+} // namespace Plaza

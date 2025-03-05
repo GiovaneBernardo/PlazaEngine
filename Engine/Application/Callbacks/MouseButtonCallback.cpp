@@ -34,7 +34,7 @@ namespace Plaza {
 			}
 		}
 
-		//if (Application::Get()->hoveredMenu != "File Explorer" && Application::Get()->hoveredMenu != "Inspector")
+		// if (Application::Get()->hoveredMenu != "File Explorer" && Application::Get()->hoveredMenu != "Inspector")
 		//	Editor::selectedFiles.clear();
 		if (Application::Get()->hoveredMenu == "Editor" && Application::Get()->focusedMenu != "Scene") {
 			ApplicationSizes& appSizes = *Application::Get()->appSizes;
@@ -55,11 +55,13 @@ namespace Plaza {
 			if (Application::Get()->focusedMenu == "Editor") {
 				float xposGame = lastX - appSizes.hierarchySize.x;
 				float yposGame = lastY - appSizes.sceneImageStart.y;
-				//yposGame = appSizes.sceneSize.y - yposGame;
+				// yposGame = appSizes.sceneSize.y - yposGame;
 				yposGame = appSizes.sceneSize.y - (lastY - appSizes.sceneImageStart.y - 35);
 				uint64_t clickUuid = 0;
 
-				if (Editor::selectedGameObject && scene->HasComponent<TransformComponent>(Editor::selectedGameObject->uuid) && Editor::selectedGameObject->parentUuid != 0)
+				if (Editor::selectedGameObject &&
+					scene->HasComponent<TransformComponent>(Editor::selectedGameObject->uuid) &&
+					Editor::selectedGameObject->parentUuid != 0)
 					ImGuizmoHelper::IsDrawing = true;
 				else
 					ImGuizmoHelper::IsDrawing = false;
@@ -69,7 +71,8 @@ namespace Plaza {
 				if (pressingLeftClick && (!ImGuizmoHelper::IsDrawing || drawingButMouseNotOverGizmo)) {
 					//	Application::Get()->pickingTexture->GenerateTexture();
 					//    	clickUuid = Application::Get()->pickingTexture->readPixel(xposGame, yposGame);
-					clickUuid = Application::Get()->mRenderer->mPicking->DrawAndRead(scene, glm::vec2(xposGame, yposGame));
+					clickUuid =
+						Application::Get()->mRenderer->mPicking->DrawAndRead(scene, glm::vec2(xposGame, yposGame));
 
 					Entity* entity = Scene::GetActiveScene()->GetEntity(clickUuid);
 					if (entity) {
@@ -79,7 +82,6 @@ namespace Plaza {
 					else
 						Plaza::Editor::Gui::changeSelectedGameObject(nullptr);
 				}
-
 			}
 #pragma endregion Picking
 		}
@@ -88,4 +90,4 @@ namespace Plaza {
 			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 		}
 	}
-}
+} // namespace Plaza

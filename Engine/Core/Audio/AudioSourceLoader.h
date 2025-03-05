@@ -2,7 +2,7 @@
 #include <string>
 namespace Plaza {
 	class AudioSourceLoader {
-	public:
+	  public:
 		static unsigned int Mp3(std::string filePath);
 	};
-}
+} // namespace Plaza

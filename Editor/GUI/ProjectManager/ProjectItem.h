@@ -4,14 +4,12 @@
 namespace Plaza {
 	namespace Editor {
 		class ProjectManagerGui::ProjectItem {
-		public:
+		  public:
 			std::string name;
 			std::string path;
 			void Setup();
 			void OnClick();
-			ProjectItem(std::string name, std::string path) : name(name), path(path) {
-				Setup();
-			}
+			ProjectItem(std::string name, std::string path) : name(name), path(path) { Setup(); }
 		};
-	}
-}
+	} // namespace Editor
+} // namespace Plaza

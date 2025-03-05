@@ -7,4 +7,3 @@ void Plaza::Callbacks::framebufferSizeCallback(GLFWwindow* window, int width, in
 		renderer.mFramebufferResized = true;
 	}
 }
-

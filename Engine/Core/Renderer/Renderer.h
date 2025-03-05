@@ -21,7 +21,7 @@ namespace Plaza {
 		uint8_t mLayerLevel = 0;
 	};
 	struct TrackedImage {
-		TrackedImage(const std::string& newName, const TextureInfo& info) : name(newName), mTextureInfo(info) {};
+		TrackedImage(const std::string& newName, const TextureInfo& info) : name(newName), mTextureInfo(info){};
 		TrackedImage() {}
 		ImTextureID mTextureID = 0;
 		std::chrono::system_clock::time_point mCreationDate = std::chrono::system_clock::now();
@@ -32,12 +32,12 @@ namespace Plaza {
 	};
 
 	class PLAZA_API Renderer {
-	public:
-
+	  public:
 		std::vector<TrackedImage*> mTrackedImages = std::vector<TrackedImage*>();
 		TrackedImage* GetTrackedImage(unsigned int index) { return mTrackedImages[index]; };
-		template<typename T>
-		void AddTrackedImage(const T& trackedImage) { mTrackedImages.push_back(new T(trackedImage)); };
+		template <typename T> void AddTrackedImage(const T& trackedImage) {
+			mTrackedImages.push_back(new T(trackedImage));
+		};
 		virtual ImTextureID GetTrackedImageID(TrackedImage* tracked) = 0;
 
 		uint32_t mCurrentFrame = 0;
@@ -66,16 +66,12 @@ namespace Plaza {
 		virtual void UpdateMainProgressBar(float percentage) = 0;
 		virtual void UpdateImGuiDisplayTexture(Texture* texture) = 0;
 
-		virtual Mesh* CreateNewMesh(
-			const std::vector<glm::vec3>& vertices,
-			const std::vector<glm::vec3>& normals,
-			const std::vector<glm::vec2>& uvs,
-			const std::vector<glm::vec3>& tangent,
-			const std::vector<unsigned int>& indices,
-			const std::vector<unsigned int>& materialsIndices,
-			bool usingNormal,
-			const std::vector<BonesHolder>& boneIds = std::vector<BonesHolder>(),
-			const std::vector<Bone>& uniqueBonesInfo = std::vector<Bone>()) = 0;
+		virtual Mesh* CreateNewMesh(const std::vector<glm::vec3>& vertices, const std::vector<glm::vec3>& normals,
+									const std::vector<glm::vec2>& uvs, const std::vector<glm::vec3>& tangent,
+									const std::vector<unsigned int>& indices,
+									const std::vector<unsigned int>& materialsIndices, bool usingNormal,
+									const std::vector<BonesHolder>& boneIds = std::vector<BonesHolder>(),
+									const std::vector<Bone>& uniqueBonesInfo = std::vector<Bone>()) = 0;
 		virtual void DeleteMesh(Mesh& mesh) = 0;
 		virtual Mesh* RestartMesh(Mesh* mesh) = 0;
 		virtual void DrawRenderGroupInstanced(RenderGroup* renderGroup) = 0;
@@ -87,14 +83,11 @@ namespace Plaza {
 
 		virtual void Destroy() = 0;
 
-		virtual Texture* LoadTexture(std::string path, uint64_t uuid = 0) {
-			return new Texture();
-		}
-		virtual Texture* LoadImGuiTexture(std::string path) {
-			return new Texture();
-		}
+		virtual Texture* LoadTexture(std::string path, uint64_t uuid = 0) { return new Texture(); }
+		virtual Texture* LoadImGuiTexture(std::string path) { return new Texture(); }
 
-		static glm::vec3 ReconstructWorldPositionFromDepth(glm::vec2 screenPosition, glm::vec2 screenSize, float depth, Camera* camera) {
+		static glm::vec3 ReconstructWorldPositionFromDepth(glm::vec2 screenPosition, glm::vec2 screenSize, float depth,
+														   Camera* camera) {
 			glm::mat4 viewProjection = camera->GetProjectionMatrix() * camera->GetViewMatrix();
 			float ndcZ = depth * 2.0f - 1.0f;
 			glm::vec4 ndcPosition = glm::vec4(screenPosition * (1.0f / screenSize) * 2.0f - 1.0f, depth, 1.0f);
@@ -105,4 +98,4 @@ namespace Plaza {
 
 		virtual void CopyLastFramebufferToFinalDrawBuffer() = 0;
 	};
-}
+} // namespace Plaza

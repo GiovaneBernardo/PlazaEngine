@@ -1,11 +1,11 @@
-#pragma once 
+#pragma once
 #include "Engine/Core/Renderer/Shadows.h"
 #include "Engine/Core/Renderer/Vulkan/VulkanShaders.h"
 #include "VulkanTexture.h"
 
 namespace Plaza {
 	class VulkanShadows : public Shadows {
-	public:
+	  public:
 		unsigned int mCascadeCount = 9;
 
 		struct PushConstants {
@@ -46,9 +46,9 @@ namespace Plaza {
 		VkDescriptorSet mDebugDepthDescriptorSet = VK_NULL_HANDLE;
 		VkImage mDebugDepthImage = VK_NULL_HANDLE;
 
-
 		unsigned int shadowBufferCount = 5;
-		VulkanShaders* mShadowsShader = nullptr;;
+		VulkanShaders* mShadowsShader = nullptr;
+		;
 		std::vector<VkBuffer> mUniformBuffers = std::vector<VkBuffer>();
 		std::vector<VkDeviceMemory> mUniformBuffersMemory = std::vector<VkDeviceMemory>();
 		std::vector<void*> mUniformBuffersMapped = std::vector<void*>();
@@ -74,8 +74,9 @@ namespace Plaza {
 		void CreateDescriptorSet(VkDevice device);
 		void UpdateAndPushConstants(VkCommandBuffer commandBuffer, unsigned int cascadeIndex);
 
-
-		static glm::mat4 GetLightSpaceMatrix(const float nearPlane, const float farPlane, const float ratio, const glm::mat4& viewMatrix, const glm::vec3& lightDirection);
-		static std::vector<glm::mat4> GetLightSpaceMatrices(std::vector<float>shadowCascadeLevels, const glm::vec3& lightDirection);
+		static glm::mat4 GetLightSpaceMatrix(const float nearPlane, const float farPlane, const float ratio,
+											 const glm::mat4& viewMatrix, const glm::vec3& lightDirection);
+		static std::vector<glm::mat4> GetLightSpaceMatrices(std::vector<float> shadowCascadeLevels,
+															const glm::vec3& lightDirection);
 	};
-}
+} // namespace Plaza

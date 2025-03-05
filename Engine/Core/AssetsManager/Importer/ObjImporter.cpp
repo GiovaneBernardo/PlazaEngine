@@ -12,53 +12,52 @@
 #include "Engine/Core/Scene.h"
 
 struct Vec3Hash {
-	std::size_t operator()(const glm::vec3& v) const {
-		return std::hash<glm::vec3>()(v);
-	}
+	std::size_t operator()(const glm::vec3& v) const { return std::hash<glm::vec3>()(v); }
 };
 
-
 namespace Plaza {
-	Material* ObjModelMaterialLoader(const tinyobj::material_t* tinyobjMaterial, const std::string materialFolderPath, std::unordered_map<std::string, uint64_t>& loadedTextures) {
+	Material* ObjModelMaterialLoader(const tinyobj::material_t* tinyobjMaterial, const std::string materialFolderPath,
+									 std::unordered_map<std::string, uint64_t>& loadedTextures) {
 		Material* material = new Material();
 		material->mAssetName = tinyobjMaterial->name;
 
 		const std::string diffusePath = materialFolderPath + "/" + tinyobjMaterial->diffuse_texname;
-		if (!tinyobjMaterial->diffuse_texname.empty() && loadedTextures.find(diffusePath) == loadedTextures.end())
-		{
-			material->diffuse = std::shared_ptr<Texture>(AssetsLoader::LoadTexture(AssetsManager::GetAssetOrImport(diffusePath, Plaza::UUID::NewUUID())));
+		if (!tinyobjMaterial->diffuse_texname.empty() && loadedTextures.find(diffusePath) == loadedTextures.end()) {
+			material->diffuse = std::shared_ptr<Texture>(
+				AssetsLoader::LoadTexture(AssetsManager::GetAssetOrImport(diffusePath, Plaza::UUID::NewUUID())));
 			loadedTextures.emplace(diffusePath, material->diffuse->mAssetUuid);
 		}
 		else if (!tinyobjMaterial->diffuse_texname.empty())
 			material->diffuse = std::shared_ptr<Texture>(AssetsManager::mTextures.at(loadedTextures.at(diffusePath)));
 
 		const std::string normalPath = materialFolderPath + "/" + tinyobjMaterial->normal_texname;
-		if (!tinyobjMaterial->normal_texname.empty() && loadedTextures.find(normalPath) == loadedTextures.end())
-		{
-			material->normal = std::shared_ptr<Texture>(AssetsLoader::LoadTexture(AssetsManager::GetAssetOrImport(normalPath, Plaza::UUID::NewUUID())));
+		if (!tinyobjMaterial->normal_texname.empty() && loadedTextures.find(normalPath) == loadedTextures.end()) {
+			material->normal = std::shared_ptr<Texture>(
+				AssetsLoader::LoadTexture(AssetsManager::GetAssetOrImport(normalPath, Plaza::UUID::NewUUID())));
 			loadedTextures.emplace(normalPath, material->normal->mAssetUuid);
 		}
 		else if (!tinyobjMaterial->normal_texname.empty())
 			material->normal = std::shared_ptr<Texture>(AssetsManager::mTextures.at(loadedTextures.at(normalPath)));
 
 		const std::string roughnessPath = materialFolderPath + "/" + tinyobjMaterial->roughness_texname;
-		if (!tinyobjMaterial->roughness_texname.empty() && loadedTextures.find(roughnessPath) == loadedTextures.end())
-		{
-			material->roughness = std::shared_ptr<Texture>(AssetsLoader::LoadTexture(AssetsManager::GetAssetOrImport(roughnessPath, Plaza::UUID::NewUUID())));
+		if (!tinyobjMaterial->roughness_texname.empty() && loadedTextures.find(roughnessPath) == loadedTextures.end()) {
+			material->roughness = std::shared_ptr<Texture>(
+				AssetsLoader::LoadTexture(AssetsManager::GetAssetOrImport(roughnessPath, Plaza::UUID::NewUUID())));
 			loadedTextures.emplace(roughnessPath, material->roughness->mAssetUuid);
 		}
 		else if (!tinyobjMaterial->roughness_texname.empty())
-			material->roughness = std::shared_ptr<Texture>(AssetsManager::mTextures.at(loadedTextures.at(roughnessPath)));
+			material->roughness =
+				std::shared_ptr<Texture>(AssetsManager::mTextures.at(loadedTextures.at(roughnessPath)));
 
 		const std::string metalnessPath = materialFolderPath + "/" + tinyobjMaterial->metallic_texname;
-		if (!tinyobjMaterial->metallic_texname.empty() && loadedTextures.find(metalnessPath) == loadedTextures.end())
-		{
-			material->metalness = std::shared_ptr<Texture>(AssetsLoader::LoadTexture(AssetsManager::GetAssetOrImport(metalnessPath, Plaza::UUID::NewUUID())));
+		if (!tinyobjMaterial->metallic_texname.empty() && loadedTextures.find(metalnessPath) == loadedTextures.end()) {
+			material->metalness = std::shared_ptr<Texture>(
+				AssetsLoader::LoadTexture(AssetsManager::GetAssetOrImport(metalnessPath, Plaza::UUID::NewUUID())));
 			loadedTextures.emplace(metalnessPath, material->metalness->mAssetUuid);
 		}
 		else if (!tinyobjMaterial->metallic_texname.empty())
-			material->metalness = std::shared_ptr<Texture>(AssetsManager::mTextures.at(loadedTextures.at(metalnessPath)));
-
+			material->metalness =
+				std::shared_ptr<Texture>(AssetsManager::mTextures.at(loadedTextures.at(metalnessPath)));
 
 		//		material->shininess = tinyobjMaterial->shininess;
 		material->diffuse->rgba.x = tinyobjMaterial->diffuse[0];
@@ -68,15 +67,17 @@ namespace Plaza {
 		return material;
 	}
 
-	std::shared_ptr<Scene> AssetsImporter::ImportOBJ(AssetImported asset, std::filesystem::path outPath, Model& model, const AssetsImporterSettings& settings) {
+	std::shared_ptr<Scene> AssetsImporter::ImportOBJ(AssetImported asset, std::filesystem::path outPath, Model& model,
+													 const AssetsImporterSettings& settings) {
 		tinyobj::attrib_t attrib;
 		std::vector<tinyobj::shape_t> shapes;
 		std::vector<tinyobj::material_t> materials;
 		std::string warn, err;
 
-		const std::string parentPath = std::filesystem::path{ asset.mPath }.parent_path().string();
+		const std::string parentPath = std::filesystem::path{asset.mPath}.parent_path().string();
 
-		if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, asset.mPath.c_str(), parentPath.c_str(), true)) {
+		if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, asset.mPath.c_str(), parentPath.c_str(),
+							  true)) {
 			throw std::runtime_error(warn + err);
 		}
 
@@ -85,8 +86,10 @@ namespace Plaza {
 		modelScene->InitMainEntity();
 
 		std::unordered_map<std::string, uint64_t> loadedTextures = std::unordered_map<std::string, uint64_t>();
-		std::unordered_map<std::filesystem::path, uint64_t> loadedMaterials = std::unordered_map<std::filesystem::path, uint64_t>();
-		std::unordered_map<size_t, std::shared_ptr<Mesh>> uniqueMeshes = std::unordered_map<uint64_t, std::shared_ptr<Mesh>>();
+		std::unordered_map<std::filesystem::path, uint64_t> loadedMaterials =
+			std::unordered_map<std::filesystem::path, uint64_t>();
+		std::unordered_map<size_t, std::shared_ptr<Mesh>> uniqueMeshes =
+			std::unordered_map<uint64_t, std::shared_ptr<Mesh>>();
 
 		unsigned int index = 0;
 		const std::vector<float>& positions = attrib.vertices;
@@ -94,8 +97,7 @@ namespace Plaza {
 			if (index == 0)
 				model.mAssetName = shape.name;
 			Entity* newEntity;
-			if (!mainEntity)
-			{
+			if (!mainEntity) {
 				newEntity = modelScene->NewEntity(shape.name, modelScene->mainSceneEntity);
 				mainEntity = newEntity;
 			}
@@ -113,11 +115,10 @@ namespace Plaza {
 			std::unordered_map<int, uint32_t> uniqueVertices = std::unordered_map<int, uint32_t>();
 			for (size_t v = 0; v < shape.mesh.indices.size(); ++v) {
 				tinyobj::index_t index = shape.mesh.indices[v];
-				glm::vec3 vertex = glm::vec3(
-					attrib.vertices[3 * index.vertex_index + 0],
-					attrib.vertices[3 * index.vertex_index + 1],
-					attrib.vertices[3 * index.vertex_index + 2]
-				) * mModelImporterScale;
+				glm::vec3 vertex =
+					glm::vec3(attrib.vertices[3 * index.vertex_index + 0], attrib.vertices[3 * index.vertex_index + 1],
+							  attrib.vertices[3 * index.vertex_index + 2]) *
+					mModelImporterScale;
 				meshHash = CombineHashes(meshHash, std::hash<glm::vec3>()(vertex));
 
 				std::size_t vertexHash = 0;
@@ -132,17 +133,13 @@ namespace Plaza {
 						vertices.push_back(vertex);
 					}
 					if (attrib.normals.size() > 0) {
-						normals.push_back(glm::vec3(
-							attrib.normals[3 * index.normal_index + 0],
-							attrib.normals[3 * index.normal_index + 1],
-							attrib.normals[3 * index.normal_index + 2]
-						));
+						normals.push_back(glm::vec3(attrib.normals[3 * index.normal_index + 0],
+													attrib.normals[3 * index.normal_index + 1],
+													attrib.normals[3 * index.normal_index + 2]));
 					}
 					if (attrib.texcoords.size() > 0) {
-						uvs.push_back(glm::vec2(
-							attrib.texcoords[2 * max(index.texcoord_index, 0) + 0],
-							attrib.texcoords[2 * max(index.texcoord_index, 0) + 1]
-						));
+						uvs.push_back(glm::vec2(attrib.texcoords[2 * max(index.texcoord_index, 0) + 0],
+												attrib.texcoords[2 * max(index.texcoord_index, 0) + 1]));
 					}
 				}
 				indices.push_back(uniqueVertices[vertexHash]);
@@ -158,26 +155,33 @@ namespace Plaza {
 					tinyobj::material_t tinyobjMaterial = materials.at(shape.mesh.material_ids[0]);
 					std::string diffusePath = parentPath + "/" + tinyobjMaterial.diffuse_texname;
 
-					material = ObjModelMaterialLoader(&tinyobjMaterial, std::filesystem::path{ asset.mPath }.parent_path().string(), loadedTextures);
+					material = ObjModelMaterialLoader(
+						&tinyobjMaterial, std::filesystem::path{asset.mPath}.parent_path().string(), loadedTextures);
 
-					std::filesystem::path materialOutPath = Editor::Gui::FileExplorer::currentDirectory + "/" + Editor::Utils::Filesystem::GetUnrepeatedName(Editor::Gui::FileExplorer::currentDirectory + "/" + material->mAssetName) + Standards::materialExtName;
+					std::filesystem::path materialOutPath =
+						Editor::Gui::FileExplorer::currentDirectory + "/" +
+						Editor::Utils::Filesystem::GetUnrepeatedName(Editor::Gui::FileExplorer::currentDirectory + "/" +
+																	 material->mAssetName) +
+						Standards::materialExtName;
 
 					if (loadedMaterials.find(materialOutPath) == loadedMaterials.end()) {
 						loadedMaterials.emplace(materialOutPath, material->mAssetUuid);
-						AssetsSerializer::SerializeMaterial(material, materialOutPath, Application::Get()->mSettings.mMaterialSerializationMode);
+						AssetsSerializer::SerializeMaterial(material, materialOutPath,
+															Application::Get()->mSettings.mMaterialSerializationMode);
 						AssetsManager::AddMaterial(material);
 					}
 					else
 						material = AssetsManager::GetMaterial(loadedMaterials.find(materialOutPath)->second);
 				}
 
-				std::vector<unsigned int> materials{ 0 };
+				std::vector<unsigned int> materials{0};
 
 				MeshRenderer* meshRenderer = modelScene->NewComponent<MeshRenderer>(newEntity->uuid);
 
 				Mesh* mesh = nullptr;
 				if (uniqueMeshes.find(meshHash) == uniqueMeshes.end()) {
-					mesh = new Mesh();//Application::Get()->mRenderer->CreateNewMesh(vertices, normals, uvs, tangents, indices, materials, true);
+					mesh = new Mesh(); // Application::Get()->mRenderer->CreateNewMesh(vertices, normals, uvs, tangents,
+									   // indices, materials, true);
 					mesh->vertices = vertices;
 					mesh->normals = normals;
 					mesh->uvs = uvs;
@@ -192,8 +196,8 @@ namespace Plaza {
 				meshRenderer->ChangeMesh(mesh);
 
 				meshRenderer->AddMaterial(material);
-				//meshRenderer->mMaterials.push_back(material);
-				//modelScene->NewComponent<MeshRenderer>(newEntity->uuid);
+				// meshRenderer->mMaterials.push_back(material);
+				// modelScene->NewComponent<MeshRenderer>(newEntity->uuid);
 
 				Collider* collider = modelScene->NewComponent<Collider>(newEntity->uuid);
 				ColliderShape* shape = new ColliderShape(nullptr, Plaza::ColliderShape::MESH, mesh->uuid);
@@ -203,8 +207,8 @@ namespace Plaza {
 		}
 
 		for (auto& [key, mesh] : uniqueMeshes) {
-			model.AddMeshes({ mesh });
+			model.AddMeshes({mesh});
 		}
 		return modelScene;
 	}
-}
+} // namespace Plaza

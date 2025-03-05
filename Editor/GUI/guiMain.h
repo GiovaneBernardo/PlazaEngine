@@ -18,13 +18,13 @@ namespace Plaza {
 		class Console;
 		class RenderGraphEditor;
 		class Gui {
-		public:
+		  public:
 			static inline EditorStyle* sEditorStyle;
 
 			class FileExplorer;
 			class MainMenuBar;
 			class Hierarchy;
-			//class MaterialInspector;
+			// class MaterialInspector;
 			class TransformInspector;
 
 			static inline ImGuiContext* mMainContext = nullptr;
@@ -78,16 +78,15 @@ namespace Plaza {
 			RenderGraphEditor* mRenderGraphEditor;
 
 			static inline std::map<EditorTool::ToolType, std::unique_ptr<EditorTool>> sEditorTools;
-			//static inline EditorTool::ToolType sEditorToolCaptureMouseClick;
-			//static inline EditorTool::ToolType sEditorToolCaptureKeyPress;
-		private:
+			// static inline EditorTool::ToolType sEditorToolCaptureMouseClick;
+			// static inline EditorTool::ToolType sEditorToolCaptureKeyPress;
+		  private:
 			static void CommonGuiInit(GLFWwindow* window, EditorStyle* editorStyle, bool initializePlazaImGuiPools);
 			static inline bool isAssetImporterOpen = false;
 			static inline std::string mAssetToImportPath = "";
 		};
-	}
-}
-
+	} // namespace Editor
+} // namespace Plaza
 
 /// <summary>
 /// ImGui Helper
@@ -97,12 +96,8 @@ namespace ImGui {
 		return firstVec.x == secondVec.x && firstVec.y == secondVec.y;
 	}
 	// Transforms glm::vec2 to ImVec2
-	inline ImVec2 imVec2(glm::vec2 vec) {
-		return ImVec2(vec.x, vec.y);
-	}
+	inline ImVec2 imVec2(glm::vec2 vec) { return ImVec2(vec.x, vec.y); }
 	// Transforms ImVec2 to glm::vec2
-	inline glm::vec2 glmVec2(ImVec2 imguiVec) {
-		return glm::vec2(imguiVec.x, imguiVec.y);
-	}
+	inline glm::vec2 glmVec2(ImVec2 imguiVec) { return glm::vec2(imguiVec.x, imguiVec.y); }
 
-}
+} // namespace ImGui

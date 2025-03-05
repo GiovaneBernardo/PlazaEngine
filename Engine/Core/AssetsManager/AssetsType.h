@@ -1,4 +1,4 @@
-#pragma once 
+#pragma once
 
 namespace Plaza {
 	enum AssetType {
@@ -17,4 +17,4 @@ namespace Plaza {
 		PREFAB,
 		UNKNOWN,
 	};
-}
+} // namespace Plaza

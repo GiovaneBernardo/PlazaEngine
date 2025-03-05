@@ -5,9 +5,8 @@
 using namespace std;
 using namespace std::chrono;
 namespace Plaza {
-	class PLAZA_API Time
-	{
-	public:
+	class PLAZA_API Time {
+	  public:
 		static inline uint64_t mUniqueTriangles = 0;
 		static inline uint64_t mTotalTriangles = 0;
 		static inline int drawCalls = 0;
@@ -21,8 +20,8 @@ namespace Plaza {
 		static void Update();
 	};
 
-	//class PLAZA_API Profiler {
-	//public:
+	// class PLAZA_API Profiler {
+	// public:
 	//	string name;
 	//	int divider;
 	//	Profiler(string name_t, int divider_t = 10) : name(name_t) {
@@ -49,5 +48,5 @@ namespace Plaza {
 	//			std::cout << name << ": " << duration.count() << " ms" << std::endl;
 	//		}
 	//	}
-	//};
-}
+	// };
+} // namespace Plaza

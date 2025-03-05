@@ -1,7 +1,7 @@
 workspace (ProjectName)
     architecture "x64"
     startproject (ProjectName)
-    
+
     configurations
     {
         "Debug",

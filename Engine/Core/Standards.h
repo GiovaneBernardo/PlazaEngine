@@ -3,7 +3,7 @@
 namespace Plaza {
 	using namespace std;
 	class Standards {
-	public:
+	  public:
 		static inline std::string engineExtName = ".plz";
 		static inline std::string projectExtName = engineExtName + "prj";
 		static inline std::string sceneExtName = engineExtName + "scn";
@@ -17,4 +17,4 @@ namespace Plaza {
 		static inline std::string plazaRenderGraph = engineExtName + "grph";
 		static inline std::string editorSettingsExtName = engineExtName + "cfg";
 	};
-}
+} // namespace Plaza

@@ -1,5 +1,5 @@
 #pragma once
-//#include "Engine/Core/Renderer/OpenGL/OpenGLMesh.h"
+// #include "Engine/Core/Renderer/OpenGL/OpenGLMesh.h"
 #include "Engine/Components/Rendering/Material.h"
 #include "Engine/Core/Renderer/Mesh.h"
 #include "Engine/Core/Engine.h"
@@ -8,12 +8,12 @@ namespace Plaza {
 	struct Asset;
 	struct Material;
 	class PLAZA_API RenderGroup {
-	public:
+	  public:
 		static inline GLenum renderMode = GL_TRIANGLES;
 		uint64_t uuid = -1;
 		Mesh* mesh = nullptr;
 		bool mImportedMesh = false;
-		//Material* material = nullptr;
+		// Material* material = nullptr;
 		std::vector<Material*> materials = std::vector<Material*>();
 		std::vector<uint64_t> materialsUuid = std::vector<uint64_t>();
 		vector<glm::mat4> instanceModelMatrices = vector<glm::mat4>();
@@ -33,19 +33,19 @@ namespace Plaza {
 			this->uuid = Plaza::UUID::NewUUID();
 			this->mesh = mesh;
 			this->materials = mats;
-			//InitializeInstanceBuffer();
+			// InitializeInstanceBuffer();
 		}
 
 		RenderGroup(std::shared_ptr<Mesh> mesh, std::shared_ptr<Material> mat) {
 			this->uuid = Plaza::UUID::NewUUID();
 			this->mesh = mesh.get();
-			//this->material = mat.get();
-			//InitializeInstanceBuffer();
+			// this->material = mat.get();
+			// InitializeInstanceBuffer();
 		}
 
 		inline void AddInstance(const glm::mat4& model) {
 			instanceModelMatrices.push_back(model);
-			//this->instanceMaterialIndices.push_back(material);
+			// this->instanceMaterialIndices.push_back(material);
 		}
 
 		void AddCascadeInstance(glm::mat4 model, unsigned int cascadeIndex) {
@@ -65,4 +65,4 @@ namespace Plaza {
 		static bool SceneHasRenderGroup(Mesh* mesh, Material* material);
 		static bool SceneHasRenderGroup(RenderGroup* renderGroup);
 	};
-}
+} // namespace Plaza

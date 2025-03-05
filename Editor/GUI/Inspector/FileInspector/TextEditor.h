@@ -62,4 +62,4 @@ namespace Plaza::Editor {
 
 		lastFile = file;
 	}
-}
+} // namespace Plaza::Editor

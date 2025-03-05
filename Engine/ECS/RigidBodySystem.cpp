@@ -9,13 +9,15 @@ namespace Plaza {
 			return;
 		RigidBody* rigidBody = scene->GetComponent<RigidBody>(uuid);
 		Collider* collider = scene->GetComponent<Collider>(uuid);
-		//AddCollidersOfChildren(this->uuid);
+		// AddCollidersOfChildren(this->uuid);
 		if (collider) {
 			if (!collider->mRigidActor)
 				ECS::ColliderSystem::InitCollider(scene, uuid);
 			rigidBody->mRigidActor = collider->mRigidActor;
-			physx::PxRigidBodyExt::setMassAndUpdateInertia(*rigidBody->mRigidActor->is<physx::PxRigidDynamic>(), physx::PxReal(rigidBody->density));
-			physx::PxRigidBodyExt::updateMassAndInertia(*rigidBody->mRigidActor->is<physx::PxRigidDynamic>(), physx::PxReal(rigidBody->density));
+			physx::PxRigidBodyExt::setMassAndUpdateInertia(*rigidBody->mRigidActor->is<physx::PxRigidDynamic>(),
+														   physx::PxReal(rigidBody->density));
+			physx::PxRigidBodyExt::updateMassAndInertia(*rigidBody->mRigidActor->is<physx::PxRigidDynamic>(),
+														physx::PxReal(rigidBody->density));
 			collider->SetFlags(collider, rigidBody->rigidDynamicLockFlags);
 		}
 		else {
@@ -33,7 +35,8 @@ namespace Plaza {
 			return;
 
 		TransformComponent& transform = *scene->GetComponent<TransformComponent>(uuid);
-		TransformComponent& parentTransform = *scene->GetComponent<TransformComponent>(scene->GetEntity(uuid)->parentUuid);
+		TransformComponent& parentTransform =
+			*scene->GetComponent<TransformComponent>(scene->GetEntity(uuid)->parentUuid);
 		// Convert Px to Glm
 		physx::PxTransform pxTransform = rigidBody->mRigidActor->getGlobalPose();
 		physx::PxQuat rotationQuaternion = pxTransform.q;
@@ -41,11 +44,14 @@ namespace Plaza {
 		glm::vec3 eulerAngles = glm::eulerAngles(glm::normalize(glmQuaternion));
 
 		// Transform the world rotation of the PxTransform to local rotation
-		glm::quat transformedRotation = glm::normalize(glm::quat_cast(glm::inverse(parentTransform.GetWorldMatrix()) * glm::toMat4(glmQuaternion)));
+		glm::quat transformedRotation =
+			glm::normalize(glm::quat_cast(glm::inverse(parentTransform.GetWorldMatrix()) * glm::toMat4(glmQuaternion)));
 
 		// Apply the delta rotation to prevent gimbal lock
-		ECS::TransformSystem::SetLocalRotation(transform, scene, transformedRotation);//+= transformedRotation - glm::quat_cast(transform.localMatrix);
-		ECS::TransformSystem::SetLocalPosition(transform, scene, glm::vec3(pxTransform.p.x, pxTransform.p.y, pxTransform.p.z));
+		ECS::TransformSystem::SetLocalRotation(
+			transform, scene, transformedRotation); //+= transformedRotation - glm::quat_cast(transform.localMatrix);
+		ECS::TransformSystem::SetLocalPosition(transform, scene,
+											   glm::vec3(pxTransform.p.x, pxTransform.p.y, pxTransform.p.z));
 		ECS::TransformSystem::UpdateSelfAndChildrenTransform(transform, &parentTransform, scene);
 	}
 
@@ -72,4 +78,4 @@ namespace Plaza {
 			}
 		}
 	}
-}
+} // namespace Plaza

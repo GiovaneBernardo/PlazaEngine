@@ -23,7 +23,7 @@ float GetDepthUV(vec2 uv) {
 
 vec3 ReconstructWorldPosition(vec2 uv) {
     mat4 viewProjection = pushConstants.projection * pushConstants.view;
-    float ndcZ = GetDepthUV(uv) * 2.0f - 1.0f; 
+    float ndcZ = GetDepthUV(uv) * 2.0f - 1.0f;
     vec4 ndcPosition = vec4(uv * 2.0 - 1.0, (GetDepthUV(uv)), 1.0);
     ndcPosition.y *= -1.0f;
     vec4 worldPosition = inverse(viewProjection) * ndcPosition;

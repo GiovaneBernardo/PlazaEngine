@@ -18,8 +18,9 @@ namespace Plaza::Editor {
 			ImGui::BeginTable("AudioSourceSettings", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg);
 
 			if (Utils::AddTableButton("Select File", nullptr)) {
-				//std::string filePath = FileDialog::OpenFileDialog(".mp3");
-				Asset* asset = AssetsManager::GetAssetOrImport(FileDialog::OpenFileDialog(".mp3"), {}, Editor::Gui::FileExplorer::currentDirectory);
+				// std::string filePath = FileDialog::OpenFileDialog(".mp3");
+				Asset* asset = AssetsManager::GetAssetOrImport(FileDialog::OpenFileDialog(".mp3"), {},
+															   Editor::Gui::FileExplorer::currentDirectory);
 				if (asset) {
 					Audio::Init();
 
@@ -27,7 +28,7 @@ namespace Plaza::Editor {
 					if (asset)
 						component->LoadFile(asset->mAssetPath.string());
 				}
-				//component->LoadFile(filePath);
+				// component->LoadFile(filePath);
 			}
 
 			if (Utils::AddTableButton("Play Sound", nullptr)) {
@@ -42,11 +43,11 @@ namespace Plaza::Editor {
 			}
 			Utils::AddTableFloat("Pitch", &component->mPitch);
 
-			//Utils::AddTableInt("Y", &mSettings.y);
-			//Utils::AddTableInt("Z", &mSettings.z);
-			//Utils::AddTableInt("Radius", &mSettings.radius);
-			//Utils::AddTableFloat("Intensity", &mSettings.intensity);
-			//Utils::AddTableInt("Repeat Interval", &mSettings.repeatInterval);
+			// Utils::AddTableInt("Y", &mSettings.y);
+			// Utils::AddTableInt("Z", &mSettings.z);
+			// Utils::AddTableInt("Radius", &mSettings.radius);
+			// Utils::AddTableFloat("Intensity", &mSettings.intensity);
+			// Utils::AddTableInt("Repeat Interval", &mSettings.repeatInterval);
 			ImGui::EndTable();
 
 			if (ImGui::DragFloat("Gain", &component->mGain)) {
@@ -67,4 +68,4 @@ namespace Plaza::Editor {
 			ImGui::PopID();
 		}
 	}
-}
+} // namespace Plaza::Editor

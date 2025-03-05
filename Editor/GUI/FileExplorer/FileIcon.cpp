@@ -17,5 +17,5 @@ namespace Plaza {
 		void Icon::LoadImageToImGuiTexture(const char* path, ImTextureID& outTextureID) {
 			outTextureID = Application::Get()->mRenderer->LoadImGuiTexture(path)->GetImGuiTextureID();
 		}
-	}
-}
+	} // namespace Editor
+} // namespace Plaza

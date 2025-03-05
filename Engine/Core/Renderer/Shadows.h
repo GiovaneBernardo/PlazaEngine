@@ -1,7 +1,7 @@
-#pragma once 
+#pragma once
 namespace Plaza {
 	class Shadows {
-	public:
+	  public:
 		unsigned int mShadowResolution = 4096 / 2;
 		glm::vec3 mLightDirection = glm::radians(glm::normalize(glm::vec3(20.0f, 50.0f, 20.0f)));
 
@@ -11,4 +11,4 @@ namespace Plaza {
 
 		std::vector<float> shadowCascadeLevels;
 	};
-}
+} // namespace Plaza

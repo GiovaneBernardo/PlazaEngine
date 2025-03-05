@@ -19,107 +19,70 @@ namespace Plaza::Editor {
 		InitCapsule(0.5f, 1.0f, 64, 64);
 
 		Physics::InitDefaultGeometries();
-		//Material defaultMaterial = Material();
-		//defaultMaterial.albedo.rgba = glm::vec4(1.0f);
-		//defaultMaterial.diffuse.rgba = glm::vec4(1.0f);
-		//defaultMaterial.uuid = -1;
+		// Material defaultMaterial = Material();
+		// defaultMaterial.albedo.rgba = glm::vec4(1.0f);
+		// defaultMaterial.diffuse.rgba = glm::vec4(1.0f);
+		// defaultMaterial.uuid = -1;
 		////AssetsManager::mMaterials.emplace(-1, std::make_shared<Material>(defaultMaterial));
-		//AssetsManager::AddMaterial(&defaultMaterial);
+		// AssetsManager::AddMaterial(&defaultMaterial);
 	}
-	Mesh* DefaultModels::Cube() {
-		return AssetsManager::GetMesh(cubeUuid);
-	}
-	Mesh* DefaultModels::Sphere() {
-		return AssetsManager::GetMesh(sphereUuid);
-	}
-	Mesh* DefaultModels::Plane() {
-		return AssetsManager::GetMesh(planeUuid);
-	}
-	Mesh* DefaultModels::Cylinder() {
-		return AssetsManager::GetMesh(cylinderUuid);
-	}
-	Mesh* DefaultModels::Capsule() {
-		return AssetsManager::GetMesh(capsuleUuid);
-	}
+	Mesh* DefaultModels::Cube() { return AssetsManager::GetMesh(cubeUuid); }
+	Mesh* DefaultModels::Sphere() { return AssetsManager::GetMesh(sphereUuid); }
+	Mesh* DefaultModels::Plane() { return AssetsManager::GetMesh(planeUuid); }
+	Mesh* DefaultModels::Cylinder() { return AssetsManager::GetMesh(cylinderUuid); }
+	Mesh* DefaultModels::Capsule() { return AssetsManager::GetMesh(capsuleUuid); }
 
 	void DefaultModels::InitCube() {
 		std::vector<unsigned int> indices = {
-		0, 1, 2,  // Front face
-		2, 1, 3,  // Front face
-		4, 5, 6,  // Back face
-		6, 5, 7,  // Back face
-		8, 9, 10, // Top face
-		10, 9, 11,// Top face
-		12, 13, 14,// Bottom face
-		14, 13, 15,// Bottom face
-		16, 17, 18,// Left face
-		18, 17, 19,// Left face
-		20, 21, 22,// Right face
-		22, 21, 23 // Right face
+			0,	1,	2,	// Front face
+			2,	1,	3,	// Front face
+			4,	5,	6,	// Back face
+			6,	5,	7,	// Back face
+			8,	9,	10, // Top face
+			10, 9,	11, // Top face
+			12, 13, 14, // Bottom face
+			14, 13, 15, // Bottom face
+			16, 17, 18, // Left face
+			18, 17, 19, // Left face
+			20, 21, 22, // Right face
+			22, 21, 23	// Right face
 		};
 		std::vector<glm::vec3> positions = {
-			glm::vec3(-0.5f, -0.5f, 0.5f),glm::vec3(0.5f, -0.5f, 0.5f),glm::vec3(-0.5f, 0.5f, 0.5f),glm::vec3(0.5f, 0.5f, 0.5f),
-			glm::vec3(0.5f, -0.5f, -0.5f),glm::vec3(-0.5f, -0.5f, -0.5f),glm::vec3(0.5f, 0.5f, -0.5f),glm::vec3(-0.5f, 0.5f, -0.5f),
-			glm::vec3(-0.5f, 0.5f, 0.5f),glm::vec3(0.5f, 0.5f, 0.5f),glm::vec3(-0.5f, 0.5f, -0.5f),glm::vec3(0.5f, 0.5f, -0.5f),
-			glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0.5f, -0.5f, -0.5f),glm::vec3(-0.5f, -0.5f, 0.5f),glm::vec3(0.5f, -0.5f, 0.5f),
-			glm::vec3(-0.5f, -0.5f, -0.5f),glm::vec3(-0.5f, -0.5f, 0.5f),glm::vec3(-0.5f, 0.5f, -0.5f),glm::vec3(-0.5f, 0.5f, 0.5f),
-			glm::vec3(0.5f, -0.5f, 0.5f),glm::vec3(0.5f, -0.5f, -0.5f),glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.5f, 0.5f, -0.5f)
-		};
+			glm::vec3(-0.5f, -0.5f, 0.5f),	glm::vec3(0.5f, -0.5f, 0.5f),	glm::vec3(-0.5f, 0.5f, 0.5f),
+			glm::vec3(0.5f, 0.5f, 0.5f),	glm::vec3(0.5f, -0.5f, -0.5f),	glm::vec3(-0.5f, -0.5f, -0.5f),
+			glm::vec3(0.5f, 0.5f, -0.5f),	glm::vec3(-0.5f, 0.5f, -0.5f),	glm::vec3(-0.5f, 0.5f, 0.5f),
+			glm::vec3(0.5f, 0.5f, 0.5f),	glm::vec3(-0.5f, 0.5f, -0.5f),	glm::vec3(0.5f, 0.5f, -0.5f),
+			glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(0.5f, -0.5f, -0.5f),	glm::vec3(-0.5f, -0.5f, 0.5f),
+			glm::vec3(0.5f, -0.5f, 0.5f),	glm::vec3(-0.5f, -0.5f, -0.5f), glm::vec3(-0.5f, -0.5f, 0.5f),
+			glm::vec3(-0.5f, 0.5f, -0.5f),	glm::vec3(-0.5f, 0.5f, 0.5f),	glm::vec3(0.5f, -0.5f, 0.5f),
+			glm::vec3(0.5f, -0.5f, -0.5f),	glm::vec3(0.5f, 0.5f, 0.5f),	glm::vec3(0.5f, 0.5f, -0.5f)};
 
 		std::vector<glm::vec3> normals = {
-			glm::vec3(0, 0, 1),
-			glm::vec3(0, 0, 1),
-			glm::vec3(0, 0, 1),
-			glm::vec3(0, 0, 1),
-			glm::vec3(0, 0, -1),
-			glm::vec3(0, 0, -1),
-			glm::vec3(0, 0, -1),
-			glm::vec3(0, 0, -1),
-			glm::vec3(0, 1, 0),
-			glm::vec3(0, 1, 0),
-			glm::vec3(0, 1, 0),
-			glm::vec3(0, 1, 0),
-			glm::vec3(0, -1, 0),
-			glm::vec3(0, -1, 0),
-			glm::vec3(0, -1, 0),
-			glm::vec3(0, -1, 0),
-			glm::vec3(-1, 0, 0),
-			glm::vec3(-1, 0, 0),
-			glm::vec3(-1, 0, 0),
-			glm::vec3(-1, 0, 0),
-			glm::vec3(1, 0, 0),
-			glm::vec3(1, 0, 0),
-			glm::vec3(1, 0, 0),
-			glm::vec3(1, 0, 0)
-		};
+			glm::vec3(0, 0, 1),	 glm::vec3(0, 0, 1),  glm::vec3(0, 0, 1),  glm::vec3(0, 0, 1),	glm::vec3(0, 0, -1),
+			glm::vec3(0, 0, -1), glm::vec3(0, 0, -1), glm::vec3(0, 0, -1), glm::vec3(0, 1, 0),	glm::vec3(0, 1, 0),
+			glm::vec3(0, 1, 0),	 glm::vec3(0, 1, 0),  glm::vec3(0, -1, 0), glm::vec3(0, -1, 0), glm::vec3(0, -1, 0),
+			glm::vec3(0, -1, 0), glm::vec3(-1, 0, 0), glm::vec3(-1, 0, 0), glm::vec3(-1, 0, 0), glm::vec3(-1, 0, 0),
+			glm::vec3(1, 0, 0),	 glm::vec3(1, 0, 0),  glm::vec3(1, 0, 0),  glm::vec3(1, 0, 0)};
 
 		std::vector<glm::vec2> texCoords = {
-			glm::vec2(0, 0), glm::vec2(1, 0),
-			glm::vec2(0, 1), glm::vec2(1, 1),
-			glm::vec2(0, 0),glm::vec2(1, 0),
-			glm::vec2(0, 1),glm::vec2(1, 1),
-			glm::vec2(0, 0), glm::vec2(1, 0),
-			glm::vec2(0, 1),glm::vec2(1, 1),
-			glm::vec2(0, 0),glm::vec2(1, 0),
-			glm::vec2(0, 1),glm::vec2(1, 1),
-			glm::vec2(0, 0),glm::vec2(1, 0),
-			glm::vec2(0, 1),glm::vec2(1, 1),
-			glm::vec2(0, 0),glm::vec2(1, 0),
-			glm::vec2(0, 1),glm::vec2(1, 1)
-		};
+			glm::vec2(0, 0), glm::vec2(1, 0), glm::vec2(0, 1), glm::vec2(1, 1), glm::vec2(0, 0), glm::vec2(1, 0),
+			glm::vec2(0, 1), glm::vec2(1, 1), glm::vec2(0, 0), glm::vec2(1, 0), glm::vec2(0, 1), glm::vec2(1, 1),
+			glm::vec2(0, 0), glm::vec2(1, 0), glm::vec2(0, 1), glm::vec2(1, 1), glm::vec2(0, 0), glm::vec2(1, 0),
+			glm::vec2(0, 1), glm::vec2(1, 1), glm::vec2(0, 0), glm::vec2(1, 0), glm::vec2(0, 1), glm::vec2(1, 1)};
 
-		//new Mesh(positions, normals, texCoords, vector<glm::vec3>(), vector<glm::vec3>(), indices);
+		// new Mesh(positions, normals, texCoords, vector<glm::vec3>(), vector<glm::vec3>(), indices);
 
 		std::vector<glm::vec3> tangents;
-		std::vector<unsigned int> materials{ 0 };
-		Mesh* newMesh = Application::Get()->mRenderer->CreateNewMesh(positions, normals, texCoords, tangents, indices, materials, false);
+		std::vector<unsigned int> materials{0};
+		Mesh* newMesh = Application::Get()->mRenderer->CreateNewMesh(positions, normals, texCoords, tangents, indices,
+																	 materials, false);
 		newMesh->uuid = cubeUuid;
 		AssetsManager::AddMesh(newMesh);
 	}
 
 	void DefaultModels::InitSphere() {
 		std::vector<unsigned int> indices;
-		//std::vector<Vertex> vertices;
+		// std::vector<Vertex> vertices;
 		std::vector<glm::vec3> vertices;
 		std::vector<glm::vec3> normals;
 		std::vector<glm::vec3> tangents;
@@ -148,10 +111,10 @@ namespace Plaza::Editor {
 				vertices.push_back(glm::vec3(x, y, z));
 				normals.push_back(glm::normalize(glm::vec3(x, y, z)));
 				uvs.push_back(glm::vec2(sliceRatio, stackRatio));
-				//tangents.push_back(glm::vec3(0.0f));
-				//bitangents.push_back(glm::vec3(0.0f));
+				// tangents.push_back(glm::vec3(0.0f));
+				// bitangents.push_back(glm::vec3(0.0f));
 
-				//vertices.push_back(Vertex(position, normal, texCoords, tangent, bitangent));
+				// vertices.push_back(Vertex(position, normal, texCoords, tangent, bitangent));
 			}
 		}
 
@@ -175,42 +138,28 @@ namespace Plaza::Editor {
 			}
 		}
 
-		std::vector<unsigned int> materials{ 0 };
-		Mesh* newMesh = Application::Get()->mRenderer->CreateNewMesh(vertices, normals, uvs, tangents, indices, materials, false);
+		std::vector<unsigned int> materials{0};
+		Mesh* newMesh =
+			Application::Get()->mRenderer->CreateNewMesh(vertices, normals, uvs, tangents, indices, materials, false);
 		newMesh->uuid = sphereUuid;
 		AssetsManager::AddMesh(newMesh);
 	}
 
 	void DefaultModels::InitPlane() {
-		std::vector<unsigned int> indices = {
-			0, 1, 2,
-			2, 3, 0
-		};
+		std::vector<unsigned int> indices = {0, 1, 2, 2, 3, 0};
 
-		std::vector<glm::vec3> vertices = {
-			glm::vec3(-0.5f, 0.0f, 0.5f),
-			glm::vec3(0.5f, 0.0f, 0.5f),
-			glm::vec3(0.5f, 0.0f, -0.5f),
-			glm::vec3(-0.5f, 0.0f, -0.5f)
-		};
+		std::vector<glm::vec3> vertices = {glm::vec3(-0.5f, 0.0f, 0.5f), glm::vec3(0.5f, 0.0f, 0.5f),
+										   glm::vec3(0.5f, 0.0f, -0.5f), glm::vec3(-0.5f, 0.0f, -0.5f)};
 
-		std::vector<glm::vec3> normals = {
-			glm::vec3(0, 1, 0),
-			glm::vec3(0, 1, 0),
-			glm::vec3(0, 1, 0),
-			glm::vec3(0, 1, 0)
-		};
+		std::vector<glm::vec3> normals = {glm::vec3(0, 1, 0), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0),
+										  glm::vec3(0, 1, 0)};
 
-		std::vector<glm::vec2> texCoords = {
-			glm::vec2(0, 0),
-			glm::vec2(1, 0),
-			glm::vec2(1, 1),
-			glm::vec2(0, 1)
-		};
+		std::vector<glm::vec2> texCoords = {glm::vec2(0, 0), glm::vec2(1, 0), glm::vec2(1, 1), glm::vec2(0, 1)};
 
 		std::vector<glm::vec3> tangents;
-		std::vector<unsigned int> materials{ 0 };
-		Mesh* newMesh = Application::Get()->mRenderer->CreateNewMesh(vertices, normals, texCoords, tangents, indices, materials, false);
+		std::vector<unsigned int> materials{0};
+		Mesh* newMesh = Application::Get()->mRenderer->CreateNewMesh(vertices, normals, texCoords, tangents, indices,
+																	 materials, false);
 		newMesh->uuid = planeUuid;
 		AssetsManager::AddMesh(newMesh);
 	}
@@ -224,13 +173,16 @@ namespace Plaza::Editor {
 		vector<unsigned int> indices;
 
 		float pi = 3.14159265359;
-		//Vertex(glm::vec3(x, y, z), glm::vec3(0, 0, 1), glm::vec2(s, 1 - i / stacks), glm::vec3(0.0f), glm::vec3(0.0f))
+		// Vertex(glm::vec3(x, y, z), glm::vec3(0, 0, 1), glm::vec2(s, 1 - i / stacks), glm::vec3(0.0f),
+		// glm::vec3(0.0f))
 		for (unsigned int i = 1; i < slices; i++) {
 			float x = glm::cos((slices / i)) * radius;
 			float z = glm::sin((slices / i)) * radius;
 			float y = 0;
-			vertices.push_back(Vertex(glm::vec3(x, y, z), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f), glm::vec3(0.0f)));
-			vertices.push_back(Vertex(glm::vec3(x, y + height, z), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f), glm::vec3(0.0f)));
+			vertices.push_back(
+				Vertex(glm::vec3(x, y, z), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f), glm::vec3(0.0f)));
+			vertices.push_back(
+				Vertex(glm::vec3(x, y + height, z), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec2(0.0f), glm::vec3(0.0f)));
 		}
 
 		for (unsigned int i = 0; i < slices; i += 2) {
@@ -242,16 +194,16 @@ namespace Plaza::Editor {
 			indices.push_back(i + slices / 2);
 			indices.push_back(i + slices / 2 + 1);
 
-			//indices.push_back(i);
-			//indices.push_back(i + slices + 1);
-			//indices.push_back(i + slices + 2);
+			// indices.push_back(i);
+			// indices.push_back(i + slices + 1);
+			// indices.push_back(i + slices + 2);
 		}
 
 		// Create the cylinder mesh and add it to the scene
-		//Mesh* newMesh = new Mesh(vertices, indices);
-		//newMesh->usingNormal = false; // You probably want to set this to true for the cylinder
-		//newMesh->meshId = cylinderUuid;
-		//Scene::GetEditorScene()->meshes.emplace(newMesh->meshId, std::make_shared<Mesh>(*newMesh));
+		// Mesh* newMesh = new Mesh(vertices, indices);
+		// newMesh->usingNormal = false; // You probably want to set this to true for the cylinder
+		// newMesh->meshId = cylinderUuid;
+		// Scene::GetEditorScene()->meshes.emplace(newMesh->meshId, std::make_shared<Mesh>(*newMesh));
 	}
 
 	void DefaultModels::InitCapsule(float radius, float height, int stacks, int slices) {
@@ -303,7 +255,8 @@ namespace Plaza::Editor {
 		}
 
 		// 3. Generate the bottom hemisphere (flipped version of the top hemisphere)
-		int baseBottomHemisphereStart = baseCylinderStart + (stacks + 1) * (slices + 1); // Offset for bottom hemisphere start
+		int baseBottomHemisphereStart =
+			baseCylinderStart + (stacks + 1) * (slices + 1); // Offset for bottom hemisphere start
 		for (int i = 0; i <= stacks; ++i) {
 			float stackAngle = static_cast<float>(i) * (PI / 2.0f) / stacks;
 			float stackRatio = static_cast<float>(i) / stacks;
@@ -366,12 +319,12 @@ namespace Plaza::Editor {
 			int k2 = k1 + slices + 1;
 
 			for (int j = 0; j < slices; ++j, ++k1, ++k2) {
-				indices.push_back(k2); // Reverse order
+				indices.push_back(k2);	   // Reverse order
 				indices.push_back(k2 + 1); // Reverse order
-				indices.push_back(k1); // Reverse order
+				indices.push_back(k1);	   // Reverse order
 
 				if (i != stacks - 1) {
-					indices.push_back(k1); // Reverse order
+					indices.push_back(k1);	   // Reverse order
 					indices.push_back(k2 + 1); // Reverse order
 					indices.push_back(k1 + 1); // Reverse order
 				}
@@ -380,9 +333,10 @@ namespace Plaza::Editor {
 
 		// 5. Create mesh and add to AssetsManager
 		std::vector<glm::vec3> tangents;
-		std::vector<unsigned int> materials{ 0 };
-		Mesh* newMesh = Application::Get()->mRenderer->CreateNewMesh(vertices, normals, uvs, tangents, indices, materials, false);
+		std::vector<unsigned int> materials{0};
+		Mesh* newMesh =
+			Application::Get()->mRenderer->CreateNewMesh(vertices, normals, uvs, tangents, indices, materials, false);
 		newMesh->uuid = capsuleUuid;
 		AssetsManager::AddMesh(newMesh);
 	}
-}
+} // namespace Plaza::Editor

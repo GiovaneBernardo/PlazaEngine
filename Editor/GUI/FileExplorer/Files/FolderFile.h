@@ -5,8 +5,9 @@
 namespace Plaza {
 	namespace Editor {
 		class FolderFile : public File {
-		public:
-			FolderFile(std::string name, std::string directory, std::string extension) : File(name, directory, extension) {}
+		  public:
+			FolderFile(std::string name, std::string directory, std::string extension)
+				: File(name, directory, extension) {}
 
 			void DoubleClick();
 			void Delete();
@@ -15,5 +16,5 @@ namespace Plaza {
 			void Copy();
 			void Paste();
 		};
-	}
-}
+	} // namespace Editor
+} // namespace Plaza

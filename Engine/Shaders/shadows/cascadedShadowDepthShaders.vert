@@ -13,20 +13,20 @@ layout(std430, binding = 1) readonly buffer BoneMatrices {
 	mat4 boneMatrices[];
 };
 
-layout (binding = 0) uniform UBO 
+layout (binding = 0) uniform UBO
 {
 	mat4 lightSpaceMatrices[32];
 } ubo;
 
 out gl_PerVertex {
-	vec4 gl_Position;   
+	vec4 gl_Position;
 };
 
-const mat4 biasMat = mat4( 
+const mat4 biasMat = mat4(
 	0.5, 0.0, 0.0, 0.0,
 	0.0, 0.5, 0.0, 0.0,
 	0.0, 0.0, 1.0, 0.0,
-	0.5, 0.5, 0.0, 1.0 
+	0.5, 0.5, 0.0, 1.0
 );
 
 void main()
@@ -38,15 +38,15 @@ void main()
 
    //for(int i = 0 ; i < MAX_BONE_INFLUENCE ; i++)
    //{
-   //      if(boneIds[i] < 0 || boneIds[i] > 1000) 
+   //      if(boneIds[i] < 0 || boneIds[i] > 1000)
    //      {
    //        continue;
-   //      }   
+   //      }
    //      else
    //      {
    //           allNegative = false;
    //      }
-   //      if(boneIds[i] >= MAX_BONES) 
+   //      if(boneIds[i] >= MAX_BONES)
    //      {
    //          totalPosition = vec4(aPos,1.0f);
    //          break;
@@ -54,7 +54,7 @@ void main()
    //      vec4 localPosition = boneMatrices[boneIds[i]] * vec4(aPos,1.0f);
    //      totalPosition += localPosition * weights[i];
    //}
-     
+
      if(allNegative)
          totalPosition = vec4(aPos,1.0f);
 

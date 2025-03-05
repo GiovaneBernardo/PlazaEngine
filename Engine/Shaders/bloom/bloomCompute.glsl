@@ -71,7 +71,7 @@ vec4 load_lds(uint idx)
 
 
 layout (local_size_x = GROUP_SIZE, local_size_y = GROUP_SIZE, local_size_z = 1) in;
-void main() 
+void main()
 {
 	vec2 texCoord = gl_GlobalInvocationID.xy;
 	vec2 srcTexelSize = 1.0 / inputResolution;
@@ -137,7 +137,7 @@ void main()
 		{
 		    vec2 uv        = (base_index + 0.5) * srcTexelSize;
 		    vec2 uv_offset = vec2(i % TILE_SIZE, i / TILE_SIZE) * srcTexelSize;
-		    
+
 		    vec4 color = imageLoad(inImage, ivec2(uv + uv_offset));
 		    store_lds(i, color);
 		}
@@ -153,11 +153,11 @@ void main()
 		s =  load_lds(sm_idx - TILE_SIZE - 1);
 		s += load_lds(sm_idx - TILE_SIZE    ) * 2.0;
 		s += load_lds(sm_idx - TILE_SIZE + 1);
-		
+
 		s += load_lds(sm_idx - 1) * 2.0;
 		s += load_lds(sm_idx    ) * 4.0;
 		s += load_lds(sm_idx + 1) * 2.0;
-		
+
 		s += load_lds(sm_idx + TILE_SIZE - 1);
 		s += load_lds(sm_idx + TILE_SIZE    ) * 2.0;
 		s += load_lds(sm_idx + TILE_SIZE + 1);

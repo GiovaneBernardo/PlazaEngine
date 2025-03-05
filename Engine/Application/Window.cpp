@@ -19,12 +19,12 @@ namespace Plaza {
 			return nullptr;
 		}
 
-		//vkEnumerateInstanceExtensionProperties();
-		// TODO: --------- MUST CHANGE THE WAY IT'S STARTING ON SECOND MONITOR --------- //
+		// vkEnumerateInstanceExtensionProperties();
+		//  TODO: --------- MUST CHANGE THE WAY IT'S STARTING ON SECOND MONITOR --------- //
 
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 		glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
-		//glfwWindowHint(GLFW_MAXIMIZED, GLFW_FALSE);
+		// glfwWindowHint(GLFW_MAXIMIZED, GLFW_FALSE);
 		glfwWindowHint(GLFW_FOCUSED, GLFW_TRUE);
 
 #ifdef GAME_MODE
@@ -44,21 +44,22 @@ namespace Plaza {
 			glfwTerminate();
 			return nullptr;
 		}
-		
+
 		int width, height;
 		glfwGetWindowSize(window, &width, &height);
 		glfwMaximizeWindow(window);
 		glfwSetWindowMonitor(window, nullptr, 0, 0, mode->width, mode->height, 0);
-		
-		#ifdef EDITOR_MODE
-				GLFWimage images[1];
-				images[0].pixels = stbi_load(std::string(Application::Get()->editorPath + "/Images/Other/PlazaEngineLogo32x32.png").c_str(), &images[0].width, &images[0].height, 0, 4);
-				glfwSetWindowIcon(window, 1, images);
-		#endif
+
+#ifdef EDITOR_MODE
+		GLFWimage images[1];
+		images[0].pixels =
+			stbi_load(std::string(Application::Get()->editorPath + "/Images/Other/PlazaEngineLogo32x32.png").c_str(),
+					  &images[0].width, &images[0].height, 0, 4);
+		glfwSetWindowIcon(window, 1, images);
+#endif
 
 		glfwSetWindowUserPointer(window, this);
-		if (window == NULL)
-		{
+		if (window == NULL) {
 			std::cout << "Failed to create GLFW window" << std::endl;
 			glfwTerminate();
 			return nullptr;
@@ -70,7 +71,7 @@ namespace Plaza {
 		glfwSetMouseButtonCallback(window, Callbacks::mouseButtonCallback);
 		glfwSetDropCallback(window, Callbacks::dropCallback);
 		glfwSetKeyCallback(window, Callbacks::keyCallback);
-		
+
 		return window;
 	}
-}
+} // namespace Plaza

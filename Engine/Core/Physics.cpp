@@ -14,8 +14,12 @@ namespace Plaza {
 	physx::PxFoundation* Physics::m_foundation = nullptr;
 	physx::PxPhysics* Physics::m_physics = nullptr;
 
-	std::unordered_map<uint64_t, physx::PxGeometry*> Physics::sCookedGeometries = std::unordered_map<uint64_t, physx::PxGeometry*>();
-	std::unordered_map<uint64_t, std::unordered_map<PhysicsMaterial, physx::PxShape*>> Physics::sShapes = std::unordered_map<uint64_t, std::unordered_map<PhysicsMaterial, physx::PxShape*>>(); // Keys: Mesh UUID, Physics Material hash map
+	std::unordered_map<uint64_t, physx::PxGeometry*> Physics::sCookedGeometries =
+		std::unordered_map<uint64_t, physx::PxGeometry*>();
+	std::unordered_map<uint64_t, std::unordered_map<PhysicsMaterial, physx::PxShape*>> Physics::sShapes =
+		std::unordered_map<uint64_t,
+						   std::unordered_map<PhysicsMaterial, physx::PxShape*>>(); // Keys: Mesh UUID, Physics Material
+																					// hash map
 
 	physx::PxMaterial* Physics::defaultMaterial = nullptr;
 
@@ -29,8 +33,9 @@ namespace Plaza {
 	float Physics::stepSize = 1 / 60.0f;
 
 	class CollisionCallback : public physx::PxSimulationEventCallback {
-	public:
-		virtual void onContact(const PxContactPairHeader& pairHeader, const PxContactPair* pairs, PxU32 nbPairs) override {
+	  public:
+		virtual void onContact(const PxContactPairHeader& pairHeader, const PxContactPair* pairs,
+							   PxU32 nbPairs) override {
 			// Your collision handling implementation
 			for (PxU32 i = 0; i < nbPairs; i++) {
 				const PxContactPair& cp = pairs[i];
@@ -45,8 +50,8 @@ namespace Plaza {
 					// FIX: Reimplement physics OnContact
 					////if (name != "Road")
 					////	std::cout << "Found: " << name << "\n";
-					//auto it1 = Scene::GetActiveScene()->csScriptComponents.find(uuid1);
-					//if (it1 != Scene::GetActiveScene()->csScriptComponents.end()) {
+					// auto it1 = Scene::GetActiveScene()->csScriptComponents.find(uuid1);
+					// if (it1 != Scene::GetActiveScene()->csScriptComponents.end()) {
 					//	for (auto [key, value] : it1->second.scriptClasses) {
 					//		void* params[] =
 					//		{
@@ -55,10 +60,10 @@ namespace Plaza {
 					//		};
 					//		Mono::CallMethod(value->monoObject, value->methods.find("OnCollide")->second, params);
 					//	}
-					//}
+					// }
 					//
-					//auto it2 = Scene::GetActiveScene()->csScriptComponents.find(uuid2);
-					//if (it2 != Scene::GetActiveScene()->csScriptComponents.end()) {
+					// auto it2 = Scene::GetActiveScene()->csScriptComponents.find(uuid2);
+					// if (it2 != Scene::GetActiveScene()->csScriptComponents.end()) {
 					//	for (auto [key, value] : it2->second.scriptClasses) {
 					//		void* params[] =
 					//		{
@@ -67,7 +72,7 @@ namespace Plaza {
 					//		};
 					//		Mono::CallMethod(value->monoObject, value->methods.find("OnCollide")->second, params);
 					//	}
-					//}
+					// }
 				}
 			}
 		}
@@ -102,7 +107,8 @@ namespace Plaza {
 			}
 		}
 
-		virtual void onAdvance(const physx::PxRigidBody* const* bodyBuffer, const physx::PxTransform* poseBuffer, const physx::PxU32 count) override {
+		virtual void onAdvance(const physx::PxRigidBody* const* bodyBuffer, const physx::PxTransform* poseBuffer,
+							   const physx::PxU32 count) override {
 			// Handle advance events
 			for (physx::PxU32 i = 0; i < count; i++) {
 				// Implement the logic for advance events
@@ -111,7 +117,7 @@ namespace Plaza {
 	};
 	CollisionCallback mCollisionCallback;
 	class UserErrorCallback : public physx::PxErrorCallback {
-	public:
+	  public:
 		virtual void reportError(physx::PxErrorCode::Enum code, const char* message, const char* file, int line) {
 			std::cout << "shit" << std::endl;
 		}
@@ -136,10 +142,9 @@ namespace Plaza {
 		return true;
 	}
 
-	PxFilterFlags FilterShaderExample(
-		PxFilterObjectAttributes attributes0, PxFilterData filterData0,
-		PxFilterObjectAttributes attributes1, PxFilterData filterData1,
-		PxPairFlags& pairFlags, const void* constantBlock, PxU32 constantBlockSize) {
+	PxFilterFlags FilterShaderExample(PxFilterObjectAttributes attributes0, PxFilterData filterData0,
+									  PxFilterObjectAttributes attributes1, PxFilterData filterData1,
+									  PxPairFlags& pairFlags, const void* constantBlock, PxU32 constantBlockSize) {
 		// let triggers through
 		if (PxFilterObjectIsTrigger(attributes0) || PxFilterObjectIsTrigger(attributes1)) {
 			pairFlags = PxPairFlag::eTRIGGER_DEFAULT;
@@ -148,7 +153,7 @@ namespace Plaza {
 		// generate contacts for all that were not filtered above
 		pairFlags = PxPairFlag::eCONTACT_DEFAULT;
 
-		// trigger the contact callback for pairs (A,B) where 
+		// trigger the contact callback for pairs (A,B) where
 		// the filtermask of A contains the ID of B and vice versa.
 		if ((filterData0.word0 & filterData1.word1) && (filterData1.word0 & filterData0.word1))
 			pairFlags |= PxPairFlag::eNOTIFY_TOUCH_FOUND;
@@ -163,24 +168,24 @@ namespace Plaza {
 		virtual void onConstraintBreak(PxConstraintInfo* constraints, PxU32 count) override {};
 		virtual void onWake(PxActor** actors, PxU32 count) override {};
 		virtual void onSleep(PxActor** actors, PxU32 count) override {};
-		virtual void onContact(const PxContactPairHeader& pairHeader, const PxContactPair* pairs, PxU32 nbPairs) override {};
+		virtual void onContact(const PxContactPairHeader& pairHeader, const PxContactPair* pairs,
+							   PxU32 nbPairs) override {};
 		virtual void onTrigger(PxTriggerPair* pairs, PxU32 count) override {};
-		virtual void onAdvance(const PxRigidBody* const* bodyBuffer, const PxTransform* poseBuffer, const PxU32 count) override {};
+		virtual void onAdvance(const PxRigidBody* const* bodyBuffer, const PxTransform* poseBuffer,
+							   const PxU32 count) override {};
 	};
 
 	class FilterCallback : public PxSimulationFilterCallback {
-		virtual		PxFilterFlags	pairFound(PxU64 pairID,
-			PxFilterObjectAttributes attributes0, PxFilterData filterData0, const PxActor* a0, const PxShape* s0,
-			PxFilterObjectAttributes attributes1, PxFilterData filterData1, const PxActor* a1, const PxShape* s1,
-			PxPairFlags& pairFlags) override {
+		virtual PxFilterFlags pairFound(PxU64 pairID, PxFilterObjectAttributes attributes0, PxFilterData filterData0,
+										const PxActor* a0, const PxShape* s0, PxFilterObjectAttributes attributes1,
+										PxFilterData filterData1, const PxActor* a1, const PxShape* s1,
+										PxPairFlags& pairFlags) override {
 			return PxFilterFlag::eDEFAULT;
 		}
-		virtual		void			pairLost(PxU64 pairID,
-			PxFilterObjectAttributes attributes0, PxFilterData filterData0,
-			PxFilterObjectAttributes attributes1, PxFilterData filterData1,
-			bool objectRemoved) override {
-		};
-		virtual		bool			statusChange(PxU64& pairID, PxPairFlags& pairFlags, PxFilterFlags& filterFlags) override {
+		virtual void pairLost(PxU64 pairID, PxFilterObjectAttributes attributes0, PxFilterData filterData0,
+							  PxFilterObjectAttributes attributes1, PxFilterData filterData1,
+							  bool objectRemoved) override {};
+		virtual bool statusChange(PxU64& pairID, PxPairFlags& pairFlags, PxFilterFlags& filterFlags) override {
 			return false;
 		}
 	};
@@ -188,7 +193,7 @@ namespace Plaza {
 	void setupFiltering(PxShape* shape, PxU32 filterGroup, PxU32 filterMask) {
 		PxFilterData filterData;
 		filterData.word0 = filterGroup; // word0 = own ID
-		filterData.word1 = filterMask;  // word1 = ID mask to filter pairs that trigger a contact callback
+		filterData.word1 = filterMask;	// word1 = ID mask to filter pairs that trigger a contact callback
 		shape->setSimulationFilterData(filterData);
 	}
 	CollisionCallback simulationEventCallback;
@@ -201,8 +206,8 @@ namespace Plaza {
 		sceneDesc.filterCallback = &filterCallback;
 		sceneDesc.simulationEventCallback = &simulationEventCallback;
 		sceneDesc.flags = PxSceneFlag::eENABLE_CCD;
-		//sceneDesc.simulationEventCallback = &collisionCallback;
-		//sceneDesc.dynamicTreeRebuildRateHint = 100;
+		// sceneDesc.simulationEventCallback = &collisionCallback;
+		// sceneDesc.dynamicTreeRebuildRateHint = 100;
 		return sceneDesc;
 	}
 
@@ -233,8 +238,9 @@ namespace Plaza {
 	void Physics::InitScene() {
 		// Create the PhysX scene
 		m_scene = m_physics->createScene(Physics::GetSceneDesc());
-		//m_scene->setSimulationEventCallback(&collisionCallback);
-		Physics::defaultMaterial = Physics::m_physics->createMaterial(0.0f, 1.0f, 0.0f); /* TODO: MAKE DYNAMIC MATERIALS AND SET RESTITUTION ON DEFAULT MATERIAL TO 0.5 AGAIN*/
+		// m_scene->setSimulationEventCallback(&collisionCallback);
+		Physics::defaultMaterial = Physics::m_physics->createMaterial(
+			0.0f, 1.0f, 0.0f); /* TODO: MAKE DYNAMIC MATERIALS AND SET RESTITUTION ON DEFAULT MATERIAL TO 0.5 AGAIN*/
 
 		std::cout << "Physics Initialized" << std::endl;
 	}
@@ -251,16 +257,16 @@ namespace Plaza {
 		glm::quat quaternion = glm::normalize(transform.GetWorldQuaternion());
 		physx::PxQuat pxQuaternion(quaternion.x, quaternion.y, quaternion.z, quaternion.w);
 		glm::vec3 worldPosition = transform.GetWorldPosition();
-		physx::PxTransform pxTransform = physx::PxTransform(
-			worldPosition.x, worldPosition.y, worldPosition.z,
-			pxQuaternion);
+		physx::PxTransform pxTransform =
+			physx::PxTransform(worldPosition.x, worldPosition.y, worldPosition.z, pxQuaternion);
 		return pxTransform;
 	}
 
 	physx::PxTransform* Physics::ConvertMat4ToPxTransform(const glm::mat4& mat) {
 		glm::vec3 translation = mat[3];
 		glm::quat rotationQuaternion = glm::quat_cast(glm::mat3(mat));
-		physx::PxQuat pxQuaternion(rotationQuaternion.x, rotationQuaternion.y, rotationQuaternion.z, rotationQuaternion.w);
+		physx::PxQuat pxQuaternion(rotationQuaternion.x, rotationQuaternion.y, rotationQuaternion.z,
+								   rotationQuaternion.w);
 		return new physx::PxTransform(physx::PxVec3(translation.x, translation.y, translation.z), pxQuaternion);
 	}
 
@@ -273,30 +279,32 @@ namespace Plaza {
 		bool foundCookedGeometry = sCookedGeometries.find(colliderShape->mMeshUuid) != sCookedGeometries.end();
 		Mesh* mesh = AssetsManager::GetMesh(colliderShape->mMeshUuid);
 		switch (colliderShape->mEnum) {
-		case ColliderShape::BOX:
-			meshUuid = 1;
-			geometry = Physics::GetCubeGeometry();
-			break;
-		case ColliderShape::PLANE:
-			meshUuid = 2;
-			geometry = Physics::GetPlaneGeometry();
-			break;
-		case ColliderShape::SPHERE:
-			meshUuid = 3;
-			geometry = Physics::GetSphereGeometry();
-			break;
-		case ColliderShape::CAPSULE:
-			meshUuid = 4;
-			geometry = Physics::GetCapsuleGeometry();
-			break;
-		case ColliderShape::MESH:
-			meshUuid = colliderShape->mMeshUuid;
-			geometry = foundCookedGeometry ? Physics::GetGeometry(colliderShape->mMeshUuid) : Physics::CookMeshGeometry(mesh);
-			break;
-		case ColliderShape::CONVEX_MESH:
-			meshUuid = colliderShape->mMeshUuid;
-			geometry = foundCookedGeometry ? Physics::GetGeometry(colliderShape->mMeshUuid) : Physics::CookConvexMeshGeometry(mesh);
-			break;
+			case ColliderShape::BOX:
+				meshUuid = 1;
+				geometry = Physics::GetCubeGeometry();
+				break;
+			case ColliderShape::PLANE:
+				meshUuid = 2;
+				geometry = Physics::GetPlaneGeometry();
+				break;
+			case ColliderShape::SPHERE:
+				meshUuid = 3;
+				geometry = Physics::GetSphereGeometry();
+				break;
+			case ColliderShape::CAPSULE:
+				meshUuid = 4;
+				geometry = Physics::GetCapsuleGeometry();
+				break;
+			case ColliderShape::MESH:
+				meshUuid = colliderShape->mMeshUuid;
+				geometry = foundCookedGeometry ? Physics::GetGeometry(colliderShape->mMeshUuid)
+											   : Physics::CookMeshGeometry(mesh);
+				break;
+			case ColliderShape::CONVEX_MESH:
+				meshUuid = colliderShape->mMeshUuid;
+				geometry = foundCookedGeometry ? Physics::GetGeometry(colliderShape->mMeshUuid)
+											   : Physics::CookConvexMeshGeometry(mesh);
+				break;
 		}
 
 		if (sShapes[meshUuid][*material] == nullptr) {
@@ -332,9 +340,9 @@ namespace Plaza {
 					newShape = Physics::m_physics->createShape(sphereGeometry, *material);
 				}
 				else if (this->mShapes[i]->mEnum == ColliderShape::ColliderShapeEnum::MESH) {
-					physx::PxTriangleMeshGeometry meshGeometry(geometry.triangleMesh().triangleMesh, physx::PxMeshScale(physx::PxVec3(scale.x, scale.y, scale.z), physx::PxQuat(physx::PxIdentity)));
-					newShape = Physics::m_physics->createShape(meshGeometry, *material);
-					shape->release();
+					physx::PxTriangleMeshGeometry meshGeometry(geometry.triangleMesh().triangleMesh,
+	   physx::PxMeshScale(physx::PxVec3(scale.x, scale.y, scale.z), physx::PxQuat(physx::PxIdentity))); newShape =
+	   Physics::m_physics->createShape(meshGeometry, *material); shape->release();
 				}
 				else if (this->mShapes[i]->mEnum == ColliderShape::ColliderShapeEnum::HEIGHT_FIELD) {
 					physx::PxHeightFieldGeometry heightGeometry = geometry.heightField();
@@ -361,7 +369,8 @@ namespace Plaza {
 				}
 	*/
 
-	physx::PxMaterial* Physics::InitializePhysicsMaterial(float staticFriction, float dynamicFriction, float restitution) {
+	physx::PxMaterial* Physics::InitializePhysicsMaterial(float staticFriction, float dynamicFriction,
+														  float restitution) {
 		return Physics::m_physics->createMaterial(staticFriction, dynamicFriction, restitution);
 	}
 
@@ -383,21 +392,13 @@ namespace Plaza {
 		return nullptr;
 	}
 
-	physx::PxGeometry* Physics::GetCubeGeometry() {
-		return GetGeometry(1);
-	}
+	physx::PxGeometry* Physics::GetCubeGeometry() { return GetGeometry(1); }
 
-	physx::PxGeometry* Physics::GetPlaneGeometry() {
-		return GetGeometry(2);
-	}
+	physx::PxGeometry* Physics::GetPlaneGeometry() { return GetGeometry(2); }
 
-	physx::PxGeometry* Physics::GetSphereGeometry() {
-		return GetGeometry(3);
-	}
+	physx::PxGeometry* Physics::GetSphereGeometry() { return GetGeometry(3); }
 
-	physx::PxGeometry* Physics::GetCapsuleGeometry() {
-		return GetGeometry(4);
-	}
+	physx::PxGeometry* Physics::GetCapsuleGeometry() { return GetGeometry(4); }
 
 	physx::PxGeometry* Physics::CookMeshGeometry(Mesh* mesh) {
 		physx::PxShape* shape;
@@ -408,10 +409,7 @@ namespace Plaza {
 		// Extract vertices and indices from the mesh
 		vertices.resize(mesh->vertices.size());
 		std::transform(mesh->vertices.begin(), mesh->vertices.end(), vertices.begin(),
-			[](const glm::vec3& glmVertex) {
-				return physx::PxVec3(glmVertex.x, glmVertex.y, glmVertex.z);
-			}
-		);
+					   [](const glm::vec3& glmVertex) { return physx::PxVec3(glmVertex.x, glmVertex.y, glmVertex.z); });
 		indices.resize(mesh->indices.size());
 		indices = mesh->indices;
 
@@ -426,9 +424,9 @@ namespace Plaza {
 		physx::PxCookingParams params(Physics::m_physics->getTolerancesScale());
 		params.meshPreprocessParams |= physx::PxMeshPreprocessingFlag::eDISABLE_CLEAN_MESH;
 		params.meshPreprocessParams |= physx::PxMeshPreprocessingFlag::eDISABLE_ACTIVE_EDGES_PRECOMPUTE;
-		//params.meshcook = physx::PxMeshCookingHint::eCOOKING_PERFORMANCE;
+		// params.meshcook = physx::PxMeshCookingHint::eCOOKING_PERFORMANCE;
 
-		//params. = physx::PxMeshCookingHint::eSIM_PERFORMANCE;
+		// params. = physx::PxMeshCookingHint::eSIM_PERFORMANCE;
 		physx::PxDefaultMemoryOutputStream buf;
 		if (!PxCookTriangleMesh(params, meshDesc, buf))
 			printf("failed");
@@ -466,16 +464,17 @@ namespace Plaza {
 		return geometry;
 	}
 
-	void Physics::DeleteShape() {
-
-	}
+	void Physics::DeleteShape() {}
 	void Physics::Raycast(glm::vec3 origin, glm::vec3 direction, RaycastHit& hit) {
 		MyQueryFilterCallback filterCallback{};
 		filterCallback.setEntityToIgnore(reinterpret_cast<void*>(0));
-		physx::PxQueryFilterData filterData(physx::PxQueryFlag::ePREFILTER | physx::PxQueryFlag::eSTATIC | physx::PxQueryFlag::eDYNAMIC);
+		physx::PxQueryFilterData filterData(physx::PxQueryFlag::ePREFILTER | physx::PxQueryFlag::eSTATIC |
+											physx::PxQueryFlag::eDYNAMIC);
 
 		physx::PxRaycastBuffer hitPhysx;
-		bool status = Physics::m_scene->raycast(physx::PxVec3(origin.x, origin.y, origin.z), physx::PxVec3(direction.x, direction.y, direction.z), 15000.0f, hitPhysx, physx::PxHitFlag::eDEFAULT, filterData, &filterCallback);
+		bool status = Physics::m_scene->raycast(physx::PxVec3(origin.x, origin.y, origin.z),
+												physx::PxVec3(direction.x, direction.y, direction.z), 15000.0f,
+												hitPhysx, physx::PxHitFlag::eDEFAULT, filterData, &filterCallback);
 		if (status) {
 			hit.hitUuid = (uint64_t)hitPhysx.block.actor->userData;
 			hit.point = glm::vec3(hitPhysx.block.position.x, hitPhysx.block.position.y, hitPhysx.block.position.z);
@@ -485,7 +484,5 @@ namespace Plaza {
 			hit.missed = true;
 	}
 
-	physx::PxVec3 Physics::GlmToPhysX(const glm::vec3& vector) {
-		return physx::PxVec3(vector.x, vector.y, vector.z);
-	}
-}
+	physx::PxVec3 Physics::GlmToPhysX(const glm::vec3& vector) { return physx::PxVec3(vector.x, vector.y, vector.z); }
+} // namespace Plaza

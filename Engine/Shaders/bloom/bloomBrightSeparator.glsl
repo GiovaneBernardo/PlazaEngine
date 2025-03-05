@@ -10,7 +10,7 @@ void main() {
     float threeshold = 0.5f;
     if(color.x > threeshold || color.y > threeshold || color.z > threeshold)
     {
-        
+
     }
     else
     {

@@ -20,7 +20,7 @@ namespace Plaza {
 	class Window;
 	class Renderer;
 	class PLAZA_API Application {
-	public:
+	  public:
 		void CreateApplication();
 		void GetPaths();
 		void GetAppSize();
@@ -80,7 +80,7 @@ namespace Plaza {
 		static void Init();
 		static Application* Get();
 
-	private:
+	  private:
 		static Application* sApplication;
 	};
-}
+} // namespace Plaza

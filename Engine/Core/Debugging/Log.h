@@ -4,17 +4,17 @@
 
 namespace Plaza {
 	class PLAZA_API Log {
-	public:
+	  public:
 		static void Init();
 
 		static std::shared_ptr<spdlog::logger>& GetCoreLogger();
 		static std::shared_ptr<spdlog::logger>& GetClientLogger();
 
-	private:
+	  private:
 		static std::shared_ptr<spdlog::logger> sCoreLogger;
 		static std::shared_ptr<spdlog::logger> sClientLogger;
 	};
-}
+} // namespace Plaza
 
 #define PL_CORE_TRACE(...) ::Plaza::Log::GetCoreLogger()->trace(__VA_ARGS__);
 #define PL_CORE_INFO(...) ::Plaza::Log::GetCoreLogger()->info(__VA_ARGS__);
