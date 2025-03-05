@@ -9,3 +9,25 @@ insert_final_newline = true
 
 indent_style = tab
 indent_size = 4
+tab_width = 4
+max_line_length = 120
+
+# For clang-format like style settings
+[*.{cpp,h,cs}]
+# Use tab for indentation
+indent_style = tab
+indent_size = 4
+tab_width = 4
+
+# Control brace style and spaces
+brace_style = attach
+space_before_paren = true
+align_consecutive_assignments = false
+align_consecutive_declarations = false
+align_after_open_bracket = true
+align_operands = true
+allow_short_functions_on_one_line = true
+allow_short_blocks_on_one_line = false
+namespace_indent = all
+case_label_indent = true
+goto_label_indent = true

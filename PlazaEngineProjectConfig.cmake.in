@@ -2,4 +2,4 @@
 
 include(CMakeFindDependencyMacro)
 include("${CMAKE_CURRENT_LIST_DIR}/PlazaEngineProjectTargets.cmake")
-set(PlazaEngineProject_INCLUDE_DIRS "@PACKAGE_INCLUDE_INSTALL_DIR@")
+set(PlazaEngineProject_INCLUDE_DIRS "@PACKAGE_INCLUDE_INSTALL_DI@")
