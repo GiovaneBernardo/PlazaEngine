@@ -12,13 +12,12 @@
 #include "Engine/Application/Callbacks/CallbacksHeader.h"
 #include "Engine/Core/Scene.h"
 
-
 namespace Plaza::Editor {
 	void HierarchyWindow::Init() {
 		auto onKeyPressLambda = [this](int key, int scancode, int action, int mods) {
 			this->OnKeyPress(key, scancode, action, mods);
-			};
-		Callbacks::AddFunctionToKeyCallback({ onKeyPressLambda, GuiLayer::ASSETS_IMPORTER });
+		};
+		Callbacks::AddFunctionToKeyCallback({onKeyPressLambda, GuiLayer::ASSETS_IMPORTER});
 	}
 
 	void HierarchyWindow::Update(Scene* scene) {
@@ -26,10 +25,11 @@ namespace Plaza::Editor {
 		ApplicationSizes& appSizes = *Application::Get()->appSizes;
 		ApplicationSizes& lastAppSizes = *Application::Get()->lastAppSizes;
 		Entity* selectedGameObject = Editor::selectedGameObject;
-		//ImGui::SetNextWindowPos(ImVec2(0, 0));
-		ImGuiWindowFlags  sceneWindowFlags = ImGuiWindowFlags_NoFocusOnAppearing | ImGuiConfigFlags_DockingEnable | ImGuiWindowFlags_HorizontalScrollbar | ImGuiScrollFlags_NoScrollParent;
+		// ImGui::SetNextWindowPos(ImVec2(0, 0));
+		ImGuiWindowFlags sceneWindowFlags = ImGuiWindowFlags_NoFocusOnAppearing | ImGuiConfigFlags_DockingEnable |
+											ImGuiWindowFlags_HorizontalScrollbar | ImGuiScrollFlags_NoScrollParent;
 
-		//ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(1.0f, 0.0f, 0.0f, 1.0f)); // Set window background to red//
+		// ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(1.0f, 0.0f, 0.0f, 1.0f)); // Set window background to red//
 		ImGui::SetNextWindowSize(ImVec2(appSizes.hierarchySize.x, appSizes.hierarchySize.y));
 		ImGui::Begin("Hierarchy", &Gui::isHierarchyOpen, sceneWindowFlags);
 		if (ImGui::IsWindowFocused())
@@ -49,12 +49,13 @@ namespace Plaza::Editor {
 
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
-		HierarchyWindow::Item::NewItem(*Scene::GetActiveScene()->GetEntity(Scene::GetActiveScene()->mainSceneEntity->uuid), selectedGameObject, mScene);
+		HierarchyWindow::Item::NewItem(
+			*Scene::GetActiveScene()->GetEntity(Scene::GetActiveScene()->mainSceneEntity->uuid), selectedGameObject,
+			mScene);
 		ImGui::PopStyleVar();
 		ImGui::PopStyleVar();
 
-
-		//Gui::curHierarchySize = ImGui::glmVec2(ImGui::GetWindowSize());
+		// Gui::curHierarchySize = ImGui::glmVec2(ImGui::GetWindowSize());
 		ImGui::End();
 	}
 
@@ -63,7 +64,6 @@ namespace Plaza::Editor {
 			std::cout << "coopy \n";
 		}
 	}
-
 
 	bool HierarchyWindow::Item::firstFocus = false;
 	float inputTextWidth = 0;
@@ -77,43 +77,46 @@ namespace Plaza::Editor {
 		ImGui::PushStyleColor(ImGuiCol_HeaderActive, Gui::sEditorStyle->treeNodeActiveBackgroundColor);
 
 		bool itemIsSelectedObject = false;
-		if (selectedGameObject && entity.uuid == selectedGameObject->uuid) itemIsSelectedObject = true;
+		if (selectedGameObject && entity.uuid == selectedGameObject->uuid)
+			itemIsSelectedObject = true;
 
-		if (itemIsSelectedObject) {// Selected backgroundde
+		if (itemIsSelectedObject) { // Selected backgroundde
 			ImGui::PushStyleColor(ImGuiCol_HeaderHovered, Gui::sEditorStyle->selectedTreeNodeBackgroundColor);
 			ImGui::PushStyleColor(ImGuiCol_Header, Gui::sEditorStyle->selectedTreeNodeBackgroundColor);
 		}
-		else {// Not selected background
+		else { // Not selected background
 			ImGui::PushStyleColor(ImGuiCol_HeaderHovered, Gui::sEditorStyle->treeNodeHoverBackgroundColor);
 			ImGui::PushStyleColor(ImGuiCol_Header, Gui::sEditorStyle->treeNodeBackgroundColor);
 		}
-
-
 
 		bool treeNodeOpen = false;
 
 		ImGuiStyle& style = ImGui::GetStyle();
 
-
-
 		style.IndentSpacing = 15.0f;
-		//ImGui::SetCursorPosX(ImGui::GetCursorPosX());
+		// ImGui::SetCursorPosX(ImGui::GetCursorPosX());
 		float indentSpacing = ImGui::GetStyle().IndentSpacing;
 		const int depth = 1.0f;
 
-		//ImGui::Indent(3.0f);
-		//ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, ImGui::GetTreeNodeToLabelSpacing() + 3.0f); // Decrease the indentation spacing
+		// ImGui::Indent(3.0f);
+		// ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, ImGui::GetTreeNodeToLabelSpacing() + 3.0f); // Decrease the
+		// indentation spacing
 
 		if (!entity.changingName) {
 			if (entity.childrenUuid.size() > 0) {
-				treeNodeOpen = ImGui::TreeNodeEx(entity.name.c_str(), ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_SpanFullWidth);
+				treeNodeOpen = ImGui::TreeNodeEx(entity.name.c_str(),
+												 ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick |
+													 ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen |
+													 ImGuiTreeNodeFlags_SpanFullWidth);
 			}
 			else {
-
-				//ImGui::Selectable(entity->name.c_str(), ImGuiTreeNodeFlags_Framed);
+				// ImGui::Selectable(entity->name.c_str(), ImGuiTreeNodeFlags_Framed);
 				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetTreeNodeToLabelSpacing());
-				//ImGui::Unindent(ImGui::GetTreeNodeToLabelSpacing());
-				treeNodeOpen = ImGui::TreeNodeEx(entity.name.c_str(), ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_SpanFullWidth);
+				// ImGui::Unindent(ImGui::GetTreeNodeToLabelSpacing());
+				treeNodeOpen = ImGui::TreeNodeEx(entity.name.c_str(),
+												 ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick |
+													 ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_DefaultOpen |
+													 ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_SpanFullWidth);
 			}
 		}
 		else {
@@ -134,7 +137,8 @@ namespace Plaza::Editor {
 				ImGui::SetCursorPosX(currentIndent + 20);
 
 			ImGui::SetNextWindowSize(ImVec2(50.0f, height));
-			if (ImGui::InputTextEx("##EntityNameInput", "Name", buf, 1024, ImVec2(inputTextWidth, 0), ImGuiInputTextFlags_EnterReturnsTrue)) {
+			if (ImGui::InputTextEx("##EntityNameInput", "Name", buf, 1024, ImVec2(inputTextWidth, 0),
+								   ImGuiInputTextFlags_EnterReturnsTrue)) {
 				entity.Rename(buf);
 				entity.changingName = false;
 				nameChanged = true;
@@ -155,13 +159,13 @@ namespace Plaza::Editor {
 			inputTextWidth = ImGui::CalcTextSize(buf).x + 30;
 		}
 
-		//ImGui::SetWindowPos(ImVec2(ImGui::GetWindowPos().x - 1.0f, ImGui::GetWindowPos().y));
+		// ImGui::SetWindowPos(ImVec2(ImGui::GetWindowPos().x - 1.0f, ImGui::GetWindowPos().y));
 
 		// Get the start and end position of the header
 		ImVec2 treeNodeMin = ImGui::GetItemRectMin();
 		ImVec2 treeNodeMax = ImGui::GetItemRectMax();
 		ImVec2 treeNodePos = ImVec2(treeNodeMin.x, treeNodeMin.y);
-		//ImGui::PopStyleVar(); // IndentSpacing
+		// ImGui::PopStyleVar(); // IndentSpacing
 
 		ImGui::PopStyleColor(); // Header Active Background (Active is when I click on it)
 		ImGui::PopStyleColor(); // Header Hovered Background
@@ -170,8 +174,7 @@ namespace Plaza::Editor {
 		// Change the selected entity if user clicked on the selectable
 		if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
 			Gui::changeSelectedGameObject(Scene::GetActiveScene()->GetEntity(entity.uuid));
-		//Plaza::Editor::selectedGameObject = entity;
-
+		// Plaza::Editor::selectedGameObject = entity;
 
 		if (ImGui::IsItemVisible()) {
 			if (entity.parentUuid && ImGui::BeginDragDropSource()) {
@@ -196,22 +199,18 @@ namespace Plaza::Editor {
 			Gui::changeSelectedGameObject(Scene::GetActiveScene()->GetEntity(entity.uuid));
 		}
 
-		if (treeNodeOpen)
-		{
-			for (uint64_t child : entity.childrenUuid)
-			{
+		if (treeNodeOpen) {
+			for (uint64_t child : entity.childrenUuid) {
 				HierarchyWindow::Item::NewItem(*Scene::GetActiveScene()->GetEntity(child), selectedGameObject, scene);
 			}
 			if (treePop)
 				ImGui::TreePop();
 		}
-		//ImGui::Unindent(indentSpacing * depth);
+		// ImGui::Unindent(indentSpacing * depth);
 		ImGui::PopStyleVar();
 
 		ImGui::PopID();
 	};
 
-	void HierarchyWindow::Item::ItemPopup(Entity* entity, Scene* scene) {
-		HierarchyPopup::Update(scene, entity);
-	}
-};
+	void HierarchyWindow::Item::ItemPopup(Entity* entity, Scene* scene) { HierarchyPopup::Update(scene, entity); }
+}; // namespace Plaza::Editor

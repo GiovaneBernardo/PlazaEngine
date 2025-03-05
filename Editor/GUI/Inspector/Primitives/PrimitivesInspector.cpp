@@ -5,8 +5,7 @@
 #include "Editor/GUI/NodeEditors/NodeEditor.h"
 
 namespace Plaza::Editor {
-	void PrimitivesInspector::Init() {
-	}
+	void PrimitivesInspector::Init() {}
 	bool PrimitivesInspector::InspectAny(Any& any, const std::string& fieldName, const std::string& comboPopupName) {
 		std::string_view rawName = any.type().name();
 		try {
@@ -67,12 +66,9 @@ namespace Plaza::Editor {
 			else { // Struct or Class
 				// Unknown type
 
-
-
 				std::cerr << "Unknown type: " << any.type().name() << std::endl;
 			}
-		}
-		catch (const std::bad_any_cast& e) {
+		} catch (const std::bad_any_cast& e) {
 			std::cerr << "Failed to cast type: " << e.what() << std::endl;
 			return false;
 		}
@@ -173,7 +169,7 @@ namespace Plaza::Editor {
 	bool PrimitivesInspector::InspectUInt16(const std::string& name, uint16_t& value) {
 		return ImGui::DragScalar(name.c_str(), ImGuiDataType_U16, &value);
 	}
-	
+
 	bool PrimitivesInspector::InspectUInt32(const std::string& name, uint32_t& value) {
 		return ImGui::DragScalar(name.c_str(), ImGuiDataType_U32, &value);
 	}
@@ -193,4 +189,4 @@ namespace Plaza::Editor {
 	bool PrimitivesInspector::InspectVector4(const std::string& name, glm::vec4& value) {
 		return ImGui::DragFloat3(name.c_str(), &value.x);
 	}
-}
+} // namespace Plaza::Editor

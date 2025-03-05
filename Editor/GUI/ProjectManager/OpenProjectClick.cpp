@@ -13,15 +13,13 @@ namespace Plaza {
 		namespace fs = std::filesystem;
 		void ProjectManagerGui::OpenProjectClick() {
 			std::string filePath = FileDialog::OpenFileDialog(Standards::projectExtName.c_str());
-			// If user didnt canceled, loop through all items found on the directory path and check for the first that haves the project extension. 
+			// If user didnt canceled, loop through all items found on the directory path and check for the first that
+			// haves the project extension.
 			if (filePath != "") {
 				Project::Load(filePath);
 				Cache::Serialize(Application::Get()->enginePathAppData + "/cache" + Standards::editorCacheExtName);
 			}
-
 		}
 
-
-
-	}
-}
+	} // namespace Editor
+} // namespace Plaza

@@ -30,11 +30,12 @@ namespace Plaza {
 			Entity* selectedGameObject = Editor::selectedGameObject;
 
 			// Set the window to be the content size + header size
-			ImGuiWindowFlags  sceneWindowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoMove;
+			ImGuiWindowFlags sceneWindowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoMove;
 			ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
 
-			ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoNavFocus;
-			//windowFlags |= ImGuiWindowFlags_NoScrollbar;
+			ImGuiWindowFlags windowFlags =
+				ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoNavFocus;
+			// windowFlags |= ImGuiWindowFlags_NoScrollbar;
 			if (ImGui::Begin("File Explorer", &Gui::isFileExplorerOpen, windowFlags)) {
 				if (ImGui::IsWindowFocused())
 					Application::Get()->focusedMenu = "File Explorer";
@@ -90,7 +91,7 @@ namespace Plaza {
 			ImGui::End();
 			ImGui::PopStyleColor();
 		}
-		
+
 		/* Read all files in a directory and push them to the files vector */
 		std::vector<std::unique_ptr<File>> Gui::FileExplorer::files = std::vector<std::unique_ptr<File>>();
 		void Gui::FileExplorer::UpdateContent(std::string folderPath) {
@@ -99,13 +100,14 @@ namespace Plaza {
 			files.clear();
 			// Back Button
 			std::string currentDirectory = Gui::FileExplorer::currentDirectory;
-			const std::string& currentDirectoryPath = filesystem::path{ currentDirectory }.string();
+			const std::string& currentDirectoryPath = filesystem::path{currentDirectory}.string();
 			files.push_back(make_unique<BackFile>(".back", currentDirectory + "/asd.back", ".back"));
 
 			// Loop through all files found and create an icon on the file explorer
 			for (const auto& entry : fs::directory_iterator(folderPath)) {
 				std::string filename = entry.path().filename().string();
 				std::string extension = entry.path().extension().string();
+				PL_CORE_INFO(filename);
 				if (entry.path().stem().string() == filename)
 					extension = filename;
 
@@ -116,7 +118,6 @@ namespace Plaza {
 					files.emplace_back(make_unique<MaterialFile>(filename, entry.path().string(), extension));
 				else
 					files.emplace_back(make_unique<File>(filename, entry.path().string(), extension));
-
 			}
 		}
 
@@ -126,7 +127,8 @@ namespace Plaza {
 			}
 			ImGui::SetCursorScreenPos(file->currentPos);
 
-			ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoFocusOnAppearing;
+			ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
+										   ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoFocusOnAppearing;
 			windowFlags |= ImGuiWindowFlags_NoScrollbar;
 
 			if (ImGui::BeginChild(ImGui::GetID(file->name.c_str()), ImVec2(75, 75), false, windowFlags)) {
@@ -165,19 +167,24 @@ namespace Plaza {
 				if (file->changingName == file->name) {
 					if (file->firstFocus) {
 						ImGui::SetKeyboardFocusHere();
-						startSelected = std::filesystem::path{ file->name }.stem().string().length();
+						startSelected = std::filesystem::path{file->name}.stem().string().length();
 					}
 
 					char buf[1024];
 					strcpy(buf, file->name.c_str());
-					if (ImGui::InputTextEx("##FileNameInput", "File Name", buf, 512, ImVec2(50, 20), ImGuiInputTextFlags_EnterReturnsTrue, nullptr, nullptr, startSelected)) {
+					if (ImGui::InputTextEx("##FileNameInput", "File Name", buf, 512, ImVec2(50, 20),
+										   ImGuiInputTextFlags_EnterReturnsTrue, nullptr, nullptr, startSelected)) {
 						file->changingName = "";
-						Utils::Filesystem::ChangeFileName(Editor::Gui::FileExplorer::currentDirectory + "/" + file->name, Editor::Gui::FileExplorer::currentDirectory + "/" + buf);
+						Utils::Filesystem::ChangeFileName(Editor::Gui::FileExplorer::currentDirectory + "/" +
+															  file->name,
+														  Editor::Gui::FileExplorer::currentDirectory + "/" + buf);
 					}
 
 					if (!ImGui::IsItemActive() && !file->firstFocus) {
 						file->changingName = "";
-						Utils::Filesystem::ChangeFileName(Editor::Gui::FileExplorer::currentDirectory + "/" + file->name, Editor::Gui::FileExplorer::currentDirectory + "/" + buf);
+						Utils::Filesystem::ChangeFileName(Editor::Gui::FileExplorer::currentDirectory + "/" +
+															  file->name,
+														  Editor::Gui::FileExplorer::currentDirectory + "/" + buf);
 						file->name = buf;
 						Gui::FileExplorer::UpdateContent(Editor::Gui::FileExplorer::currentDirectory);
 					}
@@ -206,14 +213,16 @@ namespace Plaza {
 				if (ImGui::IsMouseDoubleClicked(0)) {
 					// Handle double click on folders
 					file->DoubleClick();
-					//if (filesystem::is_directory(filesystem::path{ file->directory }) && glfwGetKey(Application::Get()->Window->glfwWindow, GLFW_KEY_LEFT_CONTROL) != GLFW_PRESS) {
+					// if (filesystem::is_directory(filesystem::path{ file->directory }) &&
+					// glfwGetKey(Application::Get()->Window->glfwWindow, GLFW_KEY_LEFT_CONTROL) != GLFW_PRESS) {
 					//	Editor::Gui::FileExplorer::currentDirectory = file->directory;
 					//	Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
 					//	Editor::selectedFiles.clear();
-					//} // Handle double click on .cs files
-					//else if (filesystem::path{ file->directory }.extension() == ".cs") {
+					// } // Handle double click on .cs files
+					// else if (filesystem::path{ file->directory }.extension() == ".cs") {
 					//	/* Get Devenv path */
-					//	std::string getDevenvCommand = (Application::Get()->enginePath + "/vendor/vsWhere/vswhere -latest -requires Microsoft.Component.MSBuild -find Common7/IDE/devenv.exe");
+					//	std::string getDevenvCommand = (Application::Get()->enginePath + "/vendor/vsWhere/vswhere
+					//-latest -requires Microsoft.Component.MSBuild -find Common7/IDE/devenv.exe");
 					//	// Open a pipe to capture the command output
 					//	FILE* pipe = _popen(getDevenvCommand.c_str(), "r");
 					//	if (!pipe) {
@@ -233,13 +242,14 @@ namespace Plaza {
 					//	// Close the pipe
 					//	_pclose(pipe);
 					//
-					//	/* "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\devenv.exe" /command "File.OpenFile" "Speed Runers.sln" scriptchola.cs */
-					//	std::string projectPath = std::filesystem::path{ Application::Get()->activeProject->directory + "/" + Application::Get()->activeProject->name }.replace_extension(".sln").string();
-					//	std::string scriptPath = file->directory;
-					//	std::string openCsFileCommand = "\"\"" + devenvPath + "\" \"" + projectPath + "\" \"" + scriptPath + "\"\"";
-					//	for (size_t i = 0; i < openCsFileCommand.length(); ++i) {
-					//		if (openCsFileCommand[i] == '/') {
-					//			openCsFileCommand[i] = '/';
+					//	/* "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\devenv.exe" /command
+					//"File.OpenFile" "Speed Runers.sln" scriptchola.cs */ 	std::string projectPath =
+					// std::filesystem::path{ Application::Get()->activeProject->directory + "/" +
+					// Application::Get()->activeProject->name }.replace_extension(".sln").string(); 	std::string
+					// scriptPath = file->directory; 	std::string openCsFileCommand = "\"\"" + devenvPath + "\" \"" +
+					// projectPath + "\" \"" + scriptPath + "\"\""; 	for (size_t i = 0; i <
+					// openCsFileCommand.length();
+					//++i) { 		if (openCsFileCommand[i] == '/') { 			openCsFileCommand[i] = '/';
 					//		}
 					//	}
 					//	std::cout << "OpenCsFileCommand: " << openCsFileCommand.c_str() << "\n";
@@ -249,7 +259,7 @@ namespace Plaza {
 					//	if (!pipe2) {
 					//		std::cerr << "Error: Unable to execute the command." << std::endl;
 					//	}
-					//}
+					// }
 				}
 				else {
 					Editor::selectedGameObject = 0;
@@ -271,13 +281,11 @@ namespace Plaza {
 				}
 			}
 
-
-
 			file->currentPos.x += file->iconSize + file->spacing;
 			if (file->currentPos.x + file->iconSize > ImGui::GetWindowPos().x + ImGui::GetWindowWidth()) {
 				file->currentPos.x = ImGui::GetCursorScreenPos().x;
 				file->currentPos.y += file->iconSize + file->spacing;
 			}
 		}
-	}
-}
+	} // namespace Editor
+} // namespace Plaza
