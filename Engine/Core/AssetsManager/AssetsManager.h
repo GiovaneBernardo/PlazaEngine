@@ -49,7 +49,7 @@ namespace Plaza {
 
 		static void Init();
 
-		static AssetType GetExtensionType(std::string extension);
+		static AssetType GetExtensionType(const std::string& extension);
 
 		static bool AssetTypeContainsMetaData(AssetType assetType);
 		static bool AssetContainsMetaData(Asset* asset);

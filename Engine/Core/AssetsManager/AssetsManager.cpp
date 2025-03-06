@@ -14,6 +14,8 @@
 #include "Engine/Core/AssetsManager/Serializer/AssetsSerializer.h"
 #include "Engine/Components/Physics/PhysicsMaterial.h"
 #include "Engine/Core/Scripting/Script.h"
+#include "Engine/Core/Standards.h"
+#include <X11/Xlib.h>
 
 namespace Plaza {
 	void AssetsManager::Init() {
@@ -36,17 +38,23 @@ namespace Plaza {
 		AssetsManager::mAssetTypeByExtension.emplace(".jpeg", AssetType::TEXTURE);
 		AssetsManager::mAssetTypeByExtension.emplace(".dds", AssetType::TEXTURE);
 		AssetsManager::mAssetTypeByExtension.emplace(".tga", AssetType::TEXTURE);
+		AssetsManager::mAssetTypeByExtension.emplace(".hdr", AssetType::TEXTURE);
 		AssetsManager::mAssetTypeByExtension.emplace(Standards::sceneExtName, AssetType::SCENE);
 		AssetsManager::mAssetTypeByExtension.emplace(Standards::animationExtName, AssetType::ANIMATION);
 		AssetsManager::mAssetTypeByExtension.emplace(".h", AssetType::SCRIPT);
 		AssetsManager::mAssetTypeByExtension.emplace(".cs", AssetType::SCRIPT);
+		AssetsManager::mAssetTypeByExtension.emplace(".cpp", AssetType::SCRIPT);
+		AssetsManager::mAssetTypeByExtension.emplace(".hpp", AssetType::SCRIPT);
 		AssetsManager::mAssetTypeByExtension.emplace(".mp3", AssetType::AUDIO);
+		AssetsManager::mAssetTypeByExtension.emplace(".wav", AssetType::AUDIO);
+		AssetsManager::mAssetTypeByExtension.emplace(".ogg", AssetType::AUDIO);
 		AssetsManager::mAssetTypeByExtension.emplace(".vert", AssetType::SHADERS);
 		AssetsManager::mAssetTypeByExtension.emplace(".frag", AssetType::SHADERS);
 		AssetsManager::mAssetTypeByExtension.emplace(".comp", AssetType::SHADERS);
 		AssetsManager::mAssetTypeByExtension.emplace(".geom", AssetType::SHADERS);
 		AssetsManager::mAssetTypeByExtension.emplace(".tes", AssetType::SHADERS);
 		AssetsManager::mAssetTypeByExtension.emplace(".glsl", AssetType::SHADERS);
+		AssetsManager::mAssetTypeByExtension.emplace(Standards::metadataExtName, AssetType::METADATA);
 		AssetsManager::mAssetTypeByExtension.emplace("", AssetType::NONE);
 
 		AssetsManager::mAssetsTypesWithMetaData.emplace(AssetType::TEXTURE);
@@ -59,7 +67,7 @@ namespace Plaza {
 		AssetsManager::mTextures.emplace(1, defaultTexture);
 	}
 
-	AssetType AssetsManager::GetExtensionType(std::string extension) {
+	AssetType AssetsManager::GetExtensionType(const std::string& extension) {
 		if (mAssetTypeByExtension.find(extension) != mAssetTypeByExtension.end())
 			return mAssetTypeByExtension.at(extension);
 		else

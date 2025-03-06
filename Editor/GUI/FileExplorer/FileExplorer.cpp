@@ -1,3 +1,6 @@
+#include "Editor/GUI/GuiWindow.h"
+#include "Engine/Core/AssetsManager/AssetsManager.h"
+#include "Engine/Core/AssetsManager/AssetsType.h"
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "FileExplorer.h"
 #include "Editor/GUI/Popups/FileExplorerPopup.h"
@@ -13,6 +16,8 @@
 #include "Editor/GUI/FileExplorer/Files/BackFile.h"
 #include "Editor/GUI/FileExplorer/Files/FolderFile.h"
 #include "Editor/GUI/FileExplorer/Files/MaterialFile.h"
+#include <filesystem>
+#include <iterator>
 
 unsigned int startSelected = 0;
 namespace Plaza {
@@ -98,10 +103,6 @@ namespace Plaza {
 			Editor::selectedFiles.clear();
 			namespace fs = std::filesystem;
 			files.clear();
-			// Back Button
-			std::string currentDirectory = Gui::FileExplorer::currentDirectory;
-			const std::string& currentDirectoryPath = filesystem::path{currentDirectory}.string();
-			files.push_back(make_unique<BackFile>(".back", currentDirectory + "/asd.back", ".back"));
 
 			// Loop through all files found and create an icon on the file explorer
 			for (const auto& entry : fs::directory_iterator(folderPath)) {
@@ -119,6 +120,12 @@ namespace Plaza {
 				else
 					files.emplace_back(make_unique<File>(filename, entry.path().string(), extension));
 			}
+
+			OrderFiles(files);
+			// Back Button
+			std::string currentDirectory = Gui::FileExplorer::currentDirectory;
+			const std::string& currentDirectoryPath = filesystem::path{currentDirectory}.string();
+			files.insert(files.begin(), make_unique<BackFile>(".back", currentDirectory + "/asd.back", ".back"));
 		}
 
 		void Gui::FileExplorer::DrawFile(File* file) {
@@ -213,53 +220,6 @@ namespace Plaza {
 				if (ImGui::IsMouseDoubleClicked(0)) {
 					// Handle double click on folders
 					file->DoubleClick();
-					// if (filesystem::is_directory(filesystem::path{ file->directory }) &&
-					// glfwGetKey(Application::Get()->Window->glfwWindow, GLFW_KEY_LEFT_CONTROL) != GLFW_PRESS) {
-					//	Editor::Gui::FileExplorer::currentDirectory = file->directory;
-					//	Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
-					//	Editor::selectedFiles.clear();
-					// } // Handle double click on .cs files
-					// else if (filesystem::path{ file->directory }.extension() == ".cs") {
-					//	/* Get Devenv path */
-					//	std::string getDevenvCommand = (Application::Get()->enginePath + "/vendor/vsWhere/vswhere
-					//-latest -requires Microsoft.Component.MSBuild -find Common7/IDE/devenv.exe");
-					//	// Open a pipe to capture the command output
-					//	FILE* pipe = _popen(getDevenvCommand.c_str(), "r");
-					//	if (!pipe) {
-					//		std::cerr << "Error: Unable to execute the command." << std::endl;
-					//	}
-					//	char buffer[1024];
-					//	std::string devenvPath = "";
-					//
-					//	// Read the command output character by character
-					//	int c;
-					//	while ((c = fgetc(pipe)) != EOF) {
-					//		// Filter out newline characters
-					//		if (c != '\n' && c != '\r') {
-					//			devenvPath += static_cast<char>(c);
-					//		}
-					//	}
-					//	// Close the pipe
-					//	_pclose(pipe);
-					//
-					//	/* "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\devenv.exe" /command
-					//"File.OpenFile" "Speed Runers.sln" scriptchola.cs */ 	std::string projectPath =
-					// std::filesystem::path{ Application::Get()->activeProject->directory + "/" +
-					// Application::Get()->activeProject->name }.replace_extension(".sln").string(); 	std::string
-					// scriptPath = file->directory; 	std::string openCsFileCommand = "\"\"" + devenvPath + "\" \"" +
-					// projectPath + "\" \"" + scriptPath + "\"\""; 	for (size_t i = 0; i <
-					// openCsFileCommand.length();
-					//++i) { 		if (openCsFileCommand[i] == '/') { 			openCsFileCommand[i] = '/';
-					//		}
-					//	}
-					//	std::cout << "OpenCsFileCommand: " << openCsFileCommand.c_str() << "\n";
-					//	//system(openCsFileCommand.c_str());
-					//
-					//	FILE* pipe2 = _popen(openCsFileCommand.c_str(), "r");
-					//	if (!pipe2) {
-					//		std::cerr << "Error: Unable to execute the command." << std::endl;
-					//	}
-					// }
 				}
 				else {
 					Editor::selectedGameObject = 0;
@@ -287,5 +247,36 @@ namespace Plaza {
 				file->currentPos.y += file->iconSize + file->spacing;
 			}
 		}
+
+		void Gui::FileExplorer::OrderFiles(std::vector<std::unique_ptr<File>>& files) {
+			std::sort(files.begin(), files.end(), [](std::unique_ptr<File>& file1, std::unique_ptr<File>& file2) {
+				// Get type orders
+				auto type1 = GetTypeOrderIndex(
+					AssetsManager::GetExtensionType(std::filesystem::path(file1->directory).extension().string()));
+				auto type2 = GetTypeOrderIndex(
+					AssetsManager::GetExtensionType(std::filesystem::path(file2->directory).extension().string()));
+
+				// Make directories be -1, so they always come first
+				if (type1 == AssetType::UNKNOWN && std::filesystem::is_directory(file1->directory))
+					type1 = -1;
+				if (type2 == AssetType::UNKNOWN && std::filesystem::is_directory(file2->directory))
+					type2 = -1;
+
+				bool isTypeBefore = type1 < type2;
+
+				if (type1 != type2)
+					return isTypeBefore;
+
+				return file1->name < file2->name;
+			});
+		}
+
+		int Gui::FileExplorer::GetTypeOrderIndex(const AssetType& type) {
+			auto it = std::find(sAssetTypesOrder.begin(), sAssetTypesOrder.end(), type);
+			if (it == sAssetTypesOrder.end())
+				return sAssetTypesOrder.size() - 1;
+			return std::distance(sAssetTypesOrder.begin(), it);
+		}
+
 	} // namespace Editor
 } // namespace Plaza
