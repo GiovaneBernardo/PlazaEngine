@@ -16,6 +16,8 @@
 #include "Editor/GUI/FileExplorer/Files/BackFile.h"
 #include "Editor/GUI/FileExplorer/Files/FolderFile.h"
 #include "Editor/GUI/FileExplorer/Files/MaterialFile.h"
+#include "fwd.hpp"
+#include "imgui.h"
 #include <filesystem>
 #include <iterator>
 
@@ -138,7 +140,8 @@ namespace Plaza {
 										   ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoFocusOnAppearing;
 			windowFlags |= ImGuiWindowFlags_NoScrollbar;
 
-			if (ImGui::BeginChild(ImGui::GetID(file->name.c_str()), ImVec2(75, 75), false, windowFlags)) {
+			if (ImGui::BeginChild(ImGui::GetID(file->name.c_str()), ImVec2(Editor::File::size.x, Editor::File::size.y),
+								  true, windowFlags)) {
 				if (lastY != ImGui::GetCursorPosY()) {
 					lastY = ImGui::GetCursorPosY();
 					currentColumn++;
@@ -164,12 +167,15 @@ namespace Plaza {
 				}
 				// Draw background
 				ImDrawList* drawList = ImGui::GetWindowDrawList();
-				ImVec2 size = ImGui::imVec2(ImGui::glmVec2(ImGui::GetWindowPos()) + glm::vec2(75, 75));
+				ImVec2 size = ImGui::imVec2(ImGui::glmVec2(ImGui::GetWindowPos()) + Editor::File::size);
 				drawList->AddRectFilled(ImGui::GetWindowPos(), size, ImGui::ColorConvertFloat4ToU32(backgroundColor));
 
 				// Image
-				ImGui::SetCursorPos(ImGui::imVec2(ImGui::glmVec2(ImGui::GetCursorPos()) + glm::vec2(75 / 2 - 25)));
-				ImGui::Image(ImTextureID(file->textureId), ImVec2(50, 50));
+				int iconImageSiza = 64;
+				ImGui::SetCursorPos(ImGui::imVec2(
+					ImGui::glmVec2(ImGui::GetCursorPos()) +
+					glm::vec2(((iconImageSiza / Editor::File::size.x * Editor::File::size.x) - 1.0f) / 4, 5.0f)));
+				ImGui::Image(ImTextureID(file->textureId), ImVec2(iconImageSiza, iconImageSiza));
 				ImGui::SetCursorPos(ImGui::imVec2(ImGui::glmVec2(ImGui::GetCursorPos()) - glm::vec2(0, 10)));
 				if (file->changingName == file->name) {
 					if (file->firstFocus) {
@@ -203,13 +209,19 @@ namespace Plaza {
 				else {
 					ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
 					ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
-					ImGui::TextWrapped(file->name.c_str());
-					ImGui::SameLine();
-					ImGui::Text("...");
+					ImGui::Text(std::filesystem::path(file->name).stem().c_str());
 					ImGui::PopStyleVar();
 					ImGui::PopStyleVar();
 				}
 			}
+
+			// Extension
+			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
+			ImGui::SetWindowFontScale(1.25f);
+			ImGui::Text(file->extension.c_str());
+			ImGui::SetWindowFontScale(1.0f);
+			ImGui::PopStyleVar();
+
 			Editor::Popup::FileExplorerFilePopup::Update(file);
 			ImGui::EndChild();
 
@@ -241,10 +253,10 @@ namespace Plaza {
 				}
 			}
 
-			file->currentPos.x += file->iconSize + file->spacing;
+			file->currentPos.x += Editor::File::size.x + file->spacing;
 			if (file->currentPos.x + file->iconSize > ImGui::GetWindowPos().x + ImGui::GetWindowWidth()) {
 				file->currentPos.x = ImGui::GetCursorScreenPos().x;
-				file->currentPos.y += file->iconSize + file->spacing;
+				file->currentPos.y += Editor::File::size.y + file->spacing;
 			}
 		}
 

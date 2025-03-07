@@ -66,6 +66,7 @@ namespace Plaza {
 		void Gui::Update() {
 			PLAZA_PROFILE_SECTION("ImGui Update");
 			ImGuiIO& io = ImGui::GetIO();
+
 			io.DeltaTime = Time::deltaTime;
 			io.DisplaySize = ImVec2(Application::Get()->appSizes->appSize.x, Application::Get()->appSizes->appSize.y);
 			Input::SetFocusedMenuCheck("Editor");

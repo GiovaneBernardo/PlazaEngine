@@ -47,6 +47,28 @@ namespace Plaza {
 				// Scene Icon
 				LoadImageToImGuiTexture((projectDirectory + "/Images/FileIcons/sceneIcon.png").c_str(), imageTextureID);
 				textures.emplace(Standards::sceneExtName, IconTexture(imageTextureID, Standards::sceneExtName));
+
+				// Prefab Icon (Temporary, should have dynamic thumbnails)
+				LoadImageToImGuiTexture((projectDirectory + "/Images/FileIcons/pfbIcon.png").c_str(), imageTextureID);
+				textures.emplace(Standards::prefabExtName, IconTexture(imageTextureID, Standards::prefabExtName));
+
+				// Material Icon (Temporary, should have dynamic thumbnails)
+				LoadImageToImGuiTexture((projectDirectory + "/Images/FileIcons/matIcon.png").c_str(), imageTextureID);
+				textures.emplace(Standards::materialExtName, IconTexture(imageTextureID, Standards::materialExtName));
+
+				// Texture Icon for png, jpg, jpeg, tga, dds, hdr (Temporary, should have dynamic thumbnails)
+				LoadImageToImGuiTexture((projectDirectory + "/Images/FileIcons/texIcon.png").c_str(), imageTextureID);
+				textures.emplace(".png", IconTexture(imageTextureID, ".png"));
+				LoadImageToImGuiTexture((projectDirectory + "/Images/FileIcons/texIcon.png").c_str(), imageTextureID);
+				textures.emplace(".jpg", IconTexture(imageTextureID, ".jpg"));
+				LoadImageToImGuiTexture((projectDirectory + "/Images/FileIcons/texIcon.png").c_str(), imageTextureID);
+				textures.emplace(".jpeg", IconTexture(imageTextureID, ".jpeg"));
+				LoadImageToImGuiTexture((projectDirectory + "/Images/FileIcons/texIcon.png").c_str(), imageTextureID);
+				textures.emplace(".tga", IconTexture(imageTextureID, ".tga"));
+				LoadImageToImGuiTexture((projectDirectory + "/Images/FileIcons/texIcon.png").c_str(), imageTextureID);
+				textures.emplace(".dds", IconTexture(imageTextureID, ".dds"));
+				LoadImageToImGuiTexture((projectDirectory + "/Images/FileIcons/texIcon.png").c_str(), imageTextureID);
+				textures.emplace(".hdr", IconTexture(imageTextureID, ".hdr"));
 			}
 
 			static void LoadImageToImGuiTexture(const char* path, ImTextureID& outTextureID);
