@@ -425,7 +425,6 @@ namespace Plaza {
 	}
 
 	VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes) {
-		return VK_PRESENT_MODE_MAILBOX_KHR;
 #ifdef GAME_MODE
 		for (const auto& availablePresentMode : availablePresentModes) {
 			if (availablePresentMode == VK_PRESENT_MODE_FIFO_KHR) { //  VK_PRESENT_MODE_FIFO_KHR = Vsync
