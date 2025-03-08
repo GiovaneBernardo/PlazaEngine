@@ -110,7 +110,6 @@ namespace Plaza {
 			for (const auto& entry : fs::directory_iterator(folderPath)) {
 				std::string filename = entry.path().filename().string();
 				std::string extension = entry.path().extension().string();
-				PL_CORE_INFO(filename);
 				if (entry.path().stem().string() == filename)
 					extension = filename;
 

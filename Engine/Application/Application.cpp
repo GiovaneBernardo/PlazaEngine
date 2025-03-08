@@ -1,3 +1,4 @@
+#include "Engine/Core/Debugging/Log.h"
 #include "Engine/Core/PreCompiledHeaders.h"
 
 #include "Editor/GUI/guiMain.h"
@@ -318,5 +319,6 @@ namespace Plaza {
 		Editor::Gui::Delete();
 #endif // !GAME_REL
 		glfwTerminate();
+		Log::Terminate();
 	}
 } // namespace Plaza

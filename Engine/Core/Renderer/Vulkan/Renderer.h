@@ -411,32 +411,24 @@ namespace Plaza {
 															VkDebugUtilsMessageTypeFlagsEXT messageType,
 															const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
 															void* pUserData) {
-			const std::string RED = "\033[1;31m";
-			const std::string YELLOW = "\033[1;33m";
-			const std::string RESET = "\033[0m";
-			std::string color;
+			std::cout << "Message ID: " << pCallbackData->pMessageIdName << "\n";
 			switch (messageSeverity) {
 				case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
-					color = RESET;
+					PL_CORE_INFO(pCallbackData->pMessage);
 					break;
 				case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
-					color = RESET;
+					PL_CORE_INFO(pCallbackData->pMessage);
 					break;
 				case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
-					color = YELLOW;
+					PL_CORE_WARN(pCallbackData->pMessage);
 					break;
 				case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
-					color = RED;
+					PL_CORE_ERROR(pCallbackData->pMessage);
 					break;
 				default:
-					color = RESET;
+					PL_CORE_INFO(pCallbackData->pMessage);
 					break;
 			}
-
-			if (pCallbackData->pMessageIdName) {
-				std::cerr << "Message ID: " << pCallbackData->pMessageIdName << std::endl;
-			}
-			std::cerr << color << "Validation Layer: " << pCallbackData->pMessage << RESET << std::endl;
 			return VK_FALSE;
 		}
 
