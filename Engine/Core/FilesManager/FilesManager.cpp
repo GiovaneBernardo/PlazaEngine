@@ -83,7 +83,7 @@ namespace Plaza {
 
 	void FilesManager::OpenFile(const std::filesystem::path& path) {
 #ifdef WIN32
-		ShellExecuteA(NULL, "open", path.c_str(), NULL, NULL, SW_SHOWDEFAULT);
+		ShellExecuteA(NULL, "open", path.string().c_str(), NULL, NULL, SW_SHOWDEFAULT);
 #elif __linux__
 		std::string command = "xdg-open" + path.string() + " &";
 		std::system(command.c_str());
@@ -96,7 +96,7 @@ namespace Plaza {
 
 	void FilesManager::OpenFolder(const std::filesystem::path& path) {
 #ifdef WIN32
-		ShellExecuteA(NULL, "open", path.c_str(), NULL, NULL, SW_SHOWDEFAULT);
+		ShellExecuteA(NULL, "open", path.string().c_str(), NULL, NULL, SW_SHOWDEFAULT);
 #elif __linux__
 		std::string command = "xdg-open" + path.string() + " &";
 		std::system(command.c_str());

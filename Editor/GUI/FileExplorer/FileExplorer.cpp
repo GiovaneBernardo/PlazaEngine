@@ -208,7 +208,7 @@ namespace Plaza {
 				else {
 					ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
 					ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
-					ImGui::Text(std::filesystem::path(file->name).stem().c_str());
+					ImGui::Text(std::filesystem::path(file->name).stem().string().c_str());
 					ImGui::PopStyleVar();
 					ImGui::PopStyleVar();
 				}

@@ -1,36 +1,39 @@
 cmake_minimum_required(VERSION 3.25)
-
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-if(POLICY CMP0091) # Force thidparty libraries to use static MSVC
-    cmake_policy(SET CMP0091 NEW)
-endif()
-
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_CXX_STANDARD 20)
+
 if(WIN32)
     set(TARGET_BUILD_PLATFORM "windows")
     set(PLATFORM "Windows")
     set(EDITOR_CONFIG_DIRECTORY "$ENV{APPDATA}")
     set(GLFW_BUILD_WIN32)
+	set(WINDOWS ON)
 elseif(UNIX)
     set(TARGET_BUILD_PLATFORM "linux")
     set(PLATFORM "Linux")
     set(EDITOR_CONFIG_DIRECTORY "$ENV{HOME}/.config")
     set(GLFW_BUILD_X11)
+	set(LINUX ON)
 endif()
 
-if(MSVC)
+if(WIN32)
+	if (MSVC)
+        message(STATUS "Building with MSVC on Windows.")
+    endif()
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE STRING "" FORCE)
     add_compile_options(/MP)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /WX- /W4 /O2")
     add_compile_options(/bigobj)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /WX- /W4 /O2")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4244")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /C2220")
+	set(CMAKE_CXX_FLAGS_DEBUG "/Zi /Ob0 /Od /RTC1")
+	set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -fno-inline -DDEBUG")
 elseif(UNIX AND NOT APPLE)
+    find_program(CLANGC_PATH NAMES clang)
     find_program(CLANG_PATH NAMES clang++)
-    find_program(CLANG_PATH2 NAMES clang)
     if(CLANG_PATH)
         message(STATUS "Using Clang for Linux build")
-        set(CMAKE_C_COMPILER "${CLANG_PATH2}")
+        set(CMAKE_C_COMPILER "${CLANGC_PATH}")
         set(CMAKE_CXX_COMPILER "${CLANG_PATH}")
     else()
         message(FATAL_ERROR "Clang not found. Please install Clang before building.")
@@ -41,10 +44,6 @@ endif()
 
 project(PlazaEngineProject VERSION 0.0.2)
 set(BUILD_STATIC_LIB ON)
-
-#set(TARGET_BUILD_PLATFORM "windows")
-#set(PLATFORM "Windows")
-#set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 include(FindVulkan)
 if(NOT VULKAN_FOUND)
@@ -64,15 +63,6 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_definitions(-D_ITERATOR_DEBUG_LEVEL=2)
     option(PHYSX_BUILD_TYPE "debug")
 
-    if(MSVC)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4244")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /C2220")
-        set(CMAKE_CXX_FLAGS_DEBUG "/Zi /Ob0 /Od /RTC1")
-
-    else()
-        set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -fno-inline -DDEBUG")
-    endif()
-    option(MSVC_CRT_STATIC "Link primesieve.lib with /MT instead of the default /MD" OFF)
     #set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Release>:>")
 elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
@@ -81,17 +71,14 @@ elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
     option(PHYSX_BUILD_TYPE "release")
     set(CMAKE_CXX_FLAGS_RELEASE "/O2")
     option(MSVC_CRT_STATIC "Link primesieve.lib with /MT instead of the default /MD" ON)
-    #set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
 endif()
-#add_compile_definitions(<$<CONFIG:Debug>:_DEBUG><$<CONFIG:Debug>:NDEBUG>)
+
 add_definitions(-DLIBTYPE=STATIC)
 add_compile_definitions(IMGUI_DEFINE_MATH_OPERATORS)
-#set(CMAKE_BUILD_TYPE Debug)
 
 set(ENABLE_BOOST_WORKAROUND ON)
 set(BUILD_STATIC_LIB ON)
 set(GLM_FORCE_DEPTH_ZERO_TO_ONE ON)
-
 set(PLAZA_ITERATOR_LEVEL 2)
 
 set(BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/out/build/x64-${CMAKE_BUILD_TYPE}")
@@ -108,9 +95,7 @@ set(PHYSX_LIBRARIES
     PhysXCooking
     PhysXCommon
     PhysXFoundation
-    # SnippetUtils
 )
-set(TARGET_BUILD_PLATFORM "linux")
 option(COPY_EXTERNAL_DLLS "Control the copying of external DLLs" OFF) # PhysX external dlls
 option(PX_BUILDSNIPPETS "Generate the snippets" OFF)
 option(PX_BUILDPVDRUNTIME "Generate the OmniPVD project" OFF)
@@ -127,50 +112,11 @@ set(GLFW_USE_WAYLAND OFF CACHE BOOL "Disable Wayland and use X11")
 set(LIBTYPE STATIC)
 set(BUILD_SHARED_LIBS OFF)
 add_subdirectory("ThirdParty/AL/" EXCLUDE_FROM_ALL)
-#add_subdirectory("ThirdParty/DirectXTex/" EXCLUDE_FROM_ALL)
 add_subdirectory("ThirdParty/embed/" EXCLUDE_FROM_ALL)
 add_subdirectory("ThirdParty/GLFW/" EXCLUDE_FROM_ALL)
 #add_subdirectory("ThirdParty/pfr/" EXCLUDE_FROM_ALL)
 add_subdirectory("ThirdParty/Tracy/" EXCLUDE_FROM_ALL)
 add_subdirectory("ThirdParty/PhysX/physx/compiler/public/" EXCLUDE_FROM_ALL)
-#include(ExternalProject)
-#ExternalProject_Add(
-#    AL
-#    PREFIX ${CMAKE_BINARY_DIR}/_deps
-#    SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/AL"
-#    GIT_TAG master # Use the appropriate branch or commit
-#    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/_install
-#)
-##add_subdirectory("ThirdParty/DirectXTex/" EXCLUDE_FROM_ALL)
-#add_subdirectory("ThirdParty/embed")
-#ExternalProject_Add(
-#    GLFW
-#    PREFIX ${CMAKE_BINARY_DIR}/_deps
-#    SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/GLFW"
-#    GIT_TAG master
-#    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/_install
-#)
-##add_subdirectory("ThirdParty/pfr/" EXCLUDE_FROM_ALL)
-#ExternalProject_Add(
-#    Tracy
-#    PREFIX ${CMAKE_BINARY_DIR}/_deps
-#    SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/Tracy"
-#    GIT_TAG master
-#    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/_install
-#)
-#ExternalProject_Add(
-#    PhysX
-#    PREFIX ${CMAKE_BINARY_DIR}/_deps
-#    SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/PhysX/physx/compiler/public"
-#    GIT_TAG master
-#    CMAKE_ARGS
-#    -DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/_install
-#    -DPHYSX_ROOT_DIR=${PHYSX_ROOT_DIR}
-#    -DPX_OUTPUT_LIB_DIR=${PX_OUTPUT_LIB_DIR}
-#    -DPX_OUTPUT_BIN_DIR=${PX_OUTPUT_BIN_DIR}
-#)
-
-
 
 file(GLOB_RECURSE MY_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Editor/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/Editor/*.h" "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/Renderer/stb_font_consolas_24_latin1.inl")
 file(GLOB_RECURSE MY_SOURCES2 CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Engine/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/Engine/*.h")
@@ -191,23 +137,32 @@ set(IMGUI_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/imgui/nodes/imgui_node_editor_api.cpp"
 )
 
+string(TOLOWER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_LOWER)
+set(PX_OUTPUT_LIB_PREFIX "bin/win.x86_64.vc143.mt")
 if(WIN32)
-    set(PX_OUTPUT_LIB_PREFIX "bin/win.x86_64.vc143.mt")
+	set(PHYSX_LIBS
+		"${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/PhysX_static.lib"
+		"${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/PhysXExtensions_static.lib"
+		"${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/PhysXCooking_static.lib"
+		"${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/PhysXCommon_static.lib"
+		"${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/PhysXFoundation_static.lib"
+		"${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/PhysXPvdSDK_static.lib"
+		"${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/PhysXVehicle_static.lib"
+		"${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/PhysXVehicle2_static.lib"
+	)
 elseif(UNIX)
     set(PX_OUTPUT_LIB_PREFIX "bin/linux.clang")
+	set(PHYSX_LIBS
+		"${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/libPhysX_static.a"
+		"${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/libPhysXExtensions_static.a"
+		"${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/libPhysXCooking_static.a"
+		"${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/libPhysXCommon_static.a"
+		"${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/libPhysXFoundation_static.a"
+		"${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/libPhysXPvdSDK_static.a"
+		"${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/libPhysXVehicle_static.a"
+		"${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/libPhysXVehicle2_static.a"
+	)
 endif()
-
-string(TOLOWER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_LOWER)
-set(PHYSX_LIBS
-    "${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/libPhysX_static.a"
-    "${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/libPhysXExtensions_static.a"
-    "${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/libPhysXCooking_static.a"
-    "${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/libPhysXCommon_static.a"
-    "${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/libPhysXFoundation_static.a"
-    "${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/libPhysXPvdSDK_static.a"
-    "${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/libPhysXVehicle_static.a"
-    "${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/libPhysXVehicle2_static.a"
-)
 
 # PlazaEngineCore
 add_library(PlazaEngineCore SHARED "${IMGUI_SOURCES}" "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Application/EntryPoint.cpp" ${MY_SOURCES} ${MY_SOURCES2})
@@ -260,7 +215,10 @@ endif()
 
 #add_dependencies(PlazaEngineCore PhysX)
 #target_include_directories(PlazaEngineCore PUBLIC "ThirdParty/imgui/")
+
 add_library(PlazaEngineCoreLibs INTERFACE)
+#add_dependencies(PlazaEngineCore PhysX)
+#add_dependencies(PlazaEngineCoreLibs PhysX)
 target_link_libraries(PlazaEngineCoreLibs INTERFACE
     $<BUILD_INTERFACE:glfw>
     $<BUILD_INTERFACE:OpenAL>

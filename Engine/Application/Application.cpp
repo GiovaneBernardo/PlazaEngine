@@ -107,7 +107,7 @@ namespace Plaza {
 #if defined(_WIN32)
 		char buffer[1024];
 		GetModuleFileNameA(NULL, buffer, sizeof(buffer));
-		Application::Get()->exeDirectory = std::filesystem::path(buffer);
+		Application::Get()->exeDirectory = std::filesystem::path(buffer).parent_path().string();
 #elif defined(__linux__)
 		char buffer[PATH_MAX];
 		ssize_t size = readlink("/proc/self/exe", buffer, sizeof(buffer) - 1);

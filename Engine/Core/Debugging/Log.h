@@ -39,19 +39,22 @@ namespace Plaza {
 
 	class PlazaVectorSink : public spdlog::sinks::base_sink<std::mutex> {
 	  public:
-		const std::vector<LogMessage>& GetLogs() { return mLogs; }
+		const std::deque<LogMessage>& GetLogs() { return mLogs; }
 
 	  protected:
 		void sink_it_(const spdlog::details::log_msg& msg) override {
 			spdlog::memory_buf_t formatted;
 			formatter_->format(msg, formatted);
 			mLogs.push_back({msg.level, fmt::to_string(formatted), std::chrono::system_clock::to_time_t(msg.time)});
+			if (mLogs.size() > 50) {
+				mLogs.pop_front();
+			}
 		}
 
 		void flush_() override {}
 
 	  private:
-		std::vector<LogMessage> mLogs;
+		std::deque<LogMessage> mLogs;
 	};
 } // namespace Plaza
 

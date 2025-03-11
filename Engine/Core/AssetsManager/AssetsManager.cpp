@@ -15,7 +15,9 @@
 #include "Engine/Components/Physics/PhysicsMaterial.h"
 #include "Engine/Core/Scripting/Script.h"
 #include "Engine/Core/Standards.h"
+#ifdef __linux__
 #include <X11/Xlib.h>
+#endif
 
 namespace Plaza {
 	void AssetsManager::Init() {
