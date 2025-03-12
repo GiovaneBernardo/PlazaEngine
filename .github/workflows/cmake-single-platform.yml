@@ -14,12 +14,15 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest, ubuntu-latest]
+		directory: [.]
+		build_type: [Debug]
+
 
     runs-on: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v4
-  
+
     - name: Initialize Git Submodules
       run: git submodule update --init --recursive
 
@@ -36,9 +39,9 @@ jobs:
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
       run: cmake -B ${{github.workspace}}/build/${{matrix.directory}} \
-                 -S ${{github.workspace}}/${{matrix.directory}} \
-                 -DCMAKE_BUILD_TYPE=${{matrix.build_type}} \
-                 -DPX_USE_GPU=OFF
+             -S ${{github.workspace}}/${{matrix.directory}} \
+             -DCMAKE_BUILD_TYPE=${{matrix.build_type}} \
+             -DPX_USE_GPU=OFF
 
     - name: Build
       # Build your program with the given configuration
