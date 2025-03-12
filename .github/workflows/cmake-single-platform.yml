@@ -14,9 +14,6 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest, ubuntu-latest]
-directory: [.]
-build_type: [Debug]
-
 
     runs-on: ${{ matrix.os }}
 
