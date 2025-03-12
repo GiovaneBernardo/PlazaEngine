@@ -109,7 +109,7 @@ option(PX_BUILDSNIPPETS "Generate the snippets" OFF)
 option(PX_CMAKE_SUPPRESS_REGENERATION "Disable zero_check projects" OFF)
 
 set(GLFW_USE_WAYLAND OFF CACHE BOOL "Disable Wayland and use X11")
-set(GPU_LIB_COPIED TRUE)
+set(GPU_LIB_COPIED 1)
 
 set(LIBTYPE STATIC)
 set(BUILD_SHARED_LIBS OFF)
