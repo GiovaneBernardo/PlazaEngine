@@ -34,9 +34,13 @@ jobs:
 
     - name: Verify Vulkan installation
       run: |
-        vulkaninfo || echo "vulkaninfo not found"
-        if [ "$RUNNER_OS" == "Windows" ]; then
+        if [[ "$RUNNER_OS" == "Linux" ]]; then
+          vulkaninfo || echo "vulkaninfo not found"
+        elif [[ "$RUNNER_OS" == "Windows" ]]; then
+          vulkaninfo || echo "vulkaninfo not found"
           vkcube --version || echo "vkcube not found"
+        else
+          echo "Unknown OS"
         fi
 
     - name: Configure CMake
