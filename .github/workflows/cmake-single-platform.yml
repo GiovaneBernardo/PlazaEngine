@@ -48,7 +48,8 @@ jobs:
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
       run: cmake -B ${{github.workspace}}/build/${{matrix.directory}} \
                  -S ${{github.workspace}}/${{matrix.directory}} \
-                 -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
+                 -DCMAKE_BUILD_TYPE=${{matrix.build_type}} \
+                 -DPX_USE_GPU=OFF
 
     - name: Build
       # Build your program with the given configuration
