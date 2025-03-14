@@ -8,59 +8,50 @@
 	"configurePresets": [
 		{
 			"name": "Debug",
-			"generator": "Ninja",
 			"binaryDir": "out/build/x64-Debug",
 			"cacheVariables": {
 				"CMAKE_BUILD_TYPE": "Debug",
 				"CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
 				"PX_CMAKE_SUPPRESS_REGENERATION": "True",
 				"PX_GENERATE_STATIC_LIBRARIES": "True",
-				"BUILD_SHARED_LIBS": "False",
-			},
+				"BUILD_SHARED_LIBS": "False"
+			}
 		},
 		{
 			"name": "Release",
-			"generator": "Ninja",
 			"binaryDir": "out/build/x64-Release",
 			"cacheVariables": {
 				"CMAKE_BUILD_TYPE": "Release",
 				"CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
 				"PX_CMAKE_SUPPRESS_REGENERATION": "True",
 				"PX_GENERATE_STATIC_LIBRARIES": "True",
-				"BUILD_SHARED_LIBS": "False",
-			},
+				"BUILD_SHARED_LIBS": "False"
+			}
 		},
 		{
 			"name": "RelWithDebInfo",
-			"generator": "Ninja",
 			"binaryDir": "out/build/x64-RelWithDebInfo",
 			"cacheVariables": {
 				"CMAKE_BUILD_TYPE": "RelWithDebInfo",
 				"CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
 				"PX_CMAKE_SUPPRESS_REGENERATION": "True",
 				"PX_GENERATE_STATIC_LIBRARIES": "True",
-				"BUILD_SHARED_LIBS": "False",
+				"BUILD_SHARED_LIBS": "False"
 			}
 		}
 	],
 	"buildPresets": [
 		{
 			"name": "x64-Debug",
-			"configurePreset": "Debug",
-			"buildCommandArgs": "",
-			"ctestCommandArgs": ""
+			"configurePreset": "Debug"
 		},
 		{
 			"name": "x64-Release",
-			"configurePreset": "Release",
-			"buildCommandArgs": "",
-			"ctestCommandArgs": ""
+			"configurePreset": "Release"
 		},
 		{
 			"name": "x64-RelWithDebInfo",
-			"configurePreset": "RelWithDebInfo",
-			"buildCommandArgs": "",
-			"ctestCommandArgs": ""
+			"configurePreset": "RelWithDebInfo"
 		}
 	]
 }
