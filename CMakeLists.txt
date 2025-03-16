@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.25)
+project(PlazaEngineProject VERSION 0.0.2)
+
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(WIN32)
     set(TARGET_BUILD_PLATFORM "windows")
@@ -17,9 +20,6 @@ elseif(UNIX)
 endif()
 
 if(WIN32)
-	if (MSVC)
-        message(STATUS "Building with MSVC on Windows.")
-    endif()
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" CACHE STRING "" FORCE)
     add_compile_options(/MP)
     add_compile_options(/bigobj)
@@ -38,22 +38,14 @@ elseif(UNIX AND NOT APPLE)
     else()
         message(FATAL_ERROR "Clang not found. Please install Clang before building.")
     endif()
-
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unsafe-buffer-usage -fsafe-buffer-usage-suggestions -Wno-switch-default -Wswitch -Wunused-value -Wno-invalid-offsetof -fdeclspec -fms-extensions")
 endif()
-
-project(PlazaEngineProject VERSION 0.0.2)
-set(BUILD_STATIC_LIB ON)
 
 include(FindVulkan)
 if(NOT VULKAN_FOUND)
     message(FATAL_ERROR "Vulkan SDK not installed.")
 endif()
 find_package(Vulkan REQUIRED)
-
-set(PLATFORM_CMAKELISTS "${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt")
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/lib")
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/lib")
 
 message(WARNING "${CMAKE_BUILD_TYPE}")
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -73,18 +65,12 @@ elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
     option(MSVC_CRT_STATIC "Link primesieve.lib with /MT instead of the default /MD" ON)
 endif()
 
-add_definitions(-DLIBTYPE=STATIC)
 add_compile_definitions(IMGUI_DEFINE_MATH_OPERATORS)
-
-set(ENABLE_BOOST_WORKAROUND ON)
-set(BUILD_STATIC_LIB ON)
 set(GLM_FORCE_DEPTH_ZERO_TO_ONE ON)
-set(PLAZA_ITERATOR_LEVEL 2)
 
-set(BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/out/build/x64-${CMAKE_BUILD_TYPE}")
 set(PHYSX_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/PhysX/physx")
-set(PX_OUTPUT_LIB_DIR "${BUILD_DIR}/libs")
-set(PX_OUTPUT_BIN_DIR "${BUILD_DIR}/bin")
+set(PX_OUTPUT_LIB_DIR "${CMAKE_CURRENT_BINARY_DIR}/libs")
+set(PX_OUTPUT_BIN_DIR "${CMAKE_CURRENT_BINARY_DIR}/bin")
 
 set(PHYSX_LIBRARIES
     PhysXExtensions
@@ -96,21 +82,19 @@ set(PHYSX_LIBRARIES
     PhysXCommon
     PhysXFoundation
 )
+option(NV_USE_STATIC_WINCRT "Use the statically linked windows CRT" ON)
+option(NV_USE_DEBUG_WINCRT "Use the debug version of the CRT" ON)
 option(COPY_EXTERNAL_DLLS "Control the copying of external DLLs" OFF) # PhysX external dlls
 option(PX_BUILDSNIPPETS "Generate the snippets" OFF)
 option(PX_BUILDPVDRUNTIME "Generate the OmniPVD project" OFF)
 option(PX_GENERATE_STATIC_LIBRARIES "Generate static libraries" ON)
-option(NV_USE_STATIC_WINCRT "Use the statically linked windows CRT" ON)
-option(NV_USE_DEBUG_WINCRT "Use the debug version of the CRT" ON)
 option(PX_FLOAT_POINT_PRECISE_MATH "Float point precise math" OFF)
-#include("${PHYSX_ROOT_DIR}/compiler/public/CMakeLists.txt")
-option(PX_BUILDSNIPPETS "Generate the snippets" OFF)
-option(PX_CMAKE_SUPPRESS_REGENERATION "Disable zero_check projects" OFF)
 
 set(GLFW_USE_WAYLAND OFF CACHE BOOL "Disable Wayland and use X11")
-
-set(LIBTYPE STATIC)
 set(BUILD_SHARED_LIBS OFF)
+set(LIBTYPE STATIC)
+
+
 add_subdirectory("ThirdParty/AL/" EXCLUDE_FROM_ALL)
 add_subdirectory("ThirdParty/embed/" EXCLUDE_FROM_ALL)
 add_subdirectory("ThirdParty/GLFW/" EXCLUDE_FROM_ALL)
@@ -139,29 +123,18 @@ set(IMGUI_SOURCES
 
 string(TOLOWER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_LOWER)
 set(PX_OUTPUT_LIB_PREFIX "bin/win.x86_64.vc143.mt")
+
 if(WIN32)
-	set(PHYSX_LIBS
-		"${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/PhysX_static.lib"
-		"${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/PhysXExtensions_static.lib"
-		"${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/PhysXCooking_static.lib"
-		"${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/PhysXCommon_static.lib"
-		"${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/PhysXFoundation_static.lib"
-		"${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/PhysXPvdSDK_static.lib"
-		"${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/PhysXVehicle_static.lib"
-		"${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/PhysXVehicle2_static.lib"
-	)
+    set(PHYSX_LIBS "")
+    foreach(PHYSX_LIB ${PHYSX_LIBRARIES})
+        list(APPEND PHYSX_LIBS "${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/${PHYSX_LIB}_static.lib")
+    endforeach()
 elseif(UNIX)
     set(PX_OUTPUT_LIB_PREFIX "bin/linux.clang")
-	set(PHYSX_LIBS
-		"${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/libPhysX_static.a"
-		"${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/libPhysXExtensions_static.a"
-		"${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/libPhysXCooking_static.a"
-		"${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/libPhysXCommon_static.a"
-		"${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/libPhysXFoundation_static.a"
-		"${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/libPhysXPvdSDK_static.a"
-		"${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/libPhysXVehicle_static.a"
-		"${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/libPhysXVehicle2_static.a"
-	)
+    set(PHYSX_LIBS "")
+    foreach(PHYSX_LIB ${PHYSX_LIBRARIES})
+        list(APPEND PHYSX_LIBS "${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/lib${PHYSX_LIB}_static.a")
+    endforeach()
 endif()
 
 # PlazaEngineCore
@@ -352,65 +325,3 @@ add_custom_command(TARGET PlazaEngineCore
     POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/glslc" "${CMAKE_CURRENT_BINARY_DIR}/ThirdParty/glslc"
     COMMENT "Copying GLSLC to engine executable folder")
-
-
-#set(LOCAL_INSTALL_DIR "${CMAKE_BINARY_DIR}/install")
-#
-## Install PlazaEngineCore headers
-#file(GLOB_RECURSE PlazaEngineCore_HEADERS
-#    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/**/*.h"
-#    "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/**/*.h"
-#    "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/**/*.hpp"
-#)
-#install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Engine/"
-#        DESTINATION include/PlazaEngineCore/Engine
-#        FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp" PATTERN "*.inl")
-#install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Editor/"
-#        DESTINATION include/PlazaEngineCore/Editor
-#        FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp" PATTERN "*.inl")
-#install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/"
-#        DESTINATION include/PlazaEngineCore/ThirdParty
-#        FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp" PATTERN "*.inl")
-#
-## Install PlazaEngineCore with exported targets
-#install(TARGETS PlazaEngineCore
-#        EXPORT PlazaEngineProjectTargets
-#        ARCHIVE DESTINATION lib
-#        LIBRARY DESTINATION lib
-#        RUNTIME DESTINATION bin
-#        INCLUDES DESTINATION include
-#)
-#
-## Export the targets to a file
-#install(EXPORT PlazaEngineProjectTargets
-#        FILE PlazaEngineProjectTargets.cmake
-#        NAMESPACE Plaza::
-#        DESTINATION lib/cmake/PlazaEngineProject
-#)
-#
-## Add a package configuration file for PlazaEngineCore
-#include(CMakePackageConfigHelpers)
-#write_basic_package_version_file(
-#    "${CMAKE_BINARY_DIR}/PlazaEngineProjectConfigVersion.cmake"
-#    COMPATIBILITY SameMajorVersion
-#)
-#
-#configure_package_config_file(
-#    "${CMAKE_CURRENT_SOURCE_DIR}/PlazaEngineProjectConfig.cmake.in"
-#    "${CMAKE_BINARY_DIR}/PlazaEngineProjectConfig.cmake"
-#    INSTALL_DESTINATION lib/cmake/PlazaEngineProject
-#)
-#
-#install(FILES
-#    "${CMAKE_BINARY_DIR}/PlazaEngineProjectConfig.cmake"
-#    "${CMAKE_BINARY_DIR}/PlazaEngineProjectConfigVersion.cmake"
-#    DESTINATION lib/cmake/PlazaEngineProject
-#)
-#
-## Automatically run the install step after building PlazaEngineCore
-#add_custom_command(
-#    TARGET PlazaEngineCore
-#    POST_BUILD
-#    COMMAND ${CMAKE_COMMAND} --install ${CMAKE_BINARY_DIR} --prefix ${LOCAL_INSTALL_DIR}
-#    COMMENT "Installing PlazaEngineCore to ${LOCAL_INSTALL_DIR}"
-#)
