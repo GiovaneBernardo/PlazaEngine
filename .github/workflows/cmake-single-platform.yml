@@ -4,20 +4,16 @@ name: CMake Windows and Linux
 
 on:
   push:
-  pull_request:
 
 env:
-  BUILD_TYPE: Debug
+  BUILD_TYPE: Release
 
 jobs:
   build:
     strategy:
       matrix:
         os: [windows-latest, ubuntu-latest]
-        build_type: [Debug]
-        config:
-          - { name: "Windows Latest MSVC", os: windows-latest, cc: "cl", cxx: "cl" }
-          - { name: "Ubuntu Latest Clang", os: ubuntu-latest, cc: "clang", cxx: "clang++" }
+        build_type: [Release]
 
     runs-on: ${{ matrix.os }}
 
@@ -42,7 +38,12 @@ jobs:
         sdkVersion: 1.3.261.1
 
     - name: Configure CMake
-      run: cmake -S ${{ github.workspace }} -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }}
+      run: |
+       if [ "${{ matrix.os }}" == "windows-latest" ]; then
+          cmake -S ${{ github.workspace }} -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl
+        elif [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
+          cmake -S ${{ github.workspace }} -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
+        fi
 
     - name: Build
       run: cmake --build ${{ github.workspace }}/build --config ${{ env.BUILD_TYPE }}
