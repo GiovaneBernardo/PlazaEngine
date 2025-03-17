@@ -14,6 +14,10 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest, ubuntu-latest]
+        build_type: [Debug]
+        config:
+          - { name: "Windows Latest MSVC", os: windows-latest, cc: "cl", cxx: "cl" }
+          - { name: "Ubuntu Latest Clang", os: ubuntu-latest, cc: "clang", cxx: "clang++" }
 
     runs-on: ${{ matrix.os }}
 
