@@ -39,11 +39,14 @@ jobs:
 
     - name: Configure CMake
       run: |
-       if [ "${{ matrix.os }}" == "windows-latest" ]; then
+        if [ "${{ matrix.os }}" == "windows-latest" ]; then
+          # Windows-specific configuration
           cmake -S ${{ github.workspace }} -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl
         elif [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
+          # Linux/macOS-specific configuration
           cmake -S ${{ github.workspace }} -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
         fi
+      shell: bash
 
     - name: Build
       run: cmake --build ${{ github.workspace }}/build --config ${{ env.BUILD_TYPE }}
