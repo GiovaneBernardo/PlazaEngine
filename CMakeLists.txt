@@ -73,8 +73,8 @@ set(PX_OUTPUT_LIB_DIR "${CMAKE_CURRENT_BINARY_DIR}/libs")
 set(PX_OUTPUT_BIN_DIR "${CMAKE_CURRENT_BINARY_DIR}/bin")
 
 set(PHYSX_LIBRARIES
-    PhysXExtensions
     PhysX
+    PhysXExtensions
     PhysXPvdSDK
     PhysXVehicle
     PhysXCharacterKinematic
@@ -93,14 +93,24 @@ option(PX_FLOAT_POINT_PRECISE_MATH "Float point precise math" OFF)
 set(GLFW_USE_WAYLAND OFF CACHE BOOL "Disable Wayland and use X11")
 set(BUILD_SHARED_LIBS OFF)
 set(LIBTYPE STATIC)
-
+set(CMAKE_SHARED_LINKER_FLAGS_CHECKED "")
+set(CMAKE_SHARED_LINKER_FLAGS_PROFILE "")
+set(CMAKE_EXE_LINKER_FLAGS_CHECKED "")
+set(CMAKE_EXE_LINKER_FLAGS_PROFILE "")
 
 add_subdirectory("ThirdParty/AL/" EXCLUDE_FROM_ALL)
-add_subdirectory("ThirdParty/embed/" EXCLUDE_FROM_ALL)
+#add_subdirectory("ThirdParty/embed/" EXCLUDE_FROM_ALL)
+include(FetchContent)
+FetchContent_Declare(
+  battery-embed
+  GIT_REPOSITORY https://github.com/batterycenter/embed.git
+  GIT_TAG        v1.2.19
+)
+FetchContent_MakeAvailable(battery-embed)
 add_subdirectory("ThirdParty/GLFW/" EXCLUDE_FROM_ALL)
 #add_subdirectory("ThirdParty/pfr/" EXCLUDE_FROM_ALL)
 add_subdirectory("ThirdParty/Tracy/" EXCLUDE_FROM_ALL)
-add_subdirectory("ThirdParty/PhysX/physx/compiler/public/" EXCLUDE_FROM_ALL)
+add_subdirectory("ThirdParty/PhysX/physx/compiler/public/")
 
 file(GLOB_RECURSE MY_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Editor/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/Editor/*.h" "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/Renderer/stb_font_consolas_24_latin1.inl")
 file(GLOB_RECURSE MY_SOURCES2 CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Engine/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/Engine/*.h")
@@ -122,20 +132,24 @@ set(IMGUI_SOURCES
 )
 
 string(TOLOWER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_LOWER)
-set(PX_OUTPUT_LIB_PREFIX "bin/win.x86_64.vc143.mt")
 
 if(WIN32)
-    set(PHYSX_LIBS "")
-    foreach(PHYSX_LIB ${PHYSX_LIBRARIES})
-        list(APPEND PHYSX_LIBS "${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/${PHYSX_LIB}_static.lib")
-    endforeach()
+    set(PX_OUTPUT_LIB_PREFIX "bin/win.x86_64.vc143.mt")
 elseif(UNIX)
     set(PX_OUTPUT_LIB_PREFIX "bin/linux.clang")
-    set(PHYSX_LIBS "")
-    foreach(PHYSX_LIB ${PHYSX_LIBRARIES})
-        list(APPEND PHYSX_LIBS "${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/lib${PHYSX_LIB}_static.a")
-    endforeach()
 endif()
+
+# PlazaEngineCoreLibs
+add_library(PlazaEngineCoreLibs INTERFACE)
+
+target_link_directories(PlazaEngineCoreLibs INTERFACE "${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/")
+target_link_libraries(PlazaEngineCoreLibs INTERFACE
+    $<BUILD_INTERFACE:glfw>
+    $<BUILD_INTERFACE:OpenAL>
+    $<BUILD_INTERFACE:TracyClient>
+    $<BUILD_INTERFACE:Vulkan::Vulkan>
+    $<BUILD_INTERFACE:${PHYSX_LIBRARIES}>
+)
 
 # PlazaEngineCore
 add_library(PlazaEngineCore SHARED "${IMGUI_SOURCES}" "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Application/EntryPoint.cpp" ${MY_SOURCES} ${MY_SOURCES2})
@@ -152,7 +166,6 @@ if(MSVC)
     target_compile_options(PlazaEngineCore PUBLIC "/ZI")
     target_link_options(PlazaEngineCore PUBLIC "/INCREMENTAL")
 endif()
-#target_include_directories(PlazaEngineCore PUBLIC "lib/")
 
 target_include_directories(PlazaEngineCore PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/> # For builds
@@ -185,25 +198,6 @@ if(WIN32)
 elseif(UNIX)
     set(LIB_PREFIX "lib")
 endif()
-
-#add_dependencies(PlazaEngineCore PhysX)
-#target_include_directories(PlazaEngineCore PUBLIC "ThirdParty/imgui/")
-
-add_library(PlazaEngineCoreLibs INTERFACE)
-#add_dependencies(PlazaEngineCore PhysX)
-#add_dependencies(PlazaEngineCoreLibs PhysX)
-target_link_libraries(PlazaEngineCoreLibs INTERFACE
-    $<BUILD_INTERFACE:glfw>
-    $<BUILD_INTERFACE:OpenAL>
-    $<BUILD_INTERFACE:TracyClient>
-    $<BUILD_INTERFACE:${PHYSX_LIBS}>
-    $<BUILD_INTERFACE:Vulkan::Vulkan>
-)
-foreach(PHYSX_LIB ${PHYSX_LIBS})
-    target_link_libraries(PlazaEngineCoreLibs INTERFACE
-        $<BUILD_INTERFACE:${PHYSX_LIB}>
-    )
-endforeach()
 
 target_link_libraries(PlazaEngineCore PUBLIC PlazaEngineCoreLibs)
 
@@ -262,26 +256,25 @@ set_property(TARGET PlazaEngineCore PROPERTY CXX_STANDARD 20)
 add_executable(PlazaEngine "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Application/EntryPoint.cpp")
 
 set_target_properties(PlazaEngine PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin" # For the DLL
-    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib" # For the .lib (import library)
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib" # For shared libs
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
 )
 
-add_executable(PlazaShippingGame "${IMGUI_SOURCES}" "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Application/EntryPoint.cpp" "${MY_SOURCES}" "${MY_SOURCES2}")
+add_executable(PlazaShippingGame "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Application/EntryPoint.cpp")
+
 set_target_properties(PlazaShippingGame PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin" # For the DLL
-    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib" # For the .lib (import library)
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib" # For shared libs
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
 )
 
 target_compile_definitions(PlazaEngine PUBLIC PX_PHYSX_STATIC_LIB)
 target_compile_definitions(PlazaEngine PUBLIC EDITOR_MODE)
-#target_compile_options(PlazaEngine PUBLIC /WX-)
 target_compile_definitions(PlazaEngine PUBLIC ENGINE_EXPORT)
 
 target_compile_definitions(PlazaShippingGame PUBLIC GAME_MODE)
 target_compile_definitions(PlazaShippingGame PUBLIC PX_PHYSX_STATIC_LIB)
-#target_compile_options(PlazaShippingGame PUBLIC /WX-)
 #target_compile_definitions(PlazaShippingGame PRIVATE ENGINE_EXPORT)
 
 target_precompile_headers(PlazaEngine PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/PreCompiledHeaders.h")
@@ -289,11 +282,21 @@ target_precompile_headers(PlazaEngineCore PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/En
 target_precompile_headers(PlazaShippingGame PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/PreCompiledHeaders.h")
 
 if(MSVC)
-    target_compile_options(PlazaEngine PUBLIC "/ZI")
-    target_link_options(PlazaEngine PUBLIC "/INCREMENTAL")
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        target_compile_options(PlazaEngine PUBLIC "/ZI")
+        target_link_options(PlazaEngine PUBLIC "/INCREMENTAL")
 
-    target_compile_options(PlazaShippingGame PUBLIC "/ZI")
-    target_link_options(PlazaShippingGame PUBLIC "/INCREMENTAL")
+        target_compile_options(PlazaShippingGame PUBLIC "/ZI")
+        target_link_options(PlazaShippingGame PUBLIC "/INCREMENTAL")
+    endif()
+elseif(CLANG)
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        target_compile_options(PlazaEngine PUBLIC "-g")
+        target_link_options(PlazaEngine PUBLIC "-fuse-ld=lld")
+
+        target_compile_options(PlazaShippingGame PUBLIC "-g")
+        target_link_options(PlazaShippingGame PUBLIC "-fuse-ld=lld")
+    endif()
 endif()
 
 link_directories("${CMAKE_CURRENT_SOURCE_DIR}/lib")
