@@ -11,7 +11,7 @@ env:
 jobs:
   build:
     strategy:
-      fail-test: false
+      fail-fast: false
       matrix:
         os: [windows-latest, ubuntu-latest]
         build_type: [Release]
