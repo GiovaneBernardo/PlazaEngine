@@ -248,9 +248,7 @@ target_compile_definitions(PlazaShippingGame PUBLIC GAME_MODE)
 target_compile_definitions(PlazaShippingGame PUBLIC PX_PHYSX_STATIC_LIB)
 #target_compile_definitions(PlazaShippingGame PRIVATE ENGINE_EXPORT)
 
-target_precompile_headers(PlazaEngine PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/PreCompiledHeaders.h")
 target_precompile_headers(PlazaEngineCore PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/PreCompiledHeaders.h")
-target_precompile_headers(PlazaShippingGame PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/PreCompiledHeaders.h")
 
 if(MSVC)
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
