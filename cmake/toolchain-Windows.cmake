@@ -8,13 +8,13 @@ add_compile_options(
     /bigobj
     /WX-
     /W4
-    /O2
     /wd4244
     /wd2220
-	/ZI
 	/INCREMENTAL
 )
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_compile_options(/Zi /Ob0 /Od /RTC1)
+elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
+    add_compile_options(/O2)
 endif()
