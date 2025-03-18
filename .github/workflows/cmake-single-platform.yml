@@ -39,7 +39,7 @@ jobs:
 
     - name: Configure CMake
       run: |
-        if [ "${{ matrix.os }}" == "windows-latest" ]; then
+        if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
           # Windows-specific configuration
           cmake -S ${{ github.workspace }} -B ${{ github.workspace }}/build -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl
         elif [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
