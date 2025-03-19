@@ -15,7 +15,8 @@
 				"PX_CMAKE_SUPPRESS_REGENERATION": "True",
 				"PX_GENERATE_STATIC_LIBRARIES": "True",
 				"BUILD_SHARED_LIBS": "False"
-			}
+			},
+			"toolchainFile": "${sourceDir}/cmake/toolchain-${hostSystemName}.cmake"
 		},
 		{
 			"name": "Release",
@@ -26,7 +27,8 @@
 				"PX_CMAKE_SUPPRESS_REGENERATION": "True",
 				"PX_GENERATE_STATIC_LIBRARIES": "True",
 				"BUILD_SHARED_LIBS": "False"
-			}
+			},
+			"toolchainFile": "${sourceDir}/cmake/toolchain-${hostSystemName}.cmake"
 		},
 		{
 			"name": "RelWithDebInfo",
@@ -37,7 +39,8 @@
 				"PX_CMAKE_SUPPRESS_REGENERATION": "True",
 				"PX_GENERATE_STATIC_LIBRARIES": "True",
 				"BUILD_SHARED_LIBS": "False"
-			}
+			},
+			"toolchainFile": "${sourceDir}/cmake/toolchain-${hostSystemName}.cmake"
 		}
 	],
 	"buildPresets": [
