@@ -25,6 +25,7 @@
 #include "Engine/Components/Audio/AudioSource.h"
 #include "Engine/Components/Audio/AudioListener.h"
 #include "Engine/Components/Rendering/AnimationComponent.h"
+#include "Engine/Components/Scripting/LuaScriptComponent.h"
 
 #include "Engine/Core/Renderer/Vulkan/Renderer.h"
 #include "Engine/Core/Engine.h"

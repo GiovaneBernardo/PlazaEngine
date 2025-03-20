@@ -61,7 +61,7 @@ namespace Plaza {
 		this->GetPaths();
 		AssetsManager::Init();
 
-		/* Create Renderer */
+		/* Choose Renderer */
 		switch (Application::Get()->mEditor->mSettings.mDefaultRendererAPI) {
 			case RendererAPI::Vulkan:
 				Application::Get()->mRenderer = new VulkanRenderer();
@@ -87,6 +87,7 @@ namespace Plaza {
 		mRenderer->Init();
 		Audio::Init();
 		Physics::Init();
+		Scripting::Init();
 		this->LoadProject();
 	}
 

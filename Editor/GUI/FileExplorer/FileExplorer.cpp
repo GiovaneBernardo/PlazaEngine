@@ -78,7 +78,7 @@ namespace Plaza {
 						for (int column = 0; column < horizontalItemsPerRow; ++column) {
 							int fileIndex = row * horizontalItemsPerRow + column;
 							if (fileIndex < files.size()) {
-								FileExplorer::DrawFile(files[fileIndex].get());
+								FileExplorer::DrawFile(files[fileIndex]);
 								ImGui::SameLine();
 								if (FileExplorer::breakFilesLoop) {
 									FileExplorer::breakFilesLoop = false;
@@ -100,8 +100,8 @@ namespace Plaza {
 		}
 
 		/* Read all files in a directory and push them to the files vector */
-		std::vector<std::unique_ptr<File>> Gui::FileExplorer::files = std::vector<std::unique_ptr<File>>();
-		void Gui::FileExplorer::UpdateContent(std::string folderPath) {
+		std::vector<std::shared_ptr<File>> Gui::FileExplorer::files = std::vector<std::shared_ptr<File>>();
+		void Gui::FileExplorer::UpdateContent(const std::string& folderPath) {
 			Editor::selectedFiles.clear();
 			namespace fs = std::filesystem;
 			files.clear();
@@ -115,21 +115,21 @@ namespace Plaza {
 
 				// Call the respective constructor
 				if (fs::is_directory(entry.path()))
-					files.emplace_back(make_unique<FolderFile>(filename, entry.path().string(), ""));
+					files.emplace_back(std::make_shared<FolderFile>(filename, entry.path().string(), ""));
 				else if (extension == Standards::materialExtName)
-					files.emplace_back(make_unique<MaterialFile>(filename, entry.path().string(), extension));
+					files.emplace_back(std::make_shared<MaterialFile>(filename, entry.path().string(), extension));
 				else
-					files.emplace_back(make_unique<File>(filename, entry.path().string(), extension));
+					files.emplace_back(std::make_shared<File>(filename, entry.path().string(), extension));
 			}
 
 			OrderFiles(files);
 			// Back Button
 			std::string currentDirectory = Gui::FileExplorer::currentDirectory;
 			const std::string& currentDirectoryPath = filesystem::path{currentDirectory}.string();
-			files.insert(files.begin(), make_unique<BackFile>(".back", currentDirectory + "/asd.back", ".back"));
+			files.insert(files.begin(), std::make_shared<BackFile>(".back", currentDirectory + "/asd.back", ".back"));
 		}
 
-		void Gui::FileExplorer::DrawFile(File* file) {
+		void Gui::FileExplorer::DrawFile(std::shared_ptr<File> file) {
 			if (file->currentPos.x == -1.0f) {
 				file->currentPos = ImGui::GetCursorScreenPos();
 			}
@@ -221,7 +221,7 @@ namespace Plaza {
 			ImGui::SetWindowFontScale(1.0f);
 			ImGui::PopStyleVar();
 
-			Editor::Popup::FileExplorerFilePopup::Update(file);
+			Editor::Popup::FileExplorerFilePopup::Update(file.get());
 			ImGui::EndChild();
 
 			// Open, or add the file to the selected files map when user clicked on a file
@@ -259,8 +259,8 @@ namespace Plaza {
 			}
 		}
 
-		void Gui::FileExplorer::OrderFiles(std::vector<std::unique_ptr<File>>& files) {
-			std::sort(files.begin(), files.end(), [](std::unique_ptr<File>& file1, std::unique_ptr<File>& file2) {
+		void Gui::FileExplorer::OrderFiles(std::vector<std::shared_ptr<File>>& files) {
+			std::sort(files.begin(), files.end(), [](std::shared_ptr<File>& file1, std::shared_ptr<File>& file2) {
 				// Get type orders
 				auto type1 = GetTypeOrderIndex(
 					AssetsManager::GetExtensionType(std::filesystem::path(file1->directory).extension().string()));

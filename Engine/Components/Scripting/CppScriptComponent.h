@@ -15,7 +15,6 @@ namespace Plaza {
 			mScriptsUuid.push_back(script->mAssetUuid);
 			mScripts.push_back(script);
 		}
-		// std::map<std::string, PlazaScriptClass*> scriptClasses;;
 
 		void Init() {};
 		void UpdateMethods() {}

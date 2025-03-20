@@ -34,3 +34,6 @@
 [submodule "ThirdParty/pfr"]
 	path = ThirdParty/pfr
 	url = https://github.com/boostorg/pfr.git
+[submodule "ThirdParty/sol2"]
+	path = ThirdParty/sol2
+	url = https://github.com/ThePhD/sol2.git

@@ -1,13 +1,12 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "FileExplorerPopup.h"
 #include "Editor/GUI/Utils/Filesystem.h"
-#include "Engine/Core/Script.h"
-
 #include "Editor/ScriptManager/ScriptManager.h"
 #include "Editor/GUI/FileExplorer/File.h"
 #include "Engine/Core/AssetsManager/Metadata/Metadata.h"
 #include "Engine/Core/AssetsManager/AssetsReader.h"
 #include "Engine/Core/Scripting/CppScript.h"
+#include "Engine/Core/Scripting/Lua/LuaScript.h"
 #include "Engine/Core/AssetsManager/Serializer/AssetsSerializer.h"
 
 namespace Plaza::Editor {
@@ -41,34 +40,22 @@ namespace Plaza::Editor {
 					AssetsReader::ReadAssetAtPath(metaDataPath);
 				}
 
-				if (ImGui::MenuItem("C# Script")) {
-					// Editor::File::changingName = Utils::Filesystem::CreateNewFile(Gui::FileExplorer::currentDirectory
-					// + "/Unnamed.cs"); Gui::FileExplorer::UpdateContent(Gui::FileExplorer::currentDirectory);
-					// Editor::File::changingName = std::filesystem::path{ Editor::File::changingName
-					// }.filename().string(); Editor::File::firstFocus = true;
-					////Application::Get()->activeProject->scripts.push_back(Script(Gui::FileExplorer::currentDirectory
-					///+ "/Unnamed.cs", "Unnamed.cs")); /ScriptManager::NewCsScript(Gui::FileExplorer::currentDirectory
-					///+ "/" + Editor::File::changingName);
-					// Script newScript;
-					// assert(true);
-					// assert(false);
-
+				if (ImGui::MenuItem("Lua Script")) {
 					Editor::File::changingName =
-						Utils::Filesystem::CreateNewFile(Gui::FileExplorer::currentDirectory + "/Unnamed" + ".cs");
+						Utils::Filesystem::CreateNewFile(Gui::FileExplorer::currentDirectory + "/Unnamed" + ".lua");
 					Editor::File::changingName = std::filesystem::path{Editor::File::changingName}.filename().string();
 					Editor::File::firstFocus = true;
-					Script* script = new Script();
+					LuaScript* script = new LuaScript();
 					script->mAssetUuid = Plaza::UUID::NewUUID();
 					script->mAssetName = Editor::File::changingName;
-					// AssetsManager::mMaterials.emplace(material.uuid, std::make_shared<Material>(material));
+
 					script->mAssetPath = Gui::FileExplorer::currentDirectory + "/" + Editor::File::changingName;
 
 					Metadata::CreateMetadataFile(script);
-					// AssetsManager::AddScript(script);
+
 					std::filesystem::path metaDataPath = script->mAssetPath;
 					metaDataPath.replace_extension(Standards::metadataExtName);
 					AssetsReader::ReadAssetAtPath(metaDataPath);
-					// AssetsManager::AddScript();
 				}
 
 				ImGui::EndMenu();

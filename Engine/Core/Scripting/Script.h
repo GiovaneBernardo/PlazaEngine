@@ -7,5 +7,11 @@ namespace Plaza {
 		Script() { this->lastModifiedDate = std::chrono::system_clock::now(); }
 		std::chrono::system_clock::time_point lastModifiedDate;
 		std::unordered_set<uint64_t> entitiesUsingThisScript;
+
+		virtual void OnStart(Scene* scene) {};
+		virtual void OnUpdate(Scene* scene) {};
+		virtual void OnTerminate(Scene* scene) {};
+		virtual void OnUpdateEditorGUI(Scene* scene) {};
+		virtual ~Script() {};
 	};
 } // namespace Plaza

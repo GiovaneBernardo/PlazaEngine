@@ -6,12 +6,20 @@
 #include "Engine/Core/Scripting/CppScriptFactory.h"
 #include "Engine/Core/Input/Input.h"
 #include "Engine/Core/Scene.h"
+#include "Engine/Core/Scripting/Lua/LuaScriptManager.h"
 
 #ifdef __linux
 #include <dlfcn.h>
 #endif
 
 namespace Plaza {
+	void Scripting::Init() {
+		PL_CORE_INFO("Initializing Scripting");
+		LuaScriptManager::Init();
+	}
+
+	void Scripting::Terminate() {}
+
 	void Scripting::LoadProjectCppDll(Scene* scene, const Editor::Project& project) {
 		Scripting::UnloadAllScripts(scene);
 		ScriptFactory::GetCreateRegistry().clear();
@@ -21,7 +29,7 @@ namespace Plaza {
 #ifdef EDITOR_MODE
 		bool loaded = Scripting::LoadCppDll(Scripting::CopyPasteDevelopmentLibraryFiles(project));
 #else
-		bool loaded = xScripting::LoadCppDll(project.mAssetPath.parent_path() / "GameLib.dll");
+		bool loaded = Scripting::LoadCppDll(project.mAssetPath.parent_path() / "GameLib.dll");
 #endif
 		if (!loaded)
 			return;
@@ -91,6 +99,13 @@ namespace Plaza {
 
 		for (const uint64_t& uuid : SceneView<CppScriptComponent>(scene)) {
 			auto& component = *scene->GetComponent<CppScriptComponent>(uuid);
+			for (auto& script : component.mScripts) {
+				script->OnUpdate(scene);
+			}
+		}
+
+		for (const uint64_t& uuid : SceneView<LuaScriptComponent>(scene)) {
+			auto& component = *scene->GetComponent<LuaScriptComponent>(uuid);
 			for (auto& script : component.mScripts) {
 				script->OnUpdate(scene);
 			}

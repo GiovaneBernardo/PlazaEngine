@@ -47,6 +47,7 @@ namespace Plaza {
 		AssetsManager::mAssetTypeByExtension.emplace(".cs", AssetType::SCRIPT);
 		AssetsManager::mAssetTypeByExtension.emplace(".cpp", AssetType::SCRIPT);
 		AssetsManager::mAssetTypeByExtension.emplace(".hpp", AssetType::SCRIPT);
+		AssetsManager::mAssetTypeByExtension.emplace(".lua", AssetType::SCRIPT);
 		AssetsManager::mAssetTypeByExtension.emplace(".mp3", AssetType::AUDIO);
 		AssetsManager::mAssetTypeByExtension.emplace(".wav", AssetType::AUDIO);
 		AssetsManager::mAssetTypeByExtension.emplace(".ogg", AssetType::AUDIO);

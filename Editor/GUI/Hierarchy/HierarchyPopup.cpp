@@ -8,6 +8,8 @@
 #include "Editor/GUI/Hierarchy/Hierarchy.h"
 #include "Engine/Core/Scene.h"
 #include "Engine/ECS/ECSManager.h"
+#include "Engine/Core/Scripting/Lua/LuaScript.h"
+#include "Engine/Core/Scripting/Lua/LuaScriptManager.h"
 
 namespace Plaza::Editor {
 	void HierarchyPopup::Update(Scene* scene, Entity* entity) {
@@ -79,14 +81,13 @@ namespace Plaza::Editor {
 					if (value->GetExtension() != ".h")
 						continue;
 
-					// TODO: FIX SCRIPTS WITH INCORRECT NAME AND REMOVE THE BELOW HACK USING THE ASSET
-					Asset* asset = AssetsManager::GetAsset(key);
 					if (ImGui::MenuItem(value->mAssetName.c_str())) {
 						CppScriptComponent* component =
 							Scene::GetActiveScene()->GetComponent<CppScriptComponent>(entity->uuid);
 						if (!component) {
 							component = scene->NewComponent<CppScriptComponent>(entity->uuid);
 						}
+
 						CppScript* script =
 							ScriptFactory::CreateScript(std::filesystem::path(value->mAssetName).stem().string());
 						if (!script) {
@@ -98,6 +99,25 @@ namespace Plaza::Editor {
 						if (scene->mRunning) {
 							script->OnStart(scene);
 						}
+						// entity->AddComponent<CppScriptComponent>(component);
+					}
+				}
+
+				ImGui::EndMenu();
+			}
+
+			if (ImGui::BeginMenu("Lua Script")) {
+				for (auto& [key, value] : AssetsManager::mScripts) {
+					if (value->GetExtension() != ".lua")
+						continue;
+
+					if (ImGui::MenuItem(value->mAssetName.c_str())) {
+						LuaScriptComponent* component =
+							Scene::GetActiveScene()->GetComponent<LuaScriptComponent>(entity->uuid);
+						if (!component) {
+							component = scene->NewComponent<LuaScriptComponent>(entity->uuid);
+						}
+						LuaScriptManager::AddLuaScriptToEntity(scene, entity->uuid, AssetsManager::GetAsset(key));
 						// entity->AddComponent<CppScriptComponent>(component);
 					}
 				}

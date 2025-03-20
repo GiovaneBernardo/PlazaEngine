@@ -7,6 +7,9 @@
 namespace Plaza {
 	class PLAZA_API Scripting {
 	  public:
+		static void Init();
+		static void Terminate();
+
 		static void LoadProjectCppDll(Scene* scene, const Editor::Project& project);
 		static void ReloadAllScripts(Scene* scene);
 		static void UnloadAllScripts(Scene* scene);

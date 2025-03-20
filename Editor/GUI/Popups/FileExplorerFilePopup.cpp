@@ -1,8 +1,6 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "FileExplorerFilePopup.h"
 #include "Editor/GUI/Utils/Filesystem.h"
-#include "Engine/Core/Script.h"
-
 #include "Editor/ScriptManager/ScriptManager.h"
 #include "Editor/GUI/FileExplorer/File.h"
 #include "FileExplorerPopup.h"

@@ -27,18 +27,18 @@ namespace Plaza {
 			static inline int currentColumn = -1;
 			static inline float lastY = 0.0f;
 			static inline bool breakFilesLoop = false;
-			static std::vector<std::unique_ptr<File>> files;
+			static std::vector<std::shared_ptr<File>> files;
 			static std::string currentDirectory;
 			static void Init();
 			static void UpdateGui();
-			static void DrawFile(File* file);
+			static void DrawFile(std::shared_ptr<File> file);
 			/// <summary>
 			/// Read the project directory to get the present files
 			/// </summary>
-			static void UpdateContent(std::string folderPath);
+			static void UpdateContent(const std::string& folderPath);
 
 		  private:
-			static void OrderFiles(std::vector<std::unique_ptr<File>>& files);
+			static void OrderFiles(std::vector<std::shared_ptr<File>>& files);
 			static int GetTypeOrderIndex(const AssetType& type);
 		};
 	} // namespace Editor

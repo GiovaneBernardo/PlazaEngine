@@ -5,11 +5,6 @@ namespace Plaza {
 	class PLAZA_API CppScript : public Script {
 	  public:
 		CppScript() { this->lastModifiedDate = std::chrono::system_clock::now(); }
-		virtual ~CppScript(){};
-		virtual void OnStart(Scene* scene) {};
-		virtual void OnUpdate(Scene* scene) {};
-		virtual void OnTerminate(Scene* scene) {};
-		virtual void OnUpdateEditorGUI(Scene* scene) {};
 	};
 
 	class PLAZA_API CppEditorScript : public Script {
