@@ -1,11 +1,16 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "Engine/ECS/ECSManager.h"
 #include "LuaScriptManager.h"
+#include "LuaScript.h"
 
 namespace Plaza {
-	void LuaScriptManager::Init() { mLua->open_libraries(sol::lib::base, sol::lib::math, sol::lib::io); }
+	void PLAZA_API PrintMessageLua(const std::string& msg) { PL_INFO("LUA:: {}", msg); }
+	void LuaScriptManager::Init() {
+		mLua.open_libraries(sol::lib::base, sol::lib::math, sol::lib::io);
+		mLua.set_function("print_message", PrintMessageLua);
+	}
 
-	void LuaScriptManager::Terminate() { mLua.reset(); }
+	void LuaScriptManager::Terminate() { }
 
 	void LuaScriptManager::AddLuaScriptToEntity(Scene* scene, uint64_t entity, Asset* scriptAsset) {
 		if (!scene->HasComponent<LuaScriptComponent>(entity))
