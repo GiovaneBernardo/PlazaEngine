@@ -1,4 +1,6 @@
-#include "LuaScript.h"
+#pragma once
+
+#include "Engine/Core/Scripting/Script.h"
 #include <sol/sol.hpp>
 
 namespace Plaza {
@@ -9,7 +11,9 @@ namespace Plaza {
 
 		static void AddLuaScriptToEntity(Scene* scene, uint64_t entity, Asset* scriptAsset);
 
+		static sol::state& GetLuaState() { return mLua; };
+
 	  private:
-		static inline std::shared_ptr<sol::state> mLua = std::make_shared<sol::state>();
+		static inline sol::state mLua;
 	};
 } // namespace Plaza

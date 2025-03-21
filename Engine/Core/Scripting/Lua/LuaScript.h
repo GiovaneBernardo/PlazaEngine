@@ -1,11 +1,15 @@
 #pragma once
 #include "Engine/Core/Scripting/Script.h"
 #include <sol/sol.hpp>
+#include "LuaScriptManager.h"
 
 namespace Plaza {
 	class PLAZA_API LuaScript : public Script {
 	  public:
-		LuaScript() { this->lastModifiedDate = std::chrono::system_clock::now(); }
+		LuaScript() : mLuaScriptStateView(GetGlobalSolState()) {
+			this->lastModifiedDate = std::chrono::system_clock::now();
+		}
+
 		~LuaScript() override {};
 
 		void OnStart(Scene* scene) override;
@@ -15,10 +19,14 @@ namespace Plaza {
 		void GetSolFunctions();
 		void LoadScriptFile(const std::string& filePath);
 
+		sol::state_view& GetSolStateView() { return mLuaScriptStateView; };
+
 	  private:
-		sol::state mLuaScriptState;
+		sol::state_view mLuaScriptStateView;
 		sol::function mOnStartFunction;
 		sol::function mOnUpdateFunction;
 		sol::function mOnTerminateFunction;
+
+		sol::state& GetGlobalSolState();
 	};
 } // namespace Plaza

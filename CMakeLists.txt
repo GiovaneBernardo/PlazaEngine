@@ -84,7 +84,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(battery-embed)
 add_subdirectory("ThirdParty/GLFW/" EXCLUDE_FROM_ALL)
-add_subdirectory("ThirdParty/Lua/" EXCLUDE_FROM_ALL)
+add_subdirectory("ThirdParty/lua/" EXCLUDE_FROM_ALL)
 #add_subdirectory("ThirdParty/pfr/" EXCLUDE_FROM_ALL)
 add_subdirectory("ThirdParty/Tracy/" EXCLUDE_FROM_ALL)
 add_subdirectory("ThirdParty/PhysX/physx/compiler/public/")
