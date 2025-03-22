@@ -53,6 +53,33 @@ namespace Plaza {
 		return static_cast<VulkanRenderer*>(Application::Get()->mRenderer);
 	}
 
+	VKAPI_ATTR VkBool32 VKAPI_CALL VulkanRenderer::debugCallback(
+		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType,
+		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData) {
+		if (!pCallbackData || !pCallbackData->pMessageIdName || !pCallbackData->pMessage)
+			return VK_FALSE;
+
+		std::cout << "Message ID: " << pCallbackData->pMessageIdName << "\n";
+		switch (messageSeverity) {
+			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
+				PL_CORE_INFO(pCallbackData->pMessage);
+				break;
+			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
+				PL_CORE_INFO(pCallbackData->pMessage);
+				break;
+			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
+				PL_CORE_WARN(pCallbackData->pMessage);
+				break;
+			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
+				PL_CORE_ERROR(pCallbackData->pMessage);
+				break;
+			default:
+				PL_CORE_INFO(pCallbackData->pMessage);
+				break;
+		}
+		return VK_FALSE;
+	}
+
 	VkResult VulkanRenderer::CreateDebugUtilsMessengerEXT(VkInstance instance,
 														  const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
 														  const VkAllocationCallbacks* pAllocator,
@@ -1694,7 +1721,7 @@ namespace Plaza {
 		//	std::cout << " UNSUPPORTED LAYOUT TRANSITION \n";
 		//	EndSingleTimeCommands(commandBuffer);
 		//	TransitionImageLayout(image, format, VK_IMAGE_LAYOUT_UNDEFINED, newLayout, aspectMask, layerCount, mipCount,
-		//forceSynchronization); 	return;
+		// forceSynchronization); 	return;
 		//		//	assert("unsupported layout transition!");
 		//}
 
@@ -2193,8 +2220,8 @@ namespace Plaza {
 		// for (auto& [key, value] : mRenderGraph->mBuffers) {
 		//	if (mRenderGraph->mCompiledBindings.find(value->mName) == mRenderGraph->mCompiledBindings.end()) {
 		//		value->CreateBuffer(value->mMaxItems * value->mStride,
-		//PlBufferUsageToVkBufferUsage(value->mBufferUsage), PlMemoryUsageToVmaMemoryUsage(value->mMemoryUsage), 0,
-		//value->mBufferCount); 		value->CreateMemory(0, value->mBufferCount);
+		// PlBufferUsageToVkBufferUsage(value->mBufferUsage), PlMemoryUsageToVmaMemoryUsage(value->mMemoryUsage), 0,
+		// value->mBufferCount); 		value->CreateMemory(0, value->mBufferCount);
 		//	}
 		// }
 
@@ -2647,7 +2674,6 @@ namespace Plaza {
 		VulkanTexture::mLastBindingIndex++;
 		if (std::filesystem::exists(path)) {
 			// Application::Get()->mThreadsManager->mAssetsLoadingThread->AddToParallelQueue([texture, path, this]() {
-			std::cout << "eaeae \n";
 			// SectionProfiler profiler;
 			bool textureCreated = texture->CreateTextureImage(
 				mDevice, path, PlImageFormatToVkFormat(texture->GetTextureInfo().mFormat), true);
@@ -2758,7 +2784,7 @@ namespace Plaza {
 		//	uint64_t siz = mBones.size();
 		//	uint64_t siz1 = mBones.size() + 1;
 		//	if (uniqueBonesInfo[i].mParentId != 0 && this->mBones.find(uniqueBonesInfo[i].mParentId) !=
-		//this->mBones.end()) {
+		// this->mBones.end()) {
 		//		this->mBones.at(uniqueBonesInfo[i].mParentId).mChildren.push_back(uniqueBonesInfo[i].mId);
 		//	}
 		// }
@@ -3486,7 +3512,7 @@ namespace Plaza {
 			//	Light& value = *scene->GetComponent<Light>(uuid);
 			//	const glm::vec3 position = scene->GetComponent<TransformComponent>(uuid)->GetWorldPosition();
 			//	VulkanRenderer::GetRenderer()->mLighting->mLights.push_back(Lighting::LightStruct{ value.color,
-			//value.radius, position, value.intensity, value.cutoff, 0.0f });
+			// value.radius, position, value.intensity, value.cutoff, 0.0f });
 			// }
 
 			size_t bufferSize = sizeof(Lighting::LightStruct) * mLighting->mLights.size();

@@ -410,27 +410,7 @@ namespace Plaza {
 		static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 															VkDebugUtilsMessageTypeFlagsEXT messageType,
 															const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-															void* pUserData) {
-			std::cout << "Message ID: " << pCallbackData->pMessageIdName << "\n";
-			switch (messageSeverity) {
-				case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
-					PL_CORE_INFO(pCallbackData->pMessage);
-					break;
-				case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
-					PL_CORE_INFO(pCallbackData->pMessage);
-					break;
-				case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
-					PL_CORE_WARN(pCallbackData->pMessage);
-					break;
-				case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
-					PL_CORE_ERROR(pCallbackData->pMessage);
-					break;
-				default:
-					PL_CORE_INFO(pCallbackData->pMessage);
-					break;
-			}
-			return VK_FALSE;
-		}
+															void* pUserData);
 
 		std::vector<Vertex> vertices;
 		std::vector<uint32_t> indices;

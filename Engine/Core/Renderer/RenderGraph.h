@@ -414,6 +414,27 @@ namespace Plaza {
 			attributeDescriptions.push_back(
 				pl::vertexInputAttributeDescription(8, 0, PL_FORMAT_R32_UINT, offsetof(Vertex, materialIndex)));
 			return attributeDescriptions;
+
+			/*
+			{
+				pl::vertexInputAttributeDescription(0, 0, PL_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, position))},
+			{
+				pl::vertexInputAttributeDescription(1, 0, PL_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, normal))},
+			{
+				pl::vertexInputAttributeDescription(2, 0, PL_FORMAT_R32G32_SFLOAT, offsetof(Vertex, texCoords))},
+			{
+				pl::vertexInputAttributeDescription(3, 0, PL_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, tangent))},
+			{
+				pl::vertexInputAttributeDescription(4, 1, PL_FORMAT_R32G32B32A32_SFLOAT, 0)},
+			{
+				pl::vertexInputAttributeDescription(5, 1, PL_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 4)},
+			{
+				pl::vertexInputAttributeDescription(6, 1, PL_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 8)},
+			{
+				pl::vertexInputAttributeDescription(7, 1, PL_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 12)},
+			{
+				pl::vertexInputAttributeDescription(8, 0, PL_FORMAT_R32_UINT, offsetof(Vertex, materialIndex))}
+			*/
 		}
 
 		static std::vector<PlVertexInputAttributeDescription> SkinnedVertexGetAttributeDescriptions() {

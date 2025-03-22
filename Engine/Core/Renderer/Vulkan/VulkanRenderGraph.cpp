@@ -67,10 +67,10 @@ namespace Plaza {
 			1, inImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_CUBE, PL_FORMAT_R32G32B32A32_SFLOAT,
 			glm::vec3(irradianceSize, irradianceSize, 1), 1, 6, "IrradianceMap"));
 
-		this->AddTexture(make_shared<VulkanTexture>(
-			1, depthTextureFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D_ARRAY, PL_FORMAT_D32_SFLOAT_S8_UINT,
-			glm::vec3(shadowMapResolution, shadowMapResolution, 1), 1,
-			VulkanRenderer::GetRenderer()->mShadows->mCascadeCount, "ShadowsDepthMap"));
+		this->AddTexture(
+			make_shared<VulkanTexture>(1, depthTextureFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D_ARRAY, PL_FORMAT_D32_SFLOAT,
+									   glm::vec3(shadowMapResolution, shadowMapResolution, 1), 1,
+									   VulkanRenderer::GetRenderer()->mShadows->mCascadeCount, "ShadowsDepthMap"));
 		// this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D,
 		// PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application::Get()->appSizes->sceneSize, 1), 1, 1, "GPosition"));
 		this->AddTexture(make_shared<VulkanTexture>(
@@ -83,7 +83,7 @@ namespace Plaza {
 			1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT,
 			glm::vec3(Application::Get()->appSizes->sceneSize, 1), 1, 1, "GOthers"));
 		this->AddTexture(
-			make_shared<VulkanTexture>(1, depthTextureFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_D32_SFLOAT_S8_UINT,
+			make_shared<VulkanTexture>(1, depthTextureFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_D32_SFLOAT,
 									   glm::vec3(Application::Get()->appSizes->sceneSize, 1), 1, 1, "SceneDepth"));
 		this->AddTexture(
 			make_shared<VulkanTexture>(1, depthTextureFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_D32_SFLOAT_S8_UINT,
@@ -520,7 +520,7 @@ namespace Plaza {
 				 pl::pipelineShaderStageCreateInfo(
 					 PL_STAGE_FRAGMENT, Application::Get()->enginePath + "/Shaders/Vulkan/lighting/deferredPass.frag",
 					 "main")},
-				VertexGetBindingDescription(), VertexGetAttributeDescriptions(), PL_TOPOLOGY_TRIANGLE_LIST, false,
+				{}, {}, PL_TOPOLOGY_TRIANGLE_LIST, false,
 				pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f,
 														 0.0f, PL_CULL_MODE_NONE, PL_FRONT_FACE_COUNTER_CLOCKWISE),
 				pl::pipelineColorBlendStateCreateInfo({pl::pipelineColorBlendAttachmentState(true)}),
@@ -774,7 +774,7 @@ namespace Plaza {
 					 PL_STAGE_VERTEX, Application::Get()->enginePath + "/Shaders/Vulkan/ssr/ssr.vert", "main"),
 				 pl::pipelineShaderStageCreateInfo(
 					 PL_STAGE_FRAGMENT, Application::Get()->enginePath + "/Shaders/Vulkan/ssr/ssr.frag", "main")},
-				VertexGetBindingDescription(), VertexGetAttributeDescriptions(), PL_TOPOLOGY_TRIANGLE_LIST, false,
+				{}, {}, PL_TOPOLOGY_TRIANGLE_LIST, false,
 				pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f,
 														 0.0f, PL_CULL_MODE_NONE, PL_FRONT_FACE_COUNTER_CLOCKWISE),
 				pl::pipelineColorBlendStateCreateInfo({pl::pipelineColorBlendAttachmentState(true)}),
@@ -833,7 +833,7 @@ layout(push_constant) uniform PushConstants {
 					 PL_STAGE_VERTEX, Application::Get()->enginePath + "/Shaders/Vulkan/swapchainDraw.vert", "main"),
 				 pl::pipelineShaderStageCreateInfo(
 					 PL_STAGE_FRAGMENT, Application::Get()->enginePath + "/Shaders/Vulkan/swapchainDraw.frag", "main")},
-				VertexGetBindingDescription(), VertexGetAttributeDescriptions(), PL_TOPOLOGY_TRIANGLE_LIST, false,
+				{}, {}, PL_TOPOLOGY_TRIANGLE_LIST, false,
 				pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f,
 														 0.0f, PL_CULL_MODE_NONE, PL_FRONT_FACE_COUNTER_CLOCKWISE),
 				pl::pipelineColorBlendStateCreateInfo({pl::pipelineColorBlendAttachmentState(true)}),
@@ -968,7 +968,7 @@ layout(push_constant) uniform PushConstants {
 				 PL_STAGE_VERTEX, Application::Get()->enginePath + "/Shaders/Vulkan/outline/outline.vert", "main"),
 			 pl::pipelineShaderStageCreateInfo(
 				 PL_STAGE_FRAGMENT, Application::Get()->enginePath + "/Shaders/Vulkan/outline/outline.frag", "main")},
-			VertexGetBindingDescription(), VertexGetAttributeDescriptions(), PL_TOPOLOGY_TRIANGLE_LIST, false,
+			{}, {}, PL_TOPOLOGY_TRIANGLE_LIST, false,
 			pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f, 0.0f,
 													 PL_CULL_MODE_NONE, PL_FRONT_FACE_COUNTER_CLOCKWISE),
 			pl::pipelineColorBlendStateCreateInfo({pl::pipelineColorBlendAttachmentState(true)}),
@@ -998,6 +998,8 @@ layout(push_constant) uniform PushConstants {
 
 		this->GetRenderPass("OutlineDrawPass")->AddPipeline(outlinePipelineInfo);
 
+		outlinePipelineInfo.vertexAttributeDescriptions = {};
+		outlinePipelineInfo.vertexBindingDescriptions = {};
 		outlinePipelineInfo.pushConstants = {};
 		outlinePipelineInfo.pipelineName = "OutlineBlurPass";
 		outlinePipelineInfo.renderMethod = PL_RENDER_PASS_FULL_SCREEN_QUAD;
@@ -1641,9 +1643,9 @@ layout(push_constant) uniform PushConstants {
 		std::vector<VkAttachmentReference> colorReferences;
 		VkAttachmentReference depthReference = {};
 
+		// Iterate only over ouputs and inputs that are used as depth stencil attachment
 		for (unsigned int i = 0; i < glm::max(mOutputBindings.size(), mInputBindings.size()); ++i) {
 			std::shared_ptr<PlazaShadersBinding> value;
-			// for (const auto& value : mOutputBindings) {
 			if (mInputBindings.size() > i && mInputBindings[i]->mUseAsDepthStencilAttachment)
 				value = mInputBindings[i];
 			else if (mOutputBindings.size() > i)
@@ -1768,7 +1770,9 @@ layout(push_constant) uniform PushConstants {
 				loadStencilOp, storeStencilOp, currentLayout, nextLayout));
 
 			VulkanTexture* texture = binding->GetTexture();
+			// if (texture->mMipCount <= 1)
 			frameBufferAttachments.push_back(binding->GetTexture()->mImageView);
+
 			locations.push_back(binding->mLocation);
 
 			VkClearValue clearValue{};
@@ -1793,7 +1797,8 @@ layout(push_constant) uniform PushConstants {
 		std::vector<VkImageView> temporaryFrameBufferAttachments = frameBufferAttachments;
 		for (unsigned int i = 0; i < locations.size(); ++i) {
 			attachmentDescs[i] = temporaryAttachmentDescs[locations[i]];
-			frameBufferAttachments[i] = temporaryFrameBufferAttachments[locations[i]];
+			if (frameBufferAttachments.size() > i)
+				frameBufferAttachments[i] = temporaryFrameBufferAttachments[locations[i]];
 		}
 
 		// Define the subpass description
@@ -1833,8 +1838,15 @@ layout(push_constant) uniform PushConstants {
 																	  dependencies.data(), dependencies.size(), next);
 
 		// Frame buffer
-		mFrameBuffer = VulkanRenderer::GetRenderer()->CreateFramebuffer(
-			mRenderPass, biggestSize, frameBufferAttachments.data(), frameBufferAttachments.size(), 1);
+		if (frameBufferAttachments.size() > 0) {
+			mFrameBuffer = VulkanRenderer::GetRenderer()->CreateFramebuffer(
+				mRenderPass, biggestSize, frameBufferAttachments.data(), frameBufferAttachments.size(), 1);
+		}
+		else {
+			PL_CORE_WARN(
+				"Vulkan RenderGraph Compilation: frameBufferAttachments == 0, outputs cannot contain more than "
+				"1 mip level, this can be ignored as it might be intentional");
+		}
 	}
 
 	void VulkanRenderPass::Compile(PlazaRenderGraph* renderGraph) {

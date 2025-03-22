@@ -1,7 +1,4 @@
 #version 450
-layout(location = 0) in vec3 inPosition;
-layout(location = 4) in vec4 instanceMatrix[4];
-
 layout (location = 1) out vec2 outUV;
 
 void main()
