@@ -86,6 +86,9 @@ namespace Plaza {
 												  scene->GetComponent<TransformComponent>(uuid)->GetWorldScale());
 			ECS::ColliderSystem::UpdatePose(&collider, scene->GetComponent<TransformComponent>(uuid));
 		}
+
+		ECS::TransformSystem::UpdateSelfAndChildrenTransform(
+			*scene->GetComponent<TransformComponent>(scene->mainSceneEntityUuid), nullptr, scene);
 	}
 
 	void Scene::Stop() {
@@ -132,7 +135,7 @@ namespace Plaza {
 		// for (auto& [componentUuid, component] : guiComponents) {
 		//	for (auto& [key, value] : component.mGuiItems) {
 		//		glm::mat4 parentTransform = component.HasGuiItem(value->mGuiParentUuid) ?
-		//component.GetGuiItem<GuiItem>(value->mGuiParentUuid)->mTransform : glm::mat4(1.0f);
+		// component.GetGuiItem<GuiItem>(value->mGuiParentUuid)->mTransform : glm::mat4(1.0f);
 		//		GuiItem::UpdateSelfAndChildrenTransform(value.get(), parentTransform);
 		//	}
 		// }

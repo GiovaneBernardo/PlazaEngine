@@ -291,6 +291,15 @@ namespace Plaza {
 		return nullptr;
 	}
 
+	Script* AssetsManager::GetScriptByName(const std::string& name) {
+		for (const auto& [key, value] : mScripts) {
+			if (value->mAssetName == name) {
+				return value;
+			}
+		}
+		return nullptr;
+	}
+
 	void AssetsManager::RemoveScript(uint64_t uuid) {
 		auto it = mScripts.find(uuid);
 		if (it != mScripts.end()) {

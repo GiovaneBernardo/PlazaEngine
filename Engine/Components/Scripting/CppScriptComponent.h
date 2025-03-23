@@ -11,10 +11,8 @@ namespace Plaza {
 		std::vector<uint64_t> mScriptsUuid = std::vector<uint64_t>();
 		std::vector<CppScript*> mScripts = std::vector<CppScript*>();
 
-		void AddScript(CppScript* script) {
-			mScriptsUuid.push_back(script->mAssetUuid);
-			mScripts.push_back(script);
-		}
+		void AddScript(CppScript* script);
+		CppScript* AddScriptNewInstance(Scene* scene, uint64_t scriptUuid);
 		// std::map<std::string, PlazaScriptClass*> scriptClasses;;
 
 		void Init() {};

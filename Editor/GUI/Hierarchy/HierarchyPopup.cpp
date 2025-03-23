@@ -87,18 +87,7 @@ namespace Plaza::Editor {
 						if (!component) {
 							component = scene->NewComponent<CppScriptComponent>(entity->uuid);
 						}
-						CppScript* script =
-							ScriptFactory::CreateScript(std::filesystem::path(value->mAssetName).stem().string());
-						if (!script) {
-							PL_CORE_ERROR("Added Script is a nullptr");
-							continue;
-						}
-						script->mAssetUuid = value->mAssetUuid;
-						component->AddScript(script);
-						if (scene->mRunning) {
-							script->OnStart(scene);
-						}
-						// entity->AddComponent<CppScriptComponent>(component);
+						component->AddScriptNewInstance(scene, key);
 					}
 				}
 

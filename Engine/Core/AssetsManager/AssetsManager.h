@@ -105,6 +105,7 @@ namespace Plaza {
 
 		static void AddScript(Script* script);
 		static Script* GetScript(uint64_t uuid);
+		static Script* GetScriptByName(const std::string& name);
 		static void RemoveScript(uint64_t uuid);
 
 		static void AddShaders(Asset* asset) {
