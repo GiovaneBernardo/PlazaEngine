@@ -118,6 +118,7 @@ namespace Plaza {
 			static void Update(Scene* scene, uint64_t uuid);
 			static void UpdateGlobalPose(Scene* scene, uint64_t uuid);
 			static void AddCollidersOfChildren(Scene* scene, uint64_t parent);
+			static void UpdateRigidBody(Scene* scene, uint64_t uuid);
 		};
 	};
 }; // namespace Plaza

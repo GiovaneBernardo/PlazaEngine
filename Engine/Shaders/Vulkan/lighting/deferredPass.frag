@@ -273,7 +273,7 @@ float ShadowCalculation(vec3 fragPos, vec3 Normal)
     return shadow;
 }
 
-vec3 CalculateDirectionalLight(vec3 fragPos, vec3 albedo, vec3 normal, float metallic, float roughness, vec3 shadow) {
+vec3 CalculateDirectionalLight(vec3 fragPos, vec3 albedo, vec3 normal, float metallic, float roughness) {
     vec3 V =  normalize(-fragPos);
     float NdotV = dot(normal, V);
     if (NdotV < 0.0) {
@@ -306,11 +306,12 @@ vec3 CalculateDirectionalLight(vec3 fragPos, vec3 albedo, vec3 normal, float met
     float ambientOcclusion = 1.0f;
     vec3 ambient = (kD * diffuse + specular) * ambientOcclusion;
 
-    shadow = (1.0f - ShadowCalculation(fragPos.xyz, normal)) * (ubo.directionalLightColor.xyz) + ubo.ambientLightColor.x;
+    vec3 shadow = (1.0f - ShadowCalculation(fragPos.xyz, normal)) * (ubo.directionalLightColor.xyz) + ubo.ambientLightColor.x;
+    shadow = vec3(1.0f);
     vec3 color = ambient;
     color += Lo;
     color *= shadow;
-    return color;
+    return color * vec3(ubo.directionalLightColor.w);
 }
 
 vec3 CalculatePointLight(vec3 fragPos, vec3 albedo, vec3 normal, float roughness, vec3 lightPos, vec3 lightColor, float metallic, float attenuation) {
@@ -360,11 +361,10 @@ void main()
         const vec3 Normal = texture(gNormal, TexCoords).rgb;
         const vec3 Others = texture(gOthers, TexCoords).xyz;
         const float Specular = Others.x;
-        const float metalness = 1.0f - Others.y;
+        const float metalness = Others.y;
         const float roughness = Others.z;
         color = vec3(0.0f);
-        vec3 shadow = (1.0f - ShadowCalculation(fragViewPos.xyz, Normal)) * ubo.directionalLightColor.xyz;
-        color = CalculateDirectionalLight(fragViewPos, Diffuse, Normal, metalness, roughness, shadow);
+        color = CalculateDirectionalLight(fragViewPos, Diffuse, Normal, metalness, roughness);
         //lighting = CalculateDirectionalLight(FragPos, Diffuse, Normal, metalness, roughness, shadow);
         //lighting = vec3(1.0f);//CalculateDirectionalLight(FragPos, Diffuse, Normal, metalness, roughness, shadow);
        // float shadow = (1.0f - ShadowCalculation(FragPos.xyz, Normal)); //* ubo.directionalLightColor.xyz;

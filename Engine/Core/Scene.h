@@ -196,7 +196,12 @@ namespace Plaza {
 
 		void RemoveEntity(uint64_t uuid) {}
 
-		Entity* GetEntityByName(const std::string& name) { return nullptr; }
+		Entity* GetEntityByName(const std::string& name) {
+			auto it = entitiesNames.find(name);
+			if (it != entitiesNames.end() && !it->second.empty())
+				return GetEntity(*it->second.cbegin());
+			return nullptr;
+		}
 
 		RenderGroup* AddRenderGroup(Mesh* newMesh, std::vector<Material*> newMaterials, bool resizeBuffer = true) {
 			if (!newMesh)

@@ -56,6 +56,8 @@ namespace Plaza {
 		std::map<uint64_t, Bone> mBones = std::map<uint64_t, Bone>();
 		VkSemaphore semaphore;
 
+		bool mShowWireframe = false;
+
 		struct PushConstants {
 			glm::vec4 color = glm::vec4(1.0f);
 			float intensity = 1.0f;
@@ -191,6 +193,8 @@ namespace Plaza {
 		void CopyImage(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize offset = 0);
 		void CopyTexture(VulkanTexture* srcTexture, VkImageLayout srcLayout, VulkanTexture* dstTexture,
 						 VkImageLayout dstLayout, VkCommandBuffer commandBuffer = VK_NULL_HANDLE);
+		void CopyDifferentSizeTexture(VulkanTexture* srcTexture, VkImageLayout srcLayout, VulkanTexture* dstTexture,
+						 VkImageLayout dstLayout, VkCommandBuffer commandBuffer = VK_NULL_HANDLE);
 		VkSampler mImGuiTextureSampler;
 		VkSampler mTextureSampler;
 		std::vector<VkFence> mComputeInFlightFences;
@@ -278,7 +282,7 @@ namespace Plaza {
 		uint32_t mCurrentImage;
 		const int MAX_FRAMES_IN_FLIGHT = 2;
 
-		bool mEnableValidationLayers = true;
+		bool mEnableValidationLayers = false;
 		void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 		VkResult CreateDebugUtilsMessengerEXT(VkInstance instance,
 											  const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,

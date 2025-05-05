@@ -78,4 +78,12 @@ namespace Plaza {
 			}
 		}
 	}
+
+	void ECS::RigidBodySystem::UpdateRigidBody(Scene* scene, uint64_t uuid) {
+		RigidBody* rigidBody = scene->GetComponent<RigidBody>(uuid);
+		if (rigidBody->mRigidActor) {
+			Physics::m_scene->removeActor(*rigidBody->mRigidActor);
+			ECS::RigidBodySystem::Init(scene, uuid);
+		}
+	}
 } // namespace Plaza

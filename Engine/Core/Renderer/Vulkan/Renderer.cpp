@@ -1079,10 +1079,6 @@ namespace Plaza {
 	}
 
 	void VulkanRenderer::CleanupSwapChain() {
-		vkDestroyImageView(mDevice, mDepthImageView, nullptr);
-		vkDestroyImage(mDevice, mDepthImage, nullptr);
-		vkFreeMemory(mDevice, mDepthImageMemory, nullptr);
-
 		for (size_t i = 0; i < mSwapChainFramebuffers.size(); i++) {
 			vkDestroyFramebuffer(mDevice, mSwapChainFramebuffers[i], nullptr);
 		}
@@ -1207,6 +1203,28 @@ namespace Plaza {
 						   &imageCopyRegion);
 		}
 		// if (commandBuffer == VK_NULL_HANDLE) VulkanRenderer::GetRenderer()->EndSingleTimeCommands(commandBuffer);
+	}
+
+	void VulkanRenderer::CopyDifferentSizeTexture(VulkanTexture* srcTexture, VkImageLayout srcLayout,
+												  VulkanTexture* dstTexture, VkImageLayout dstLayout,
+												  VkCommandBuffer commandBuffer) {
+		VkImageBlit blitRegion{};
+		blitRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		blitRegion.srcSubresource.mipLevel = 0;
+		blitRegion.srcSubresource.baseArrayLayer = 0;
+		blitRegion.srcSubresource.layerCount = 1;
+		blitRegion.srcOffsets[0] = {0, 0, 0};
+		blitRegion.srcOffsets[1] = {srcTexture->mWidth, srcTexture->mHeight, 1};
+
+		blitRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		blitRegion.dstSubresource.mipLevel = 0;
+		blitRegion.dstSubresource.baseArrayLayer = 0;
+		blitRegion.dstSubresource.layerCount = 1;
+		blitRegion.dstOffsets[0] = {0, 0, 0};
+		blitRegion.dstOffsets[1] = {dstTexture->mWidth, dstTexture->mHeight, 1};
+
+		vkCmdBlitImage(commandBuffer, srcTexture->mImage, srcLayout, dstTexture->mImage, dstLayout, 1, &blitRegion,
+					   VK_FILTER_LINEAR);
 	}
 
 	void VulkanRenderer::CreateIndexBuffer(vector<uint32_t> indices, VkBuffer& indicesBuffer,
@@ -2085,6 +2103,7 @@ namespace Plaza {
 
 	void VulkanRenderer::Init() {
 		Application::Get()->mRendererAPI = RendererAPI::Vulkan;
+		mEnableValidationLayers = false;
 		this->mShadows = new VulkanShadows();
 		this->mLighting = new VulkanLighting();
 		this->mSkybox = new VulkanSkybox();
@@ -2492,27 +2511,16 @@ namespace Plaza {
 		CleanupSwapChain();
 
 		vkDestroySampler(mDevice, mImGuiTextureSampler, nullptr);
-		vkDestroyImageView(mDevice, mTextureImageView, nullptr);
-		vkDestroyImage(mDevice, mTextureImage, nullptr);
-		vkFreeMemory(mDevice, mTextureImageMemory, nullptr);
-
-		vkDestroyDescriptorSetLayout(mDevice, mDescriptorSetLayout, nullptr);
 
 		vkDestroyCommandPool(mDevice, mCommandPool, nullptr);
 
 		vkDestroyDescriptorPool(mDevice, mDescriptorPool, nullptr);
-		vkDestroyDescriptorSetLayout(mDevice, mDescriptorSetLayout, nullptr);
 
 		for (size_t i = 0; i < mMaxFramesInFlight; i++) {
 			vkDestroySemaphore(mDevice, mRenderFinishedSemaphores[i], nullptr);
 			vkDestroySemaphore(mDevice, mImageAvailableSemaphores[i], nullptr);
 			vkDestroyFence(mDevice, mInFlightFences[i], nullptr);
-
-			vkDestroyBuffer(mDevice, mUniformBuffers[i], nullptr);
-			vkFreeMemory(mDevice, mUniformBuffersMemory[i], nullptr);
 		}
-		vkDestroyDescriptorSetLayout(mDevice, mDescriptorSetLayout, nullptr);
-
 		mMainVertexBuffer->Destroy();
 		mMainIndexBuffer->Destroy();
 		// vkDestroyBuffer(mDevice, mIndexBuffer, nullptr);
@@ -2521,16 +2529,16 @@ namespace Plaza {
 		// vkDestroyBuffer(mDevice, mVertexBuffer, nullptr);
 		// vkFreeMemory(mDevice, mVertexBufferMemory, nullptr);
 
-		vkDestroyInstance(mVulkanInstance, nullptr);
-		vkDestroyDevice(mDevice, nullptr);
-		vkDestroySwapchainKHR(mDevice, mSwapChain, nullptr);
+		//vkDestroyInstance(mVulkanInstance, nullptr);
+		//vkDestroyDevice(mDevice, nullptr);
+		//vkDestroySwapchainKHR(mDevice, mSwapChain, nullptr);
 
 		for (auto framebuffer : mSwapChainFramebuffers) {
-			vkDestroyFramebuffer(mDevice, framebuffer, nullptr);
+			//vkDestroyFramebuffer(mDevice, framebuffer, nullptr);
 		}
 
 		for (auto imageView : mSwapChainImageViews) {
-			vkDestroyImageView(mDevice, imageView, nullptr);
+			//vkDestroyImageView(mDevice, imageView, nullptr);
 		}
 	}
 	void VulkanRenderer::CopyLastFramebufferToFinalDrawBuffer() {}

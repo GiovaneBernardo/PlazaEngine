@@ -56,6 +56,23 @@ namespace Plaza::Editor {
 					sMaterialsSearch->SetOpen(true);
 					sMaterialsSearch->mCallback = [&](uint64_t uuid) { meshRenderer->mMaterialsUuids.push_back(uuid); };
 				}
+
+				ImGui::Text("Vertices: ");
+				ImGui::SameLine();
+				ImGui::Text(std::to_string(meshRenderer->GetMesh()->vertices.size()).c_str());
+
+				ImGui::Text("Indices: ");
+				ImGui::SameLine();
+				ImGui::Text(std::to_string(meshRenderer->GetMesh()->indices.size()).c_str());
+
+				ImGui::Text("Normals: ");
+				ImGui::SameLine();
+				ImGui::Text(std::to_string(meshRenderer->GetMesh()->normals.size()).c_str());
+
+				ImGui::Text("Triangles: ");
+				ImGui::SameLine();
+				ImGui::Text(std::to_string(meshRenderer->GetMesh()->indices.size() / 3).c_str());
+
 				ImGui::TreePop();
 			}
 

@@ -25,13 +25,18 @@ namespace Plaza {
 
 	void Input::Cursor::SetY(float value) { glfwSetCursorPos(Application::Get()->mWindow->glfwWindow, lastX, value); }
 
-	glm::vec2 Input::Cursor::GetMousePosition() {
+	const glm::vec2& Input::Cursor::GetMousePosition() {
 #ifdef EDITOR_MODE
-		return glm::vec2(Input::Cursor::lastX - Application::Get()->appSizes->hierarchySize.x,
-						 Input::Cursor::lastY - Application::Get()->appSizes->sceneImageStart.y - 35);
+		return glm::vec2(lastX - Application::Get()->appSizes->hierarchySize.x,
+						 lastY - Application::Get()->appSizes->sceneImageStart.y - 35);
 #else
-		return glm::vec2(Input::Cursor::lastX, Input::Cursor::lastY);
+		return glm::vec2(this->lastX, this->lastY);
 #endif
 	}
-	glm::vec2 Input::Cursor::GetDeltaMousePosition() { return glm::vec2(deltaX, deltaY); }
+	const glm::vec2& Input::Cursor::GetDeltaMousePosition() {
+		if (deltaX != 0 || deltaY != 0) {
+			PL_CORE_INFO("Puts");
+		}
+		return glm::vec2(deltaX, deltaY);
+	}
 } // namespace Plaza

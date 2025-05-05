@@ -289,10 +289,10 @@ namespace Plaza {
 				if (sceneViewUsingEditorCamera)
 					Application::Get()->activeCamera = Application::Get()->editorCamera;
 				else {
-					// FIX: Make active camera depdendant on the scene
-					// if (Application::Get()->activeCamera->isEditorCamera &&
-					// Scene::GetActiveScene()->cameraComponents.size() > 0) 	Application::Get()->activeCamera =
-					//&Scene::GetActiveScene()->cameraComponents.begin()->second;
+					for (const uint64_t& uuid : SceneView<Camera>(scene)) {
+						Application::Get()->activeCamera = scene->GetComponent<Camera>(uuid);
+						break;
+					}
 				}
 			}
 

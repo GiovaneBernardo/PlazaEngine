@@ -31,6 +31,7 @@ namespace Plaza {
 		virtual void Terminate() {};
 
 		std::shared_ptr<PlBuffer> mIndirectBuffer = nullptr;
+		std::vector<std::shared_ptr<PlBuffer>> mVertexBuffers = std::vector<std::shared_ptr<PlBuffer>>();
 
 		void SetCreateInfo(PlPipelineCreateInfo createInfo) { mCreateInfo = createInfo; };
 		PlPipelineCreateInfo mCreateInfo{};

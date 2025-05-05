@@ -6,14 +6,13 @@
 #include <functional>
 #include <iostream>
 #include "Engine/Core/Scene.h"
+#include "Engine/ECS/ECSManager.h"
 
 namespace Plaza::Editor {
-	void UpdateRigidBodyCallbackFloat(float value) {
-		// ECS::RigidBodySystem::UpdateRigidBody(currentBody);
-	}
-	void UpdateRigidBodyCallbackVec3(glm::vec3 vec3) {
-		// ECS::RigidBodySystem::UpdateRigidBody(currentBody);
-	}
+	Scene* outScene = nullptr;
+	uint64_t uuid = 0;
+	void UpdateRigidBodyCallbackFloat(float value) { ECS::RigidBodySystem::UpdateRigidBody(outScene, uuid); }
+	void UpdateRigidBodyCallbackVec3(glm::vec3 vec3) { ECS::RigidBodySystem::UpdateRigidBody(outScene, uuid); }
 
 	void ComponentsInspector::RigidBodyInspector(Scene* scene, Entity* entity) {
 		RigidBody* rigidBody = scene->GetComponent<RigidBody>(entity->uuid);
@@ -36,6 +35,8 @@ namespace Plaza::Editor {
 			// if (ImGui::DragFloat3("Gravity: ", &gravity.x, glm::min((gravity.x + gravity.y + gravity.z) / 300.0f,
 			// -0.01f), ImGuiInputTextFlags_CallbackEdit)) { UpdateRigidBodyCallbackVec3(gravity); };
 			// ImGui::DragFloat("Dynamic Friction: ", &dynamicFriction, glm::min(dynamicFriction / 300.0f, -0.01f));
+			outScene = scene;
+			uuid = entity->uuid;
 			Editor::Utils::DragFloat3("Gravity: ", gravity, 0.01f, &UpdateRigidBodyCallbackVec3);
 			Editor::Utils::DragFloat("Dynamic Friction: ", dynamicFriction, 0.01f, &UpdateRigidBodyCallbackFloat, 0.0f);
 			Editor::Utils::DragFloat("Static Friction: ", staticFriction, 0.01f, &UpdateRigidBodyCallbackFloat, 0.0f);

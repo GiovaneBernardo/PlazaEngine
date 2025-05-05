@@ -12,6 +12,8 @@ namespace Plaza {
 
 	CppScript* CppScriptComponent::AddScriptNewInstance(Scene* scene, uint64_t scriptUuid) {
 		Script* assetScript = AssetsManager::GetScript(scriptUuid);
+		mScriptsUuid.push_back(assetScript->mAssetUuid);
+
 		CppScript* script = ScriptFactory::CreateScript(std::filesystem::path(assetScript->mAssetName).stem().string());
 		if (!script) {
 			PL_CORE_ERROR("Added Script is a nullptr");
@@ -19,7 +21,6 @@ namespace Plaza {
 		}
 		script->mAssetUuid = assetScript->mAssetUuid;
 		script->mEntityUuid = this->mUuid;
-		mScriptsUuid.push_back(script->mAssetUuid);
 		mScripts.push_back(script);
 		if (scene->mRunning) {
 			script->OnStart(scene);
