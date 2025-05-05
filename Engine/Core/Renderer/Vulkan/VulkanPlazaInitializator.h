@@ -219,7 +219,8 @@ namespace Plaza {
 		static VkPipelineDepthStencilStateCreateInfo pipelineDepthStencilStateCreateInfo(
 			VkBool32 depthTestEnable = VK_TRUE, VkBool32 depthWriteEnable = VK_TRUE,
 			VkCompareOp depthCompareOp = VK_COMPARE_OP_LESS, VkBool32 depthBoundsTestEnable = VK_FALSE,
-			VkBool32 stencilTestEnable = VK_FALSE) {
+			VkBool32 stencilTestEnable = VK_FALSE, VkStencilOpState frontStencil = {},
+			VkStencilOpState backStencil = {}) {
 			VkPipelineDepthStencilStateCreateInfo depthStencil{};
 			depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
 			depthStencil.depthTestEnable = depthTestEnable;
@@ -227,6 +228,8 @@ namespace Plaza {
 			depthStencil.depthCompareOp = depthCompareOp;
 			depthStencil.depthBoundsTestEnable = depthBoundsTestEnable;
 			depthStencil.stencilTestEnable = stencilTestEnable;
+			depthStencil.front = frontStencil;
+			depthStencil.back = backStencil;
 			return depthStencil;
 		}
 

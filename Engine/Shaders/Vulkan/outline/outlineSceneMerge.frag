@@ -5,5 +5,10 @@ layout (location = 0) in vec2 inUV;
 layout (location = 0) out vec4 fragColor;
 
 void main() {
-	fragColor = vec4(texture(sceneTexture, inUV).xyz + texture(blurredTexture, inUV).xyz, 1.0f);
+	if(texture(blurredTexture, inUV).x > 0.0f) {
+		fragColor = vec4(1.0f, 0.6f, 0.4f, 1.0f);
+		return;
+	}
+	//fragColor = vec4(1.0f, 1.0f, 1.0f, 0.5f);
+	discard;
 }

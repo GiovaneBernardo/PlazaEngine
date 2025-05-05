@@ -36,6 +36,7 @@ namespace Plaza::Editor {
 				ImGui::ColorPicker3("Ambient Light Color",
 									&VulkanRenderer::GetRenderer()->mLighting->ambientLightColor.x);
 				ImGui::DragFloat("Ambient Intesnity", &VulkanRenderer::GetRenderer()->mLighting->ambientLightIntensity);
+				ImGui::DragFloat("Skybox Intesnity", &VulkanRenderer::GetRenderer()->mSkyboxIntensity);
 
 				if (ImGui::Button("Save Settings")) {
 					// Editor::EditorSettingsSerializer::Serialize();
@@ -48,7 +49,7 @@ namespace Plaza::Editor {
 
 			/* Render Graph */
 			if (Utils::ComponentInspectorHeader(nullptr, "RenderGraph", 0)) {
-				ImGui::BeginTable("Terrain Editor Tool Settings", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg);
+				ImGui::BeginTable("RenderGraph Settings", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg);
 				for (const auto& [key, pass] : VulkanRenderer::GetRenderer()->mRenderGraph->mPasses) {
 					Utils::AddTableSingleString(pass->mName);
 					bool recompile;

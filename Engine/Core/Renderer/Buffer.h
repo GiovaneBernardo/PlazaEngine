@@ -28,8 +28,8 @@ namespace Plaza {
 		template <typename T> void UpdateData(unsigned int index, const T& newData) {
 			UpdateDataHelper(index, &newData, sizeof(T));
 		}
-		template <typename T> void UpdateData(unsigned int index, const void* newData) {
-			UpdateDataHelper(index, newData, sizeof(T));
+		template <typename T> void UpdateData(unsigned int index, const void* newData, const size_t count = 1) {
+			UpdateDataHelper(index, newData, sizeof(T) * count);
 		}
 		virtual void Destroy() {};
 
