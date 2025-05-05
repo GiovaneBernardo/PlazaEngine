@@ -32,7 +32,7 @@ void main()
 			vec3 tempVec = cos(phi) * right + sin(phi) * up;
 			vec3 sampleVector = cos(theta) * N + sin(theta) * tempVec;
 			color += texture(samplerEnv, sampleVector).rgb * cos(theta) * sin(theta);
-			color *= 0.3f;
+			//color *= 0.3f;
 			sampleCount++;
 		}
 	}

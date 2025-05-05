@@ -2,6 +2,7 @@
 
 layout (binding = 0) uniform sampler2D samplerTexture;
 layout (binding = 1) uniform sampler2D fontTexture;
+layout (binding = 2) uniform sampler2D luminanceTexture;
 
 layout (location = 0) in vec2 inUV;
 layout (location = 0) out vec4 outFragcolor;
@@ -43,7 +44,7 @@ vec3 RRTAndODTFit(vec3 v)
     return a / b;
 }
 
-vec3 Uncharted2Tonemap(vec3 color)
+vec3 Uncharted2Tonemap(vec3 x)
 {
 	float A = 0.15;
 	float B = 0.50;
@@ -51,8 +52,7 @@ vec3 Uncharted2Tonemap(vec3 color)
 	float D = 0.20;
 	float E = 0.02;
 	float F = 0.30;
-	float W = 11.2;
-	return ((color*(A*color+C*B)+D*E)/(color*(A*color+B)+D*F))-E/F;
+	return ((x*(A*x+C*B)+D*E)/(x*(A*x+B)+D*F))-E/F;
 }
 
 
@@ -67,29 +67,14 @@ vec3 acesFilm(const vec3 x) {
 
 void main()
 {
+    float avgLum = texture(luminanceTexture, vec2(0.5, 0.5)).r; // Sample computed luminance
+    float exposure = pushConstants.exposure; //0.18 / max(avgLum, 1e-6) * pushConstants.exposure;
+
     vec4 x = texture(samplerTexture, inUV);
-    vec3 color = pushConstants.exposure * x.rgb;
-    color = filmicTonemap(color);
-    //color = gammaCorrect(color);
-    color = clamp(color, 0.0, 1.0);
+	vec3 color = x.xyz;
+	color = Uncharted2Tonemap(color * exposure);
+	color = color * (1.0f / Uncharted2Tonemap(vec3(11.2f)));	
+	//color = pow(color, vec3(1.0f / pushConstants.gamma));
+
     outFragcolor = vec4(color, 1.0f);
-    //vec4 x = pushConstants.exposure * texture(samplerTexture, inUV);
-    //vec3 color = ACESInputMat * x.rgb;
-    //     color = RRTAndODTFit(color);
-    //     color = ACESOutputMat * color;
-    //     color = gammaCorrect(color);
-    //     color = clamp(color, 0.0, 1.0);
-    //
-   ////float contrastFactor = 0.5f;
-   ////float lum = dot(color.rgb, vec3(0.299, 0.587, 0.114)); // Calculate luminance
-   ////color.rgb += (color.rgb - lum) * contrastFactor;
-    //
-    //     //color = acesFilm(texture(samplerTexture, inUV).xyz);
-    ////// Tone mapping
-    ////vec3 color = texture(samplerTexture, inUV).xyz;
-	////color = Uncharted2Tonemap(color * pushConstants.exposure);
-	////color = color * (1.0f / Uncharted2Tonemap(vec3(11.2f)));
-	////// Gamma correction
-	////color = pow(color, vec3(1.0f / pushConstants.gamma));
-	//outFragcolor = vec4(color, 1.0f);
 }
