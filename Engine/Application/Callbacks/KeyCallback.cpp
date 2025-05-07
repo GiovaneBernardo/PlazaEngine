@@ -8,6 +8,7 @@
 #include "Engine/Application/FileDialog/FileDialog.h"
 #include "Engine/Core/Scene.h"
 #include "Editor/GUI/NodeEditors/RenderGraphEditor.h"
+#include "Editor/ScriptManager/ScriptManager.h"
 #include "Engine/Core/AssetsManager/Serializer/AssetsSerializer.h"
 #include "Engine/ECS/ECSManager.h"
 #include "Engine/stb_image.h"
@@ -78,6 +79,12 @@ namespace Plaza {
 
 		for (auto& tool : Editor::Gui::sEditorTools) {
 			tool.second->OnKeyPress(key, scancode, action, mods);
+		}
+
+		if (Application::Get()->focusedMenu == "Scene" || Application::Get()->focusedMenu == "Editor") {
+			if (key == GLFW_KEY_F5 && action == GLFW_PRESS) {
+				Editor::ScriptManager::ReloadScriptsAssembly(scene);
+			}
 		}
 
 		if (Application::Get()->focusedMenu == "Scene")

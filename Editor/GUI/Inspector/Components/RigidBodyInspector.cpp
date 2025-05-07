@@ -63,6 +63,10 @@ namespace Plaza::Editor {
 			ImGui::Checkbox("Kinematic: ", &kinematic);
 			ImGui::Checkbox("Continuous Detection: ", &rigidBody->continuousDetection);
 
+			if (ImGui::Checkbox("Use Gravity", &rigidBody->mUseGravity)) {
+				rigidBody->mRigidActor->is<physx::PxRigidDynamic>()->setActorFlag(physx::PxActorFlag::eDISABLE_GRAVITY, !rigidBody->mUseGravity);
+			}
+
 			ImGui::PopID();
 		}
 	}

@@ -35,10 +35,11 @@ namespace Plaza::Editor {
 				ECS::ColliderSystem::InitCollider(scene, entity->uuid);
 			}
 
-			if (ImGui::MenuItem("Rigid Body Non Dynamic")) {
+			if (ImGui::MenuItem("Rigid Body No Gravity")) {
 				RigidBody* rigidBody = scene->NewComponent<RigidBody>(entity->uuid);
-				rigidBody->dynamic = false;
 				rigidBody->mUuid = entity->uuid;
+				rigidBody->mUseGravity = false;
+				ECS::ColliderSystem::InitCollider(scene, entity->uuid);
 			}
 
 			if (ImGui::MenuItem("Collider")) {

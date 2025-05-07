@@ -21,6 +21,8 @@ namespace Plaza {
 			collider->mDynamic = true;
 		physx::PxTransform pxTransform = Physics::GetPxTransform(*transform);
 		collider->mRigidActor = Physics::m_physics->createRigidDynamic(pxTransform);
+		if (rigidBody)
+			rigidBody->mRigidActor = collider->mRigidActor;
 		if (collider->mRigidActor == nullptr)
 			collider->mRigidActor = Physics::m_physics->createRigidDynamic(physx::PxTransform(physx::PxIdentity));
 		if (!collider->material) {
@@ -35,6 +37,7 @@ namespace Plaza {
 																				 true);
 
 		collider->mRigidActor->userData = reinterpret_cast<void*>(collider->mUuid);
+
 		// Attach the shapes with the material to the actor
 		for (auto& shape : collider->mShapes) {
 			if (shape->mPxShape == nullptr) {
@@ -44,6 +47,13 @@ namespace Plaza {
 			shape->mPxShape->userData = reinterpret_cast<void*>(collider->mUuid);
 			collider->mRigidActor->attachShape(*shape->mPxShape);
 		}
+
+		if (rigidBody) {
+			if (auto* dynamic = collider->mRigidActor->is<physx::PxRigidDynamic>()) {
+				dynamic->setActorFlag(physx::PxActorFlag::eDISABLE_GRAVITY, !rigidBody->mUseGravity);
+			}
+		}
+
 		Physics::m_scene->addActor(*collider->mRigidActor);
 	}
 

@@ -27,6 +27,7 @@ namespace Plaza {
 
 		bool canUpdate = true;
 
+		bool mUseGravity = true;
 		bool kinematic = false;
 		bool dynamic = true;
 		bool continuousDetection = false;

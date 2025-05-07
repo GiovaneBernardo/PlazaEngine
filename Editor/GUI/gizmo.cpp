@@ -34,7 +34,7 @@ namespace Plaza::Editor {
 		if (changedActiveEntityFromLastFrame && scene->HasComponent<RigidBody>(sLastEntityUuid)) {
 			RigidBody* rigidBody = scene->GetComponent<RigidBody>(sLastEntityUuid);
 			if (rigidBody->mRigidActor) {
-				rigidBody->mRigidActor->setActorFlag(physx::PxActorFlag::eDISABLE_GRAVITY, false);
+				rigidBody->mRigidActor->setActorFlag(physx::PxActorFlag::eDISABLE_GRAVITY, !rigidBody->mUseGravity);
 				rigidBody->canUpdate = true;
 			}
 		}
@@ -137,7 +137,7 @@ namespace Plaza::Editor {
 		}
 
 		if (rigidBody && rigidBody->mRigidActor && !ImGuizmo::IsUsing()) {
-			rigidBody->mRigidActor->setActorFlag(physx::PxActorFlag::eDISABLE_GRAVITY, false);
+			rigidBody->mRigidActor->setActorFlag(physx::PxActorFlag::eDISABLE_GRAVITY, !rigidBody->mUseGravity);
 			rigidBody->canUpdate = true;
 		}
 
