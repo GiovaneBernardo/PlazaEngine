@@ -1834,7 +1834,7 @@ namespace Plaza {
 #ifdef _WIN32
 		VulkanShadersCompiler::mGlslcExePath = FilesManager::sEngineFolder.string() + "/../ThirdParty/glslc/glslc.exe";
 #else
-		VulkanShadersCompiler::mGlslcExePath = Application::Get()->enginePath + "/../ThirdParty/glslc/glslc";
+		VulkanShadersCompiler::mGlslcExePath = FilesManager::sEngineFolder.string() + "/../ThirdParty/glslc/glslc";
 #endif
 
 		VulkanShadersCompiler::Compile(FilesManager::sEngineFolder.string() + "/Shaders/vulkanTriangle.vert");
