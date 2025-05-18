@@ -7,6 +7,7 @@
 namespace Plaza::Editor {
 	class HierarchyWindow : public GuiWindow {
 	  public:
+		static inline bool sHoveringItem = false;
 		HierarchyWindow(GuiLayer layer, bool startOpen = true) : GuiWindow(layer, startOpen) {}
 		Scene* mScene = nullptr;
 
