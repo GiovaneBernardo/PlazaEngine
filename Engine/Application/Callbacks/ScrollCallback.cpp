@@ -16,9 +16,5 @@ void Plaza::Callbacks::scrollCallback(GLFWwindow* window, double xoffset, double
 							 (Application::Get()->activeCamera->MovementSpeed * yoffset / 10),
 						 0.0001);
 		}
-
-		if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) != GLFW_PRESS &&
-			glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS)
-			Application::Get()->activeCamera->ProcessMouseScroll(static_cast<float>(yoffset));
 	}
 }
