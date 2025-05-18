@@ -4,6 +4,7 @@
 #include "Editor/GUI/guiMain.h"
 #include "Engine/Components/Drawing/UI/GuiButton.h"
 #include "Engine/Core/Scene.h"
+#include "Engine/ECS/ECSManager.h"
 
 namespace Plaza {
 	void Callbacks::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
@@ -39,6 +40,24 @@ namespace Plaza {
 		if (Application::Get()->hoveredMenu == "Editor" && Application::Get()->focusedMenu != "Scene") {
 			ApplicationSizes& appSizes = *Application::Get()->appSizes;
 			ApplicationSizes& lastAppSizes = *Application::Get()->lastAppSizes;
+
+			// Position entity to where the mouse is looking if pressed ALT + mouse middle button
+			if (button == GLFW_MOUSE_BUTTON_MIDDLE && action == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS && Editor::selectedGameObject) {
+				float xposGame = Callbacks::lastX - Application::Get()->appSizes->hierarchySize.x;
+				float yposGame = Callbacks::lastY - Application::Get()->appSizes->sceneImageStart.y - 35;
+
+				// Get depth
+				float depth = VulkanRenderer::GetRenderer()
+					->mRenderGraph->GetTexture<VulkanTexture>("SceneDepth")
+					->ReadTexture(glm::vec2(xposGame, yposGame), sizeof(float) + sizeof(uint8_t), 1,
+						  VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT, true).x;
+
+				// Get world position
+				glm::vec3 worldPosition = Renderer::ReconstructWorldPositionFromDepth(
+					glm::vec2(xposGame, yposGame), Application::Get()->appSizes->sceneSize,
+					depth, Application::Get()->activeCamera);
+				ECS::TransformSystem::SetWorldPosition(*scene->GetComponent<TransformComponent>(Editor::selectedGameObject->uuid), scene, worldPosition);
+			}
 
 			if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
 				// Pressing right button

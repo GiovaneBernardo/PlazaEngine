@@ -1,5 +1,7 @@
 #include "Engine/Core/PreCompiledHeaders.h"
 #include "VulkanShaders.h"
+
+#include "Renderer.h"
 #include "Engine/Core/Renderer/RendererTypes.h"
 #include "Engine/Core/Renderer/Mesh.h"
 
@@ -474,7 +476,7 @@ namespace Plaza {
 		pipelineInfo.basePipelineIndex = -1;
 		pipelineInfo.pDepthStencilState = &depthStencil;
 
-		if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &this->mPipeline) !=
+		if (vkCreateGraphicsPipelines(device, VulkanRenderer::GetRenderer()->GetPipelineCache(), 1, &pipelineInfo, nullptr, &this->mPipeline) !=
 			VK_SUCCESS) {
 			throw std::runtime_error("failed to create graphics pipeline!");
 		}
