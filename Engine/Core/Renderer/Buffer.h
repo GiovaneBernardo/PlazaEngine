@@ -44,4 +44,10 @@ namespace Plaza {
 	  private:
 		virtual void UpdateDataHelper(unsigned int index, const void* newData, size_t size) = 0;
 	};
+
+	// Used for vertex and indirect buffers
+	struct PlBufferAttachment {
+		std::shared_ptr<PlBuffer> mBuffer;
+		int mLocation;
+	};
 } // namespace Plaza

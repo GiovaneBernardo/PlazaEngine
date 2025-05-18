@@ -39,7 +39,10 @@ namespace Plaza {
 
 	void Scene::NewRuntimeScene(Scene* baseScene) {}
 
-	Scene::Scene() { this->mAssetUuid = Plaza::UUID::NewUUID(); }
+	Scene::Scene() {
+		this->mAssetUuid = Plaza::UUID::NewUUID();
+		mViewport = PlViewport(0.0f, 0.0f, Application::Get()->appSizes->sceneSize.x, Application::Get()->appSizes->sceneSize.y, 0.0f, 1.0f);
+	}
 
 	void Scene::Play() {
 		/* Restart physics */

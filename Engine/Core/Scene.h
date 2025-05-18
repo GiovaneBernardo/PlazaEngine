@@ -101,6 +101,7 @@ namespace Plaza {
 			return sComponentId;
 		}
 
+		PlViewport mViewport;
 		Entity* mainSceneEntity = nullptr;
 		uint64_t mainSceneEntityUuid = 0;
 

@@ -19,6 +19,162 @@ namespace Plaza {
 		}
 	}
 
+// Helper function to get the corner points of a frustum slice based on split planes
+	std::vector<glm::vec3> getFrustumSliceCornersWorldSpace(float nearClip, float farClip, float aspect, float fovY, const glm::mat4& camView) {
+		glm::mat4 proj = glm::perspective(glm::radians(fovY), aspect, nearClip, farClip);
+		const auto inv = glm::inverse(proj * camView);
+
+		std::vector<glm::vec3> frustumCorners;
+		for (unsigned int x = 0; x < 2; ++x) {
+			for (unsigned int y = 0; y < 2; ++y) {
+				for (unsigned int z = 0; z < 2; ++z) {
+					const glm::vec4 pt = inv * glm::vec4(2.0f * x - 1.0f, 2.0f * y - 1.0f, 2.0f * z - 1.0f, 1.0f);
+					frustumCorners.push_back(glm::vec3(pt) / pt.w);
+				}
+			}
+		}
+
+		return frustumCorners;
+
+
+		proj = glm::perspective(glm::radians(fovY), aspect, nearClip, farClip);
+		//inv = glm::inverse(proj * camView);
+
+		std::vector<glm::vec4> clipCorners = {
+			{-1, -1, -1, 1}, {1, -1, -1, 1}, {1, 1, -1, 1}, {-1, 1, -1, 1},
+			{-1, -1,  1, 1}, {1, -1,  1, 1}, {1, 1,  1, 1}, {-1, 1,  1, 1}
+		};
+
+		//std::vector<glm::vec3> frustumCorners;
+		for (const auto& c : clipCorners) {
+			glm::vec4 world = inv * c;
+			frustumCorners.push_back(glm::vec3(world) / world.w);
+		}
+
+		return frustumCorners;
+	}
+
+// Function to calculate the split distances based on the provided formula
+std::vector<float> calculateSplitDistances(float nearClip, float farClip, int numSplits, float lambda = 0.5f) {
+    std::vector<float> splitDistances(numSplits + 1);
+    splitDistances[0] = nearClip;
+    //splitDistances[numSplits] = farClip;
+
+    for (int i = 1; i < numSplits; ++i) {
+        float i_normalized = static_cast<float>(i) / static_cast<float>(numSplits);
+        float log_term = nearClip * std::pow(farClip / nearClip, i_normalized);
+        float linear_term = nearClip + (farClip - nearClip) * i_normalized;
+        //splitDistances[i] = lambda * log_term + (1.0f - lambda) * linear_term;
+    }
+
+		float mult = 1.0f;
+		splitDistances[0] = Application::Get()->activeCamera->farPlane / (9000.0f * mult);
+		splitDistances[1] = Application::Get()->activeCamera->farPlane / (3000.0f * mult);
+		splitDistances[2] = Application::Get()->activeCamera->farPlane / (1000.0f * mult);
+		splitDistances[3] = Application::Get()->activeCamera->farPlane / (500.0f * mult);
+		splitDistances[4] = Application::Get()->activeCamera->farPlane / (100.0f * mult);
+		splitDistances[5] = Application::Get()->activeCamera->farPlane / (35.0f * mult);
+		splitDistances[6] = Application::Get()->activeCamera->farPlane / (10.0f * mult);
+		splitDistances[7] = Application::Get()->activeCamera->farPlane / (2.0f * mult);
+		splitDistances[8] = Application::Get()->activeCamera->farPlane / (1.0f * mult);
+
+    return splitDistances;
+}
+
+	glm::mat4 getShadowMapMatrix(
+		const glm::vec3& lightDirection,
+		float shadowMapResolution,
+		float nearPlane,
+		float farPlane,
+		const glm::mat4& viewMatrix,
+		float ratio
+	) {
+		const auto proj =
+			glm::perspective(glm::radians(Application::Get()->activeCamera->Zoom), ratio, nearPlane, farPlane);
+ const auto corners = Application::Get()->activeCamera->getFrustumCornersWorldSpace(proj, viewMatrix);
+
+		glm::vec3 center = glm::vec3(0, 0, 0);
+		for (const auto& v : corners) {
+			center += glm::vec3(v);
+		}
+		center /= corners.size();
+
+		const float LARGE_CONSTANT = std::abs(std::numeric_limits<float>::min());
+		auto lightView = glm::lookAt(center + lightDirection, center, glm::vec3(0.0f, 1.0f, 0.0f));
+		float minX = std::numeric_limits<float>::max();
+		float maxX = std::numeric_limits<float>::lowest();
+		float minY = std::numeric_limits<float>::max();
+		float maxY = std::numeric_limits<float>::lowest();
+		float minZ = std::numeric_limits<float>::max();
+		float maxZ = std::numeric_limits<float>::lowest();
+		for (const auto& v : corners) {
+			const auto trf = lightView * v;
+			minX = std::min(minX, trf.x);
+			maxX = std::max(maxX, trf.x);
+			minY = std::min(minY, trf.y);
+			maxY = std::max(maxY, trf.y);
+			minZ = std::min(minZ, trf.z);
+			maxZ = std::max(maxZ, trf.z);
+		}
+
+		// Tune this parameter according to the scene
+		// lightView = glm::lookAt(center - lightDir * (minZ), center, glm::vec3(0.0f, 1.0f, 0.0f));
+
+		constexpr float zMult = 22.0f;
+		if (minZ < 0) {
+			minZ *= zMult;
+		}
+		else {
+			minZ /= zMult;
+		}
+		if (maxZ < 0) {
+			maxZ /= zMult;
+		}
+		else {
+			maxZ *= zMult;
+		}
+
+		// const glm::mat4 lightProjection = glm::ortho(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.01f,
+		// maxExtents.z - minExtents.z);
+		const glm::mat4 lightProjection = glm::ortho(minX, maxX, minY, maxY, minZ, maxZ);
+		return lightProjection * lightView;
+	}
+
+	std::vector<glm::mat4> GetShadowMatrices(const RendererSettings::LightingSettings& settings, const glm::mat4& camProj, const glm::mat4& camView) {
+		int numSplits = settings.mCascadeCount;
+		glm::vec3 lightDir = (settings.mLightDirection);
+
+		float nearClip = Application::Get()->activeCamera->nearPlane;
+		float farClip  = Application::Get()->activeCamera->farPlane;
+
+		float fovY = glm::degrees(2.0f * atan(1.0f / camProj[1][1]));
+		fovY = Application::Get()->activeCamera->Zoom;
+		float aspect = camProj[1][1] / camProj[0][0];
+		aspect = Application::Get()->appSizes->sceneSize.x / Application::Get()->appSizes->sceneSize.y;
+
+		std::vector<float> splitDistances = calculateSplitDistances(nearClip, farClip, numSplits, settings.mLambda);
+		for (int i = 0; i < splitDistances.size(); ++i)
+			VulkanRenderer::GetRenderer()->mRendererSettings.mLightingSettings.shadowCascadeLevels[i] = splitDistances[i];
+
+
+
+		std::vector<glm::mat4> shadowMatrices;
+		for (int i = 0; i < numSplits + 1; ++i) {
+			float nearSplit = 0.0f;
+			if(i == 0)
+				nearSplit = Application::Get()->activeCamera->nearPlane - 1.0f;
+			else
+				nearSplit = splitDistances[i - 1] - 1.0f;
+			float farSplit  = splitDistances[i];
+			const auto proj =
+				glm::perspective((Application::Get()->activeCamera->Zoom), aspect, nearSplit, farSplit);
+			auto corners = Application::Get()->activeCamera->getFrustumCornersWorldSpace(proj, camView);//getFrustumSliceCornersWorldSpace(nearSplit, farSplit, aspect, fovY, camView);
+			shadowMatrices.push_back(getShadowMapMatrix(lightDir, 2048, nearSplit, farSplit, Application::Get()->activeCamera->GetViewMatrix(), aspect));
+		}
+
+		return shadowMatrices;
+	}
+
 	void VulkanRenderGraph::BuildDefaultRenderGraph() {
 		const int maxOutlineMeshes = 8192;
 
@@ -73,7 +229,7 @@ namespace Plaza {
 		this->AddTexture(
 			make_shared<VulkanTexture>(1, depthTextureFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D_ARRAY, PL_FORMAT_D32_SFLOAT,
 									   glm::vec3(shadowMapResolution, shadowMapResolution, 1), 1,
-									   VulkanRenderer::GetRenderer()->mShadows->mCascadeCount, "ShadowsDepthMap"));
+									   VulkanRenderer::GetRenderer()->mRendererSettings.mLightingSettings.mCascadeCount, "ShadowsDepthMap"));
 		// this->AddTexture(make_shared<VulkanTexture>(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D,
 		// PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application::Get()->appSizes->sceneSize, 1), 1, 1, "GPosition"));
 		this->AddTexture(make_shared<VulkanTexture>(
@@ -153,7 +309,7 @@ namespace Plaza {
 
 		std::string skyboxPath;
 #ifdef EDITOR_MODE
-		skyboxPath = Application::Get()->enginePath + "/Editor/DefaultAssets/Skybox/";
+		skyboxPath = FilesManager::sEngineFolder.string() + "/Editor/DefaultAssets/Skybox/";
 #else
 		skyboxPath = Application::Get()->exeDirectory + "/";
 #endif
@@ -206,11 +362,11 @@ namespace Plaza {
 													 bufferCount, PL_BUFFER_USAGE_STORAGE_BUFFER,
 													 PL_MEMORY_USAGE_CPU_TO_GPU, "RenderGroupMaterialsOffsetsBuffer"));
 		this->AddBuffer(std::make_shared<PlVkBuffer>(
-			PL_BUFFER_STORAGE_BUFFER, 1024 * 32, sizeof(Lighting::LightStruct), bufferCount,
+			PL_BUFFER_STORAGE_BUFFER, 1024 * 32, sizeof(RendererSettings::LightStruct), bufferCount,
 			static_cast<PlBufferUsage>(PL_BUFFER_USAGE_STORAGE_BUFFER | PL_BUFFER_USAGE_TRANSFER_DST),
 			PL_MEMORY_USAGE_CPU_TO_GPU, "LightsBuffer"));
 		this->AddBuffer(std::make_shared<PlVkBuffer>(
-			PL_BUFFER_STORAGE_BUFFER, clusterCount, sizeof(Lighting::Tile), bufferCount,
+			PL_BUFFER_STORAGE_BUFFER, clusterCount, sizeof(RendererSettings::Tile), bufferCount,
 			static_cast<PlBufferUsage>(PL_BUFFER_USAGE_STORAGE_BUFFER | PL_BUFFER_USAGE_TRANSFER_DST),
 			PL_MEMORY_USAGE_CPU_TO_GPU, "ClustersBuffer"));
 		this->AddBuffer(std::make_shared<PlVkBuffer>(
@@ -230,8 +386,8 @@ namespace Plaza {
 													 PL_MEMORY_USAGE_CPU_TO_GPU, "OutlineMatrixBuffer"));
 #endif
 
-		uint64_t a = alignof(Lighting::LightStruct);
-		uint64_t b = sizeof(Lighting::LightStruct);
+		uint64_t a = alignof(RendererSettings::LightStruct);
+		uint64_t b = sizeof(RendererSettings::LightStruct);
 
 		this->AddRenderPass(std::make_shared<VulkanRenderPass>("Shadow Pass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT,
 															   PL_RENDER_PASS_INDIRECT_BUFFER_SHADOW_MAP,
@@ -245,16 +401,16 @@ namespace Plaza {
 				1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 0, 0,
 				this->GetSharedTexture("ShadowsDepthMap")));
 
-		this->GetRenderPass("Shadow Pass")->mMultiViewCount = VulkanRenderer::GetRenderer()->mShadows->mCascadeCount;
+		this->GetRenderPass("Shadow Pass")->mMultiViewCount = VulkanRenderer::GetRenderer()->mRendererSettings.mLightingSettings.mCascadeCount;
 		this->GetRenderPass("Shadow Pass")
 			->AddPipeline(pl::pipelineCreateInfo(
 				"ShadowMapping", PL_RENDER_PASS_INDIRECT_BUFFER_SHADOW_MAP,
 				{pl::pipelineShaderStageCreateInfo(
 					 PL_STAGE_VERTEX,
-					 Application::Get()->enginePath + "/Shaders/shadows/cascadedShadowDepthShaders.vert", "main"),
+					 FilesManager::sEngineFolder.string() + "/Shaders/shadows/cascadedShadowDepthShaders.vert", "main"),
 				 pl::pipelineShaderStageCreateInfo(
 					 PL_STAGE_FRAGMENT,
-					 Application::Get()->enginePath + "/Shaders/shadows/cascadedShadowDepthShaders.frag", "main")},
+					 FilesManager::sEngineFolder.string() + "/Shaders/shadows/cascadedShadowDepthShaders.frag", "main")},
 				{pl::vertexInputBindingDescription(0, sizeof(Vertex), PL_VERTEX_INPUT_RATE_VERTEX),
 				 pl::vertexInputBindingDescription(1, sizeof(glm::vec4) * 4, PL_VERTEX_INPUT_RATE_INSTANCE)},
 				{pl::vertexInputAttributeDescription(0, 0, PL_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, position)),
@@ -274,14 +430,15 @@ namespace Plaza {
 		static ShadowPassUBO shadowPassUbo{};
 		this->AddRenderPassCallback(
 			"Shadow Pass", [&](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass) {
-				std::vector<glm::mat4> mats =
-					VulkanShadows::GetLightSpaceMatrices(VulkanRenderer::GetRenderer()->mShadows->shadowCascadeLevels,
-														 VulkanRenderer::GetRenderer()->mShadows->mLightDirection);
-				for (int i = 0; i < VulkanRenderer::GetRenderer()->mShadows->mCascadeCount; ++i) {
-					shadowPassUbo.lightSpaceMatrices[i] = mats[i];
-				}
-				for (unsigned int i = VulkanRenderer::GetRenderer()->mShadows->mCascadeCount; i < 32; ++i) {
-					shadowPassUbo.lightSpaceMatrices[i] = glm::mat4(1.0f);
+				if (VulkanRenderer::GetRenderer()->mRendererSettings.mLightingSettings.mUpdateCascades)
+				VulkanRenderer::GetRenderer()->mRendererSettings.mLightingSettings.mShadowCascadeMatrices =
+					GetShadowMatrices(VulkanRenderer::GetRenderer()->mRendererSettings.mLightingSettings, Application::Get()->activeCamera->GetProjectionMatrix(), Application::Get()->activeCamera->GetViewMatrix());
+				std::vector<glm::mat4> mats = VulkanRenderer::GetRenderer()->mRendererSettings.mLightingSettings.mShadowCascadeMatrices;
+				for (int i = 0; i < VulkanRenderer::GetRenderer()->mRendererSettings.mLightingSettings.mCascadeCount; ++i) {
+					if (shadowPassUbo.lightSpaceMatrices->length() > i && mats.size() > i)
+						shadowPassUbo.lightSpaceMatrices[i] = mats[i];
+					else
+						shadowPassUbo.lightSpaceMatrices[i] = glm::mat4(1.0f);
 				}
 				plazaRenderGraph->GetSharedBuffer("ShadowPassUBO")
 					->UpdateData<ShadowPassUBO>(Application::Get()->mRenderer->mCurrentFrame, shadowPassUbo);
@@ -331,10 +488,10 @@ namespace Plaza {
 			->AddPipeline(pl::pipelineCreateInfo(
 				"MainShaders", PL_RENDER_PASS_INDIRECT_BUFFER,
 				{pl::pipelineShaderStageCreateInfo(
-					 PL_STAGE_VERTEX, Application::Get()->enginePath + "/Shaders/Vulkan/deferred/geometryPass.vert",
+					 PL_STAGE_VERTEX, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/deferred/geometryPass.vert",
 					 "main"),
 				 pl::pipelineShaderStageCreateInfo(
-					 PL_STAGE_FRAGMENT, Application::Get()->enginePath + "/Shaders/Vulkan/deferred/geometryPass.frag",
+					 PL_STAGE_FRAGMENT, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/deferred/geometryPass.frag",
 					 "main")},
 				VertexGetBindingDescription(), VertexGetAttributeDescriptions(), PL_TOPOLOGY_TRIANGLE_LIST, false,
 				pl::pipelineRasterizationStateCreateInfo(
@@ -354,9 +511,9 @@ namespace Plaza {
 				"Skinned", PL_RENDER_PASS_INDIRECT_BUFFER_SKINNED,
 				{pl::pipelineShaderStageCreateInfo(
 					 PL_STAGE_VERTEX,
-					 Application::Get()->enginePath + "/Shaders/Vulkan/deferred/geometrySkinnedPass.vert", "main"),
+					 FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/deferred/geometrySkinnedPass.vert", "main"),
 				 pl::pipelineShaderStageCreateInfo(
-					 PL_STAGE_FRAGMENT, Application::Get()->enginePath + "/Shaders/Vulkan/deferred/geometryPass.frag",
+					 PL_STAGE_FRAGMENT, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/deferred/geometryPass.frag",
 					 "main")},
 				VertexGetBindingDescription(), SkinnedVertexGetAttributeDescriptions(), PL_TOPOLOGY_TRIANGLE_LIST,
 				false,
@@ -384,9 +541,9 @@ namespace Plaza {
 			->AddPipeline(pl::pipelineCreateInfo(
 				"Skybox", PL_RENDER_PASS_INDIRECT_BUFFER_SPECIFIC_MESH,
 				{pl::pipelineShaderStageCreateInfo(
-					 PL_STAGE_VERTEX, Application::Get()->enginePath + "/Shaders/Vulkan/skybox/skybox.vert", "main"),
+					 PL_STAGE_VERTEX, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/skybox/skybox.vert", "main"),
 				 pl::pipelineShaderStageCreateInfo(
-					 PL_STAGE_FRAGMENT, Application::Get()->enginePath + "/Shaders/Vulkan/skybox/skybox.frag", "main")},
+					 PL_STAGE_FRAGMENT, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/skybox/skybox.frag", "main")},
 				VertexGetBindingDescription(), VertexGetAttributeDescriptions(), PL_TOPOLOGY_TRIANGLE_LIST, false,
 				pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f,
 														 0.0f, PL_CULL_MODE_NONE, PL_FRONT_FACE_CLOCKWISE),
@@ -410,30 +567,24 @@ namespace Plaza {
 			ubo.farPlane = 15000.0f;
 			ubo.nearPlane = 0.01f;
 
-			glm::vec3 lightDir = VulkanRenderer::GetRenderer()->mShadows->mLightDirection;
+			glm::vec3 lightDir = VulkanRenderer::GetRenderer()->mRendererSettings.mLightingSettings.mLightDirection;
 			glm::vec3 lightDistance = glm::vec3(100.0f, 400.0f, 0.0f);
 			glm::vec3 lightPos;
 
 			ubo.lightDirection = glm::vec4(lightDir, 1.0f);
 			ubo.viewPos = glm::vec4(Application::Get()->activeCamera->Position, 1.0f);
 
-			ubo.directionalLightColor = glm::vec4(VulkanRenderer::GetRenderer()->mLighting->directionalLightColor *
-												  VulkanRenderer::GetRenderer()->mLighting->directionalLightIntensity);
-			ubo.directionalLightColor.w = VulkanRenderer::GetRenderer()->mLighting->directionalLightIntensity;
-			ubo.directionalLightColor.a = 1.0f;
-			ubo.ambientLightColor = glm::vec4(VulkanRenderer::GetRenderer()->mLighting->ambientLightColor *
-											  VulkanRenderer::GetRenderer()->mLighting->ambientLightIntensity);
-			ubo.ambientLightColor.a = 1.0f;
+			ubo.directionalLightColor = glm::vec4(VulkanRenderer::GetRenderer()->mRendererSettings.mLightingSettings.directionalLightColor *
+												  VulkanRenderer::GetRenderer()->mRendererSettings.mLightingSettings.directionalLightIntensity);
+			ubo.directionalLightColor.w = VulkanRenderer::GetRenderer()->mRendererSettings.mLightingSettings.directionalLightIntensity;
+			ubo.ambientLightColor = glm::vec4(VulkanRenderer::GetRenderer()->mRendererSettings.mLightingSettings.ambientLightColor *
+											  VulkanRenderer::GetRenderer()->mRendererSettings.mLightingSettings.ambientLightIntensity);
 			ubo.gamma = VulkanRenderer::GetRenderer()->gamma;
 
-			for (int i = 0; i < VulkanRenderer::GetRenderer()->mShadows->mCascadeCount; ++i) {
+			for (int i = 0; i < VulkanRenderer::GetRenderer()->mRendererSettings.mLightingSettings.mCascadeCount; ++i) {
 				ubo.lightSpaceMatrices[i] = shadowPassUbo.lightSpaceMatrices[i];
-				if (i <= 8)
 					ubo.cascadePlaneDistances[i] =
-						glm::vec4(VulkanRenderer::GetRenderer()->mShadows->shadowCascadeLevels[i], 1.0f, 1.0f, 1.0f);
-				else
-					ubo.cascadePlaneDistances[i] =
-						glm::vec4(VulkanRenderer::GetRenderer()->mShadows->shadowCascadeLevels[8], 1.0f, 1.0f, 1.0f);
+						glm::vec4(VulkanRenderer::GetRenderer()->mRendererSettings.mLightingSettings.shadowCascadeLevels[i], 1.0f, 1.0f, 1.0f);
 			}
 
 			ubo.showCascadeLevels = Application::Get()->showCascadeLevels;
@@ -476,7 +627,7 @@ namespace Plaza {
 			->AddPipeline(pl::pipelineCreateInfo(
 				"LightSorter", PL_RENDER_PASS_COMPUTE,
 				{pl::pipelineShaderStageCreateInfo(
-					PL_STAGE_COMPUTE, Application::Get()->enginePath + "/Shaders/Vulkan/lighting/lightSorter.comp",
+					PL_STAGE_COMPUTE, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/lighting/lightSorter.comp",
 					"main")},
 				{}, {}, {}, {}, {}, {}, {}, {}, {}, {},
 				{pl::pushConstantRange(PL_STAGE_COMPUTE, 0, sizeof(LightSorterPC))}));
@@ -486,12 +637,12 @@ namespace Plaza {
 			Application::Get()->mThreadsManager->mFrameRendererAfterGeometry->Update();
 			glm::vec2 clusterSize = glm::vec2(32.0f);
 			glm::vec2 clusterCount = glm::ceil(gPassSize / clusterSize);
-			VulkanLighting* lig = VulkanRenderer::GetRenderer()->mLighting;
+
 			plazaRenderPass->mPipelines[0]->UpdatePushConstants<LightSorterPC>(
 				0,
 				LightSorterPC(Application::Get()->activeCamera->GetViewMatrix(),
 							  Application::Get()->activeCamera->GetProjectionMatrix(),
-							  VulkanRenderer::GetRenderer()->mLighting->mLights.size(), true, gPassSize, clusterSize));
+							  VulkanRenderer::GetRenderer()->mRendererSettings.mLightingSettings.mLightsCount, true, gPassSize, clusterSize));
 			plazaRenderPass->mDispatchSize = glm::vec3(clusterCount.x, clusterCount.y, 1);
 		});
 
@@ -543,10 +694,10 @@ namespace Plaza {
 			->AddPipeline(pl::pipelineCreateInfo(
 				"LightingPassShaders", PL_RENDER_PASS_FULL_SCREEN_QUAD,
 				{pl::pipelineShaderStageCreateInfo(
-					 PL_STAGE_VERTEX, Application::Get()->enginePath + "/Shaders/Vulkan/lighting/deferredPass.vert",
+					 PL_STAGE_VERTEX, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/lighting/deferredPass.vert",
 					 "main"),
 				 pl::pipelineShaderStageCreateInfo(
-					 PL_STAGE_FRAGMENT, Application::Get()->enginePath + "/Shaders/Vulkan/lighting/deferredPass.frag",
+					 PL_STAGE_FRAGMENT, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/lighting/deferredPass.frag",
 					 "main")},
 				{}, {}, PL_TOPOLOGY_TRIANGLE_LIST, false,
 				pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f,
@@ -567,35 +718,33 @@ namespace Plaza {
 			ubo.farPlane = 15000.0f;
 			ubo.nearPlane = 0.01f;
 
-			glm::vec3 lightDir = VulkanRenderer::GetRenderer()->mShadows->mLightDirection;
+			glm::vec3 lightDir = VulkanRenderer::GetRenderer()->mRendererSettings.mLightingSettings.mLightDirection;
 			glm::vec3 lightDistance = glm::vec3(100.0f, 400.0f, 0.0f);
 			glm::vec3 lightPos;
 
 			ubo.lightDirection = glm::vec4(lightDir, 1.0f);
 			ubo.viewPos = glm::vec4(Application::Get()->activeCamera->Position, 1.0f);
 
-			ubo.directionalLightColor = glm::vec4(VulkanRenderer::GetRenderer()->mLighting->directionalLightColor *
-												  VulkanRenderer::GetRenderer()->mLighting->directionalLightIntensity);
-			ubo.directionalLightColor.a = 1.0f;
-			ubo.ambientLightColor = glm::vec4(VulkanRenderer::GetRenderer()->mLighting->ambientLightColor *
-											  VulkanRenderer::GetRenderer()->mLighting->ambientLightIntensity);
-			ubo.ambientLightColor.a = 1.0f;
+			ubo.directionalLightColor = glm::vec4(VulkanRenderer::GetRenderer()->mRendererSettings.mLightingSettings.directionalLightColor *
+												  VulkanRenderer::GetRenderer()->mRendererSettings.mLightingSettings.directionalLightIntensity);
+			ubo.ambientLightColor = glm::vec4(VulkanRenderer::GetRenderer()->mRendererSettings.mLightingSettings.ambientLightColor *
+											  VulkanRenderer::GetRenderer()->mRendererSettings.mLightingSettings.ambientLightIntensity);
 			ubo.gamma = VulkanRenderer::GetRenderer()->gamma;
 			ubo.exposure = VulkanRenderer::GetRenderer()->exposure;
 
-			for (int i = 0; i < VulkanRenderer::GetRenderer()->mShadows->mCascadeCount; ++i) {
+			for (int i = 0; i < 16; ++i) {
 				ubo.lightSpaceMatrices[i] = shadowPassUbo.lightSpaceMatrices[i];
 				if (i <= 8)
 					ubo.cascadePlaneDistances[i] =
-						glm::vec4(VulkanRenderer::GetRenderer()->mShadows->shadowCascadeLevels[i], 1.0f, 1.0f, 1.0f);
+						glm::vec4(VulkanRenderer::GetRenderer()->mRendererSettings.mLightingSettings.shadowCascadeLevels[i], 1.0f, 1.0f, 1.0f);
 				else
 					ubo.cascadePlaneDistances[i] =
-						glm::vec4(VulkanRenderer::GetRenderer()->mShadows->shadowCascadeLevels[8], 1.0f, 1.0f, 1.0f);
+						glm::vec4(VulkanRenderer::GetRenderer()->mRendererSettings.mLightingSettings.shadowCascadeLevels[8], 1.0f, 1.0f, 1.0f);
 			}
 
 			ubo.showCascadeLevels = Application::Get()->showCascadeLevels;
 
-			ubo.lightCount = VulkanRenderer::GetRenderer()->mLighting->mLights.size();
+			ubo.lightCount = VulkanRenderer::GetRenderer()->mRendererSettings.mLightingSettings.mLightsCount;
 			// DeferredLightingPassConstants(Application::Get()->activeCamera->Position, 0.0f,
 			// Application::Get()->activeCamera->GetViewMatrix(),
 			// Application::Get()->activeCamera->GetProjectionMatrix(),
@@ -665,12 +814,11 @@ namespace Plaza {
 		bool pingPong = true;
 		PlPipelineShaderStageCreateInfo downScaleShaders = pl::pipelineShaderStageCreateInfo(
 			PL_STAGE_COMPUTE,
-			VulkanShadersCompiler::Compile(Application::Get()->enginePath +
-										   "/Shaders/Vulkan/bloom/bloomDownScale.comp"),
+			VulkanShadersCompiler::Compile(FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/bloom/bloomDownScale.comp"),
 			"main");
 		PlPipelineShaderStageCreateInfo upScaleShaders = pl::pipelineShaderStageCreateInfo(
 			PL_STAGE_COMPUTE,
-			VulkanShadersCompiler::Compile(Application::Get()->enginePath + "/Shaders/Vulkan/bloom/bloomUpScale.comp"),
+			VulkanShadersCompiler::Compile(FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/bloom/bloomUpScale.comp"),
 			"main");
 		PlPipelineCreateInfo bloomPipelineCreateInfo =
 			pl::pipelineCreateInfo("BloomShaders", PL_RENDER_PASS_COMPUTE, {downScaleShaders}, {}, {}, {}, {}, {}, {},
@@ -696,14 +844,14 @@ namespace Plaza {
 				->mChildPasses.back()
 				->SetRecordingCallback(
 					[&, mipSize, i](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass) {
-						float threshold = VulkanRenderer::GetRenderer()->mBloom.mThreshold;
-						float knee = VulkanRenderer::GetRenderer()->mBloom.mKnee;
+						float threshold = VulkanRenderer::GetRenderer()->mRendererSettings.mBloomSettings.mThreshold;
+						float knee = VulkanRenderer::GetRenderer()->mRendererSettings.mBloomSettings.mKnee;
 						BloomPassPC constant{};
 						constant.u_texel_size = 1.0f / glm::vec2(mipSize);
 						constant.u_mip_level = i;
 						constant.u_threshold = glm::vec4(threshold, threshold - knee, 2.0f * knee, 0.25f * knee);
 						constant.u_use_threshold = i == 0 ? 1 : 0;
-						constant.u_bloom_intensity = VulkanRenderer::GetRenderer()->mBloom.mBloomIntensity;
+						constant.u_bloom_intensity = VulkanRenderer::GetRenderer()->mRendererSettings.mBloomSettings.mBloomIntensity;
 						plazaRenderPass->mDispatchSize =
 							glm::vec3(glm::ceil(float(mipSize.x) / 8), glm::ceil(float(mipSize.y) / 8), 1);
 						plazaRenderPass->mPipelines[0]->UpdatePushConstants<BloomPassPC>(
@@ -752,14 +900,14 @@ namespace Plaza {
 				->mChildPasses.back()
 				->SetRecordingCallback(
 					[&, mipSize, i](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass) {
-						float threshold = VulkanRenderer::GetRenderer()->mBloom.mThreshold;
-						float knee = VulkanRenderer::GetRenderer()->mBloom.mKnee;
+						float threshold = VulkanRenderer::GetRenderer()->mRendererSettings.mBloomSettings.mThreshold;
+						float knee = VulkanRenderer::GetRenderer()->mRendererSettings.mBloomSettings.mKnee;
 						BloomPassPC constant{};
 						constant.u_texel_size = 1.0f / glm::vec2(mipSize);
 						constant.u_mip_level = i;
 						constant.u_threshold = glm::vec4(threshold, threshold - knee, 2.0f * knee, 0.25f * knee);
 						constant.u_use_threshold = i == 0 ? 1 : 0;
-						constant.u_bloom_intensity = VulkanRenderer::GetRenderer()->mBloom.mBloomIntensity;
+						constant.u_bloom_intensity = VulkanRenderer::GetRenderer()->mRendererSettings.mBloomSettings.mBloomIntensity;
 						plazaRenderPass->mDispatchSize =
 							glm::vec3(glm::ceil(float(mipSize.x) / 8), glm::ceil(float(mipSize.y) / 8), 1);
 						plazaRenderPass->mPipelines[0]->UpdatePushConstants<BloomPassPC>(
@@ -799,9 +947,9 @@ namespace Plaza {
 			->AddPipeline(pl::pipelineCreateInfo(
 				"ScreenSpaceReflectionsShaders", PL_RENDER_PASS_FULL_SCREEN_QUAD,
 				{pl::pipelineShaderStageCreateInfo(
-					 PL_STAGE_VERTEX, Application::Get()->enginePath + "/Shaders/Vulkan/ssr/ssr.vert", "main"),
+					 PL_STAGE_VERTEX, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/ssr/ssr.vert", "main"),
 				 pl::pipelineShaderStageCreateInfo(
-					 PL_STAGE_FRAGMENT, Application::Get()->enginePath + "/Shaders/Vulkan/ssr/ssr.frag", "main")},
+					 PL_STAGE_FRAGMENT, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/ssr/ssr.frag", "main")},
 				{}, {}, PL_TOPOLOGY_TRIANGLE_LIST, false,
 				pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f,
 														 0.0f, PL_CULL_MODE_NONE, PL_FRONT_FACE_COUNTER_CLOCKWISE),
@@ -868,7 +1016,7 @@ namespace Plaza {
 		PlPipelineCreateInfo luminancePipelineCreateInfo = pl::pipelineCreateInfo(
 			"LuminanceAveragerShaders", PL_RENDER_PASS_COMPUTE,
 			{pl::pipelineShaderStageCreateInfo(
-				PL_STAGE_COMPUTE, Application::Get()->enginePath + "/Shaders/Vulkan/luminance/luminanceAverager.comp",
+				PL_STAGE_COMPUTE, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/luminance/luminanceAverager.comp",
 				"main")},
 			{}, {}, {}, {}, {}, {}, {}, {}, {}, {},
 			{}); //{pl::pushConstantRange(PL_STAGE_COMPUTE, 0, sizeof(LuminancePassPC))});
@@ -876,7 +1024,7 @@ namespace Plaza {
 					->AddPipeline(pl::pipelineCreateInfo(
 				"LightSorter", PL_RENDER_PASS_COMPUTE,
 				{pl::pipelineShaderStageCreateInfo(
-					PL_STAGE_COMPUTE, Application::Get()->enginePath + "/Shaders/Vulkan/lighting/lightSorter.comp",
+					PL_STAGE_COMPUTE, FilesManager::sEngineRoot.string() + "/Shaders/Vulkan/lighting/lightSorter.comp",
 					"main")},
 				{}, {}, {}, {}, {}, {}, {}, {}, {}, {},
 				{pl::pushConstantRange(PL_STAGE_COMPUTE, 0, sizeof(LightSorterPC))}));
@@ -908,9 +1056,9 @@ namespace Plaza {
 			->AddPipeline(pl::pipelineCreateInfo(
 				"FinalShaders", PL_RENDER_PASS_FULL_SCREEN_QUAD,
 				{pl::pipelineShaderStageCreateInfo(
-					 PL_STAGE_VERTEX, Application::Get()->enginePath + "/Shaders/Vulkan/swapchainDraw.vert", "main"),
+					 PL_STAGE_VERTEX, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/swapchainDraw.vert", "main"),
 				 pl::pipelineShaderStageCreateInfo(
-					 PL_STAGE_FRAGMENT, Application::Get()->enginePath + "/Shaders/Vulkan/swapchainDraw.frag", "main")},
+					 PL_STAGE_FRAGMENT, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/swapchainDraw.frag", "main")},
 				{}, {}, PL_TOPOLOGY_TRIANGLE_LIST, false,
 				pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f,
 														 0.0f, PL_CULL_MODE_NONE, PL_FRONT_FACE_COUNTER_CLOCKWISE),
@@ -928,9 +1076,9 @@ namespace Plaza {
 		PlPipelineCreateInfo guiPipelineInfo = pl::pipelineCreateInfo(
 			"GuiShaders", PL_RENDER_PASS_GUI_RECTANGLE,
 			{pl::pipelineShaderStageCreateInfo(
-				 PL_STAGE_VERTEX, Application::Get()->enginePath + "/Shaders/Vulkan/gui/rectangle.vert", "main"),
+				 PL_STAGE_VERTEX, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/gui/rectangle.vert", "main"),
 			 pl::pipelineShaderStageCreateInfo(
-				 PL_STAGE_FRAGMENT, Application::Get()->enginePath + "/Shaders/Vulkan/gui/rectangle.frag", "main")},
+				 PL_STAGE_FRAGMENT, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/gui/rectangle.frag", "main")},
 			VertexGetBindingDescription(), VertexGetAttributeDescriptions(), PL_TOPOLOGY_TRIANGLE_LIST, false,
 			pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f, 0.0f,
 													 PL_CULL_MODE_NONE, PL_FRONT_FACE_COUNTER_CLOCKWISE),
@@ -945,9 +1093,9 @@ namespace Plaza {
 		guiPipelineInfo.renderMethod = PL_RENDER_PASS_GUI_BUTTON;
 		guiPipelineInfo.shaderStages = {
 			pl::pipelineShaderStageCreateInfo(
-				PL_STAGE_VERTEX, Application::Get()->enginePath + "/Shaders/Vulkan/gui/button.vert", "main"),
+				PL_STAGE_VERTEX, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/gui/button.vert", "main"),
 			pl::pipelineShaderStageCreateInfo(
-				PL_STAGE_FRAGMENT, Application::Get()->enginePath + "/Shaders/Vulkan/gui/button.frag", "main")};
+				PL_STAGE_FRAGMENT, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/gui/button.frag", "main")};
 		this->GetRenderPass("Final Post Processing Pass")->AddPipeline(guiPipelineInfo);
 
 		guiPipelineInfo.depthStencilState = pl::pipelineDepthStencilStateCreateInfo(false, false, PL_COMPARE_OP_ALWAYS);
@@ -961,9 +1109,9 @@ namespace Plaza {
 		guiPipelineInfo.renderMethod = PL_RENDER_PASS_GUI_TEXT;
 		guiPipelineInfo.shaderStages = {
 			pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX,
-											  Application::Get()->enginePath + "/Shaders/Vulkan/gui/text.vert", "main"),
+											  FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/gui/text.vert", "main"),
 			pl::pipelineShaderStageCreateInfo(
-				PL_STAGE_FRAGMENT, Application::Get()->enginePath + "/Shaders/Vulkan/gui/text.frag", "main")};
+				PL_STAGE_FRAGMENT, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/gui/text.frag", "main")};
 		this->GetRenderPass("Final Post Processing Pass")->AddPipeline(guiPipelineInfo);
 
 		this->AddRenderPassCallback("Final Post Processing Pass",
@@ -1006,8 +1154,8 @@ namespace Plaza {
 									 VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT,
 									 VMA_MEMORY_USAGE_CPU_TO_GPU, 0, Application::Get()->mRenderer->mMaxFramesInFlight);
 				plazaRenderPass->mPipelines[0]->mIndirectBuffer = buffer;
-				plazaRenderPass->mPipelines[0]->mVertexBuffers.push_back(
-					plazaRenderGraph->GetSharedBuffer("OutlineMatrixBuffer"));
+				plazaRenderPass->mPipelines[0]->mVertexBuffers.push_back( std::make_shared<PlBufferAttachment>(
+					plazaRenderGraph->GetSharedBuffer("OutlineMatrixBuffer"), 1));
 			}
 
 			plazaRenderPass->mPipelines[0]->mCreateInfo.specificUuids.clear();
@@ -1056,9 +1204,9 @@ namespace Plaza {
 		PlPipelineCreateInfo outlinePipelineInfo = pl::pipelineCreateInfo(
 			"Outline", PL_RENDER_PASS_INDIRECT_BUFFER_SPECIFIC_ENTITY,
 			{pl::pipelineShaderStageCreateInfo(
-				 PL_STAGE_VERTEX, Application::Get()->enginePath + "/Shaders/Vulkan/outline/outline.vert", "main"),
+				 PL_STAGE_VERTEX, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/outline/outline.vert", "main"),
 			 pl::pipelineShaderStageCreateInfo(
-				 PL_STAGE_FRAGMENT, Application::Get()->enginePath + "/Shaders/Vulkan/outline/outline.frag", "main")},
+				 PL_STAGE_FRAGMENT, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/outline/outline.frag", "main")},
 			{}, {}, PL_TOPOLOGY_TRIANGLE_LIST, false,
 			pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f, 0.0f,
 													 PL_CULL_MODE_NONE, PL_FRONT_FACE_COUNTER_CLOCKWISE),
@@ -1096,9 +1244,9 @@ namespace Plaza {
 		outlinePipelineInfo.renderMethod = PL_RENDER_PASS_FULL_SCREEN_QUAD;
 		outlinePipelineInfo.shaderStages = {
 			pl::pipelineShaderStageCreateInfo(
-				PL_STAGE_VERTEX, Application::Get()->enginePath + "/Shaders/Vulkan/fullScreenQuad.vert", "main"),
+				PL_STAGE_VERTEX, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/fullScreenQuad.vert", "main"),
 			pl::pipelineShaderStageCreateInfo(
-				PL_STAGE_FRAGMENT, Application::Get()->enginePath + "/Shaders/Vulkan/outline/outlineBlur.frag",
+				PL_STAGE_FRAGMENT, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/outline/outlineBlur.frag",
 				"main")};
 
 		this->AddRenderPass(std::make_shared<VulkanRenderPass>("OutlineBlurPass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT,
@@ -1115,9 +1263,9 @@ namespace Plaza {
 			pl::pipelineDepthStencilStateCreateInfo(true, false, PL_COMPARE_OP_LESS_OR_EQUAL, false, false);
 		outlinePipelineInfo.shaderStages = {
 			pl::pipelineShaderStageCreateInfo(
-				PL_STAGE_VERTEX, Application::Get()->enginePath + "/Shaders/Vulkan/fullScreenQuad.vert", "main"),
+				PL_STAGE_VERTEX, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/fullScreenQuad.vert", "main"),
 			pl::pipelineShaderStageCreateInfo(
-				PL_STAGE_FRAGMENT, Application::Get()->enginePath + "/Shaders/Vulkan/outline/outlineSceneMerge.frag",
+				PL_STAGE_FRAGMENT, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/outline/outlineSceneMerge.frag",
 				"main")};
 
 		outlinePipelineInfo.pipelineName = "OutlineSceneMergePass";
@@ -1143,9 +1291,46 @@ namespace Plaza {
 
 		this->GetRenderPass("OutlineSceneMergePass")->AddPipeline(outlinePipelineInfo);
 
+		DebugRendererNodes(Application::Get()->activeCamera->GetViewport(), "FinalTexture");
+
 		this->OrderPasses();
 		this->UpdateUsedTexturesInfo();
 	}
+
+	void VulkanRenderGraph::DebugRendererNodes(const PlViewport& viewport, const std::string& textureToDraw) {
+		this->AddRenderPass(std::make_shared<VulkanRenderPass>("DebugRendererPass",
+													   PL_STAGE_VERTEX | PL_STAGE_FRAGMENT,
+													   PL_RENDER_PASS_FULL_SCREEN_QUAD, glm::vec2(viewport.x, viewport.y), false))
+		->AddInputResource(std::make_shared<VulkanTextureBinding>(
+			1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 0, 0,
+			this->GetSharedTexture(textureToDraw), PL_ATTACHMENT_OP_LOAD, true));
+
+		struct DebugPC {
+			glm::mat4 viewMatrix;
+		};
+
+		this->GetRenderPass("DebugRendererPass")
+			->AddPipeline(pl::pipelineCreateInfo(
+				"Skybox", PL_RENDER_PASS_INDIRECT_BUFFER,
+				{pl::pipelineShaderStageCreateInfo(
+					 PL_STAGE_VERTEX, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/debug/debugTriangles.vert", "main"),
+				 pl::pipelineShaderStageCreateInfo(
+					 PL_STAGE_FRAGMENT, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/debug/debugTriangles.frag", "main")},
+				VertexGetBindingDescription(), VertexGetAttributeDescriptions(), PL_TOPOLOGY_TRIANGLE_LIST, false,
+				pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f,
+														 0.0f, PL_CULL_MODE_NONE, PL_FRONT_FACE_CLOCKWISE),
+				pl::pipelineColorBlendStateCreateInfo({pl::pipelineColorBlendAttachmentState(true),
+													   pl::pipelineColorBlendAttachmentState(true),
+													   pl::pipelineColorBlendAttachmentState(true)}),
+				pl::pipelineDepthStencilStateCreateInfo(true, false, PL_COMPARE_OP_LESS_OR_EQUAL),
+				pl::pipelineViewportStateCreateInfo(1, 1),
+				pl::pipelineMultisampleStateCreateInfo(PL_SAMPLE_COUNT_1_BIT, 0),
+				{PL_DYNAMIC_STATE_VIEWPORT, PL_DYNAMIC_STATE_SCISSOR},
+				{pl::pushConstantRange(PL_STAGE_ALL, 0, sizeof(DebugPC))}));
+
+
+	}
+
 
 	VulkanRenderGraph* VulkanRenderGraph::BuildSkyboxRenderGraph() {
 		VulkanRenderGraph* skyboxRenderGraph = new VulkanRenderGraph();
@@ -1160,10 +1345,10 @@ namespace Plaza {
 			"EquirectangularToCubeMapShaders", PL_RENDER_PASS_CUBE,
 			{pl::pipelineShaderStageCreateInfo(
 				 PL_STAGE_VERTEX,
-				 Application::Get()->enginePath + "/Shaders/Vulkan/skybox/equirectangularToCubemap.vert", "main"),
+				 FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/skybox/equirectangularToCubemap.vert", "main"),
 			 pl::pipelineShaderStageCreateInfo(
 				 PL_STAGE_FRAGMENT,
-				 Application::Get()->enginePath + "/Shaders/Vulkan/skybox/equirectangularToCubemap.frag", "main")},
+				 FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/skybox/equirectangularToCubemap.frag", "main")},
 			{}, {}, PL_TOPOLOGY_TRIANGLE_LIST, false,
 			pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f, 0.0f,
 													 PL_CULL_MODE_NONE, PL_FRONT_FACE_COUNTER_CLOCKWISE),
@@ -1189,9 +1374,9 @@ namespace Plaza {
 		pipelineCreateInfo.renderMethod = PL_RENDER_PASS_FULL_SCREEN_QUAD;
 		pipelineCreateInfo.shaderStages = {
 			pl::pipelineShaderStageCreateInfo(
-				PL_STAGE_VERTEX, Application::Get()->enginePath + "/Shaders/Vulkan/skybox/brdfGenerator.vert", "main"),
+				PL_STAGE_VERTEX, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/skybox/brdfGenerator.vert", "main"),
 			pl::pipelineShaderStageCreateInfo(
-				PL_STAGE_FRAGMENT, Application::Get()->enginePath + "/Shaders/Vulkan/skybox/brdfGenerator.frag",
+				PL_STAGE_FRAGMENT, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/skybox/brdfGenerator.frag",
 				"main")};
 		pipelineCreateInfo.pushConstants = {};
 		skyboxRenderGraph
@@ -1208,9 +1393,9 @@ namespace Plaza {
 		pipelineCreateInfo.shaderStages = {
 			pl::pipelineShaderStageCreateInfo(
 				PL_STAGE_VERTEX,
-				Application::Get()->enginePath + "/Shaders/Vulkan/skybox/equirectangularToCubemap.vert", "main"),
+				FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/skybox/equirectangularToCubemap.vert", "main"),
 			pl::pipelineShaderStageCreateInfo(
-				PL_STAGE_FRAGMENT, Application::Get()->enginePath + "/Shaders/Vulkan/skybox/irradianceGenerator.frag",
+				PL_STAGE_FRAGMENT, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/skybox/irradianceGenerator.frag",
 				"main")};
 		pipelineCreateInfo.pushConstants = {pl::pushConstantRange(PL_STAGE_ALL, 0, sizeof(EquirectangularToCubeMapPC))};
 		skyboxRenderGraph
@@ -1230,9 +1415,9 @@ namespace Plaza {
 		pipelineCreateInfo.shaderStages = {
 			pl::pipelineShaderStageCreateInfo(
 				PL_STAGE_VERTEX,
-				Application::Get()->enginePath + "/Shaders/Vulkan/skybox/equirectangularToCubemap.vert", "main"),
+				FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/skybox/equirectangularToCubemap.vert", "main"),
 			pl::pipelineShaderStageCreateInfo(
-				PL_STAGE_FRAGMENT, Application::Get()->enginePath + "/Shaders/Vulkan/skybox/prefilterEnvGenerator.frag",
+				PL_STAGE_FRAGMENT, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/skybox/prefilterEnvGenerator.frag",
 				"main")};
 		pipelineCreateInfo.pushConstants = {pl::pushConstantRange(PL_STAGE_ALL, 0, sizeof(EquirectangularToCubeMapPC))};
 		skyboxRenderGraph
@@ -2114,6 +2299,21 @@ namespace Plaza {
 							 VK_INDEX_TYPE_UINT32);
 	}
 
+	void VulkanRenderPass::BindPipelineBuffers(PlazaPipeline* pipeline) {
+		VulkanPlazaPipeline* vulkanPipeline = static_cast<VulkanPlazaPipeline*>(pipeline);
+
+		VkDeviceSize offsets[1] = {0};
+		for (std::shared_ptr<PlBufferAttachment> attachment : vulkanPipeline->mVertexBuffers) {
+			vkCmdBindVertexBuffers(
+				mCommandBuffer, attachment->mLocation, 1,
+				&static_cast<PlVkBuffer*>(attachment->mBuffer.get())->GetBuffer(VulkanRenderer::GetRenderer()->mCurrentFrame),
+				offsets);
+		}
+
+		vkCmdBindIndexBuffer(mCommandBuffer, static_cast<PlVkBuffer*>(vulkanPipeline->mIndexBuffer->mBuffer.get())->GetBuffer(), 0,
+					 VK_INDEX_TYPE_UINT32);
+	}
+
 	void VulkanRenderPass::BindRenderPass() {
 		VkRenderPassBeginInfo renderPassInfo =
 			plvk::renderPassBeginInfo(this->mRenderPass, this->mFrameBuffer, mRenderSize.x, mRenderSize.y, 0, 0,
@@ -2220,12 +2420,10 @@ namespace Plaza {
 							   pushConstant.mStride, pushConstant.mData);
 		}
 
-		for (const std::shared_ptr<PlBuffer>& buffer : vulkanPipeline->mVertexBuffers) {
+		for (const std::shared_ptr<PlBufferAttachment>& buffer : vulkanPipeline->mVertexBuffers) {
 			VkDeviceSize offsets[1] = {0};
-			// TODO: Make a proper way of setting the binding slot of the vertex buffer
-			vkCmdBindVertexBuffers(mCommandBuffer, 1, 1,
-								   &VulkanRenderer::GetRenderer()
-										->mMainInstanceMatrixBuffers[VulkanRenderer::GetRenderer()->mCurrentFrame],
+			vkCmdBindVertexBuffers(mCommandBuffer, buffer->mLocation, 1,
+								   &static_cast<PlVkBuffer*>(buffer->mBuffer.get())->GetBuffer(VulkanRenderer::GetRenderer()->mCurrentFrame),
 								   offsets);
 		}
 
@@ -2266,12 +2464,11 @@ namespace Plaza {
 							   pushConstant.mStride, pushConstant.mData);
 		}
 
-		for (const std::shared_ptr<PlBuffer>& buffer : vulkanPipeline->mVertexBuffers) {
+		for (const std::shared_ptr<PlBufferAttachment>& buffer : vulkanPipeline->mVertexBuffers) {
 			VkDeviceSize offsets[1] = {0};
-			// TODO: Make a proper way of setting the binding slot of the vertex buffer
 			vkCmdBindVertexBuffers(
-				mCommandBuffer, 1, 1,
-				&static_cast<PlVkBuffer*>(buffer.get())->GetBuffer(VulkanRenderer::GetRenderer()->mCurrentFrame),
+				mCommandBuffer, buffer->mLocation, 1,
+				&static_cast<PlVkBuffer*>(buffer->mBuffer.get())->GetBuffer(VulkanRenderer::GetRenderer()->mCurrentFrame),
 				offsets);
 		}
 

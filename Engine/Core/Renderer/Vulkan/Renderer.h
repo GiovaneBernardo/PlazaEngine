@@ -8,12 +8,8 @@
 
 #include "VulkanRenderGraph.h"
 #include "VulkanTexture.h"
-#include "VulkanShadows.h"
-#include "VulkanSkybox.h"
-#include "VulkanLighting.h"
 #include "VulkanPicking.h"
 #include "VulkanComputeShaders.h"
-#include "VulkanBloom.h"
 
 #include "ThirdParty/include/VulkanMemoryAllocator/vk_mem_alloc.h"
 #include "VulkanPlazaWrapper.h"
@@ -168,7 +164,6 @@ namespace Plaza {
 		static bool IsFormatDepthStencil(VkFormat format);
 		static VkImageAspectFlags GetFormatAspectMask(VkFormat format);
 
-		void ChangeFinalDescriptorImageView(VkImageView newImageView);
 		VkFormat mFinalDeferredFormat = VK_FORMAT_R32G32B32A32_SFLOAT;
 		VkFormat mSwapChainImageFormat;
 		std::vector<VkDescriptorSet> mSwapchainDescriptorSets = std::vector<VkDescriptorSet>();
@@ -176,6 +171,13 @@ namespace Plaza {
 		VkImageView mFinalSceneImageView;
 		VkImage mDeferredFinalImage;
 		VkImageView mDeferredFinalImageView;
+
+		VkPipelineCache mPipelineCache = VK_NULL_HANDLE;
+		void LoadPipelineCache();
+		void SavePipelineCache();
+		const VkPipelineCache& GetPipelineCache() {
+			return mPipelineCache;
+		}
 
 		VkPhysicalDevice mPhysicalDevice = VK_NULL_HANDLE;
 		VkFramebuffer mFinalSceneFramebuffer;
@@ -206,10 +208,6 @@ namespace Plaza {
 		std::vector<VkFramebuffer> mSwapChainFramebuffers;
 
 		RendererAPI api = RendererAPI::Vulkan;
-		VulkanShadows* mShadows;
-		VulkanSkybox* mSkybox;
-		VulkanLighting* mLighting;
-		VulkanBloom mBloom;
 		VkDevice mDevice = VK_NULL_HANDLE;
 		VkDescriptorPool mDescriptorPool;
 		VkRenderPass mRenderPass;
@@ -326,7 +324,6 @@ namespace Plaza {
 		void CreateUniformBuffers();
 		void CreateDescriptorPool();
 		void CreateDescriptorSets();
-		void UpdateUniformBuffer(uint32_t currentImage);
 		void CreateDescriptorSetLayout();
 		void InitializeGeometryPassRenderer();
 

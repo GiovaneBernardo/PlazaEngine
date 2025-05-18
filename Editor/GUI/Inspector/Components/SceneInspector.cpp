@@ -105,17 +105,21 @@ namespace Plaza::Editor {
 	}
 
 	void ComponentsInspector::SceneInspector(Scene* scene, Entity* entity) {
-		Shadows* shadows = VulkanRenderer::GetRenderer()->mShadows; // Application::Get()->mRenderer->mShadows;
+		RendererSettings::LightingSettings& shadows = VulkanRenderer::GetRenderer()->mRendererSettings.mLightingSettings; // Application::Get()->mRenderer->mShadows;
 		/* Draw Gizmo for rotating Sun */
-		shadows->mLightDirection = DrawGizmo(shadows->mLightDirection);
+		shadows.mLightDirection = DrawGizmo(shadows.mLightDirection);
 
 		/* Shadows */
 		if (ImGui::TreeNodeEx("Shadows", ImGuiTreeNodeFlags_DefaultOpen)) {
-			glm::vec3& lightDir = shadows->mLightDirection;
+			glm::vec3& lightDir = shadows.mLightDirection;
 			Utils::DragFloat3("Light Direction: ", lightDir, 0.1f, callbacke, -360.0f, 360.0f);
-			ImGui::DragInt("Depth Map Resolution: ", reinterpret_cast<int*>(&shadows->mShadowResolution), 1024, 0,
+			ImGui::DragInt("Depth Map Resolution: ", reinterpret_cast<int*>(&shadows.mShadowResolution), 1024, 0,
 						   *"%d");
-			ImGui::DragFloat3("Light Distance: ", &shadows->mLightDirection.x);
+			ImGui::DragFloat3("Light Distance: ", &shadows.mLightDirection.x);
+			int cascadeCount = shadows.mCascadeCount;
+			ImGui::DragInt("Cascade Count: ", &cascadeCount);
+			shadows.mCascadeCount = cascadeCount;
+			ImGui::DragFloat("Lambda: ", &shadows.mLambda);
 
 			ImGui::TreePop();
 		}
@@ -137,9 +141,9 @@ namespace Plaza::Editor {
 							"MainShaders", PL_RENDER_PASS_INDIRECT_BUFFER,
 							{pl::pipelineShaderStageCreateInfo(
 								 PL_STAGE_VERTEX,
-								 Application::Get()->enginePath + "/Shaders/Vulkan/deferred/geometryPass.vert", "main"),
+								 FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/deferred/geometryPass.vert", "main"),
 							 pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT,
-															   Application::Get()->enginePath +
+															   FilesManager::sEngineFolder.string() +
 																   "/Shaders/Vulkan/deferred/geometryPass.frag",
 															   "main")},
 							VulkanRenderer::GetRenderer()->mRenderGraph->VertexGetBindingDescription(), VulkanRenderer::GetRenderer()->mRenderGraph->VertexGetAttributeDescriptions(), PL_TOPOLOGY_TRIANGLE_LIST,

@@ -1,10 +1,8 @@
 #pragma once
+#include "DebugRenderer.h"
 #include "Mesh.h"
 #include "Engine/Components/Rendering/Material.h"
 #include "Engine/Core/RenderGroup.h"
-#include "Shadows.h"
-#include "Lighting.h"
-#include "Skybox.h"
 #include "Picking.h"
 #include "GuiRenderer.h"
 #include "RenderGraph.h"
@@ -31,6 +29,58 @@ namespace Plaza {
 		bool mRecalculateView = true;
 	};
 
+	class RendererSettings {
+	public:
+		struct BloomSettings {
+			int mMipCount = 5;
+			float mThreshold = 2.0f;
+			float mKnee = 0.5f;
+			float mBloomIntensity = 16.0f;
+			float mBloomDirtIntensity = 1.0f;
+		}	mBloomSettings;
+		struct LightingSettings {
+			bool mUpdateCascades = true;
+			unsigned int mCascadeCount = 8;
+			float mLambda = 0.5f;
+			unsigned int shadowCascadeLevels[32];
+			unsigned int shadowBufferCount = 5;
+			unsigned int mShadowResolution = 4096 / 2;
+			std::vector<glm::mat4> mShadowCascadeMatrices;
+			unsigned int mLightsCount = 0;
+			glm::vec3 mLightDirection = glm::radians(glm::normalize(glm::vec3(20.0f, 50.0f, 20.0f)));
+			glm::vec4 directionalLightColor = glm::vec4(0.98f, 0.82f, 0.57f, 1.0f);
+			float directionalLightIntensity = 2.0f;
+			glm::vec4 ambientLightColor = glm::vec4(1.0f);
+			float ambientLightIntensity = 0.23f;
+		}	mLightingSettings;
+
+		struct LightStruct {
+			alignas(16) glm::vec3 color;
+			alignas(0) float radius;
+			alignas(16) glm::vec3 position;
+			alignas(0) float intensity;
+			alignas(4) float cutoff;
+			alignas(4) float minRadius;
+		};
+
+		struct Tile {
+			int lightIndices[256];
+			alignas(16) glm::vec3 minBounds;
+			alignas(0) int lightsCount = 0;
+			alignas(16) glm::vec3 maxBounds;
+			alignas(0) int alignment = 0;
+		};
+
+		struct Plane {
+			glm::vec3 Normal;
+			float Distance;
+		};
+
+		struct Frustum {
+			Plane planes[4];
+		};
+	};
+
 	class PLAZA_API Renderer {
 	  public:
 		std::vector<TrackedImage*> mTrackedImages = std::vector<TrackedImage*>();
@@ -40,6 +90,8 @@ namespace Plaza {
 		};
 		virtual ImTextureID GetTrackedImageID(TrackedImage* tracked) = 0;
 
+		RendererSettings mRendererSettings;
+
 		uint32_t mCurrentFrame = 0;
 
 		float exposure = 4.5f;
@@ -48,10 +100,8 @@ namespace Plaza {
 		float mSkyboxIntensity = 1.0f;
 
 		RendererAPI api;
-		Shadows* mShadows;
-		Lighting* mLighting;
-		Skybox* mSkybox;
 		Picking* mPicking;
+		DebugRenderer* mDebugRenderer;
 		GuiRenderer* mGuiRenderer;
 		PlazaRenderGraph* mRenderGraph = nullptr;
 		const unsigned int mMaxFramesInFlight = 2;

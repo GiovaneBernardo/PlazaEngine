@@ -174,6 +174,7 @@ namespace Plaza {
 					this->BindMainBuffers();
 				}
 				for (auto& pipeline : mPipelines) {
+					this->BindPipelineBuffers(pipeline.get());
 					switch (pipeline->mCreateInfo.renderMethod) {
 						case PL_RENDER_PASS_FULL_SCREEN_QUAD:
 							this->RenderFullScreenQuad(pipeline.get());
@@ -223,6 +224,7 @@ namespace Plaza {
 				this->EndRenderPass();
 		};
 		virtual void BindMainBuffers() {};
+		virtual void BindPipelineBuffers(PlazaPipeline* pipeline) {};
 		virtual void BindRenderPass() {};
 		virtual void EndRenderPass() {};
 

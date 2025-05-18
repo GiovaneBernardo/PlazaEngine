@@ -49,6 +49,7 @@ namespace Plaza::Editor {
 
 			if (ImGui::MenuItem("Camera")) {
 				Camera* camera = scene->NewComponent<Camera>(entity->uuid);
+				camera->SetViewport(&scene->mViewport);
 				camera->mUuid = entity->uuid;
 			}
 

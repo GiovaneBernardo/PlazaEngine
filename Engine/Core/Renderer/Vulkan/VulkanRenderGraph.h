@@ -1640,6 +1640,7 @@ namespace Plaza {
 
 		virtual void Compile(PlazaRenderGraph* renderGraph) override;
 		virtual void BindMainBuffers() override;
+		virtual void BindPipelineBuffers(PlazaPipeline* pipeline) override;
 		virtual void BindRenderPass() override;
 		virtual void EndRenderPass() override;
 		virtual void RenderIndirectBuffer(PlazaPipeline* pipeline) override;
@@ -1727,6 +1728,7 @@ namespace Plaza {
 		}
 
 		void BuildDefaultRenderGraph() override;
+		void DebugRendererNodes(const PlViewport& viewport, const std::string& textureToDraw);
 		VulkanRenderGraph* BuildSkyboxRenderGraph();
 		void RunSkyboxRenderGraph(VulkanRenderGraph* renderGraph);
 		void AddPipeline() override;
