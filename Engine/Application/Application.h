@@ -50,12 +50,7 @@ namespace Plaza {
 		bool runningEditor = true;
 		int mComponentCounter = 0;
 
-		std::string exeDirectory;
 		std::string projectPath;
-		std::string dllPath;
-		std::string enginePath;
-		std::string editorPath;
-		std::string enginePathAppData;
 		std::unique_ptr<Editor::Project> activeProject = nullptr;
 
 		std::string focusedMenu = "Scene";

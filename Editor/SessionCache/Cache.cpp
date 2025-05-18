@@ -5,7 +5,7 @@
 namespace Plaza::Editor {
 	void Cache::Load() {
 		Cache cache =
-			Cache::DeSerialize(Application::Get()->enginePathAppData + "/" + "cache" + Standards::editorCacheExtName);
+			Cache::DeSerialize(FilesManager::sEngineSettingsFolder.string() + "/cache" + Standards::editorCacheExtName);
 		Project::Load(cache.mLastOpenProjectPath);
 	}
 

@@ -75,11 +75,11 @@ namespace Plaza {
 #ifdef EDITOR_MODE
 		this->CheckEditorCache();
 #endif
-		if (std::filesystem::exists(Application::Get()->enginePathAppData + "Settings" +
+		if (std::filesystem::exists(FilesManager::sEngineSettingsFolder.string() + "/Settings" +
 									Standards::editorSettingsExtName))
 			Application::Get()->mSettings =
 				*AssetsSerializer::DeSerializeFile<EngineSettings>(
-					 Application::Get()->enginePathAppData + "Settings" + Standards::editorSettingsExtName,
+					 FilesManager::sEngineSettingsFolder.string() + "/Settings" + Standards::editorSettingsExtName,
 					 Application::Get()->mSettings.mCommonSerializationMode)
 					 .get();
 		this->SetDefaultSettings();
@@ -99,24 +99,23 @@ namespace Plaza {
 		appdataValue = std::getenv("HOME");
 #endif
 		std::filesystem::path currentPath(__FILE__);
-		Application::Get()->dllPath = currentPath.parent_path().parent_path().parent_path().string() + "/dll";
-		Application::Get()->enginePath = currentPath.parent_path().parent_path().string();
-		Application::Get()->editorPath = currentPath.parent_path().parent_path().parent_path().string() + "/Editor";
-		Application::Get()->enginePathAppData = std::string(appdataValue) + "/PlazaEngine/";
+		FilesManager::sEngineFolder = currentPath.parent_path().parent_path().string();
+		FilesManager::sEditorFolder = currentPath.parent_path().parent_path().parent_path().string() + "/Editor";
+		FilesManager::sEngineSettingsFolder = std::string(appdataValue) + "/PlazaEngine/";
 
 #if defined(_WIN32)
 		char buffer[1024];
 		GetModuleFileNameA(NULL, buffer, sizeof(buffer));
-		Application::Get()->exeDirectory = std::filesystem::path(buffer).parent_path().string();
+		FilesManager::sEngineExecutablePath = std::filesystem::path(buffer).parent_path().string();
 #elif defined(__linux__)
 		char buffer[PATH_MAX];
 		ssize_t size = readlink("/proc/self/exe", buffer, sizeof(buffer) - 1);
 		if (size == -1)
 			throw std::runtime_error("Failed to get executable path");
 		buffer[size] = '\0';
-		Application::Get()->exeDirectory = std::filesystem::canonical(buffer).string();
-		Application::Get()->exeDirectory =
-			std::filesystem::path{Application::Get()->exeDirectory}.parent_path().string();
+		FilesManager::sEngineExecutablePath = std::filesystem::canonical(buffer).string();
+		FilesManager::sEngineExecutablePath =
+			std::filesystem::path{FilesManager::sEngineExecutablePath}.parent_path().string();
 #else
 #error "Unsupported platform"
 #endif
@@ -184,10 +183,10 @@ namespace Plaza {
 
 	void Application::CheckEditorCache() {
 		/* Check if the engine app data folder doesnt exists, if not, then create */
-		if (!std::filesystem::is_directory(Application::Get()->enginePathAppData) &&
+		if (!std::filesystem::is_directory(FilesManager::sEngineSettingsFolder.string()) &&
 			Application::Get()->runningEditor) {
-			std::filesystem::create_directory(Application::Get()->enginePathAppData);
-			if (!std::filesystem::exists(Application::Get()->enginePathAppData + "/cache.yaml")) {
+			std::filesystem::create_directory(FilesManager::sEngineSettingsFolder.string());
+			if (!std::filesystem::exists(FilesManager::sEngineSettingsFolder.string() + "/cache.yaml")) {
 			}
 		}
 	}
@@ -214,13 +213,13 @@ namespace Plaza {
 		}
 
 #else
-		if (filesystem::exists(Application::Get()->enginePathAppData + "/cache" + Standards::editorCacheExtName))
+		if (filesystem::exists(FilesManager::sEngineSettingsFolder.string() + "/cache" + Standards::editorCacheExtName))
 			Editor::Cache::Load();
 		else {
 			Application::Get()->runEngine = false;
 			Application::Get()->runProjectManagerGui = true;
 			Application::Get()->activeProject = std::make_unique<Editor::Project>();
-			Editor::Cache::Serialize(Application::Get()->enginePathAppData + "/cache" + Standards::editorCacheExtName);
+			Editor::Cache::Serialize(FilesManager::sEngineSettingsFolder.string() + "/cache" + Standards::editorCacheExtName);
 			Application::Get()->focusedMenu = "ProjectManager";
 		}
 #endif
@@ -255,6 +254,9 @@ namespace Plaza {
 
 	void Application::UpdateEngine() {
 		PLAZA_PROFILE_SECTION("Update Engine");
+		Scene* scene0 = Scene::GetActiveScene();
+
+		Application::Get()->mRenderer->mDebugRenderer->Clear();
 
 		// Update time
 		Time::Update();
@@ -275,11 +277,13 @@ namespace Plaza {
 		for (auto& [key, value] : Scene::GetActiveScene()->mPlayingAnimations) {
 			value->UpdateTime(Time::deltaTime);
 		}
-
+		Scene* scene9 = Scene::GetActiveScene();
 		/* Update Scripts */
 		if (Scene::GetActiveScene()->mRunning) {
 			Scripting::Update(Scene::GetActiveScene());
 		}
+
+		Scene* scene1 = Scene::GetActiveScene();
 
 		/* Update Physics */
 		if (Scene::GetActiveScene()->mRunning) {
@@ -287,33 +291,36 @@ namespace Plaza {
 			Physics::Advance(Time::deltaTime);
 			Physics::Update(Scene::GetActiveScene());
 		}
-
+		Scene* scene7 = Scene::GetActiveScene();
 		// Update Camera Position and Rotation
 		Application::Get()->activeCamera->Update(Scene::GetActiveScene());
-
+		Scene* scene6 = Scene::GetActiveScene();
 		// Imgui New Frame (only if running editor)
 #ifdef EDITOR_MODE
 		Editor::Gui::NewFrame();
 		Editor::Gui::Update();
 #endif
-
+		Scene* scene5 = Scene::GetActiveScene();
 		Time::drawCalls = 0;
 		Time::addInstanceCalls = 0;
 		Time::mUniqueTriangles = 0;
 		Time::mTotalTriangles = 0;
-
+		Scene* scene51 = Scene::GetActiveScene();
 		Application::Get()->mRenderer->Render(Scene::GetActiveScene());
-
+		Scene* scene4 = Scene::GetActiveScene();
 		Application::Get()->mThreadsManager->UpdateFrameEndThread();
+		Scene* scene3 = Scene::GetActiveScene();
 
 		// Update lastSizes
 		Application::Get()->lastAppSizes = Application::Get()->appSizes;
 		Input::isAnyKeyPressed = false;
 		Application::Get()->mThreadsManager->mFrameEndThread->Update();
+		Scene* scene2 = Scene::GetActiveScene();
 	}
 
 	void Application::Terminate() {
 		PL_CORE_INFO("Terminate");
+		VulkanRenderer::GetRenderer()->SavePipelineCache();
 		Scene::Terminate();
 #ifdef EDITOR_MODE
 		Editor::Gui::Delete();

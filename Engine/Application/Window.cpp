@@ -53,7 +53,7 @@ namespace Plaza {
 #ifdef EDITOR_MODE
 		GLFWimage images[1];
 		images[0].pixels =
-			stbi_load(std::string(Application::Get()->editorPath + "/Images/Other/PlazaEngineLogo32x32.png").c_str(),
+			stbi_load(std::string(FilesManager::sEditorFolder.string() + "/Images/Other/PlazaEngineLogo32x32.png").c_str(),
 					  &images[0].width, &images[0].height, 0, 4);
 		glfwSetWindowIcon(window, 1, images);
 #endif

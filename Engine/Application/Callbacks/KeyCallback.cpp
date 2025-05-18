@@ -132,12 +132,12 @@ namespace Plaza {
 				int channels = 0;
 
 				auto datae = read_fileg(
-					std::string(Application::Get()->editorPath + "/Images/Other/PlazaEngineLogo.png").c_str());
+					std::string(FilesManager::sEditorFolder.string() + "/Images/Other/PlazaEngineLogo.png").c_str());
 
 				// images[0].pixels = static_cast<unsigned char*>(stbi_load_from_memory(datae.data(), datae.size(),
 				// &width, &height, &channels, 4));
 				images[0].pixels =
-					stbi_load(std::string(Application::Get()->editorPath + "/Images/Other/PlazaEngineLogo.png").c_str(),
+					stbi_load(std::string(FilesManager::sEditorFolder.string() + "/Images/Other/PlazaEngineLogo.png").c_str(),
 							  &width, &height, &channels, 4);
 
 				// images[0].pixels = static_cast<unsigned char*>(data);
@@ -146,15 +146,10 @@ namespace Plaza {
 
 				glfwSetWindowIcon(window, 1, images);
 			}
-			if (key == GLFW_KEY_J && action == GLFW_PRESS) {
-				vulkanRenderer->ChangeFinalDescriptorImageView(vulkanRenderer->mFinalSceneImageView);
-			}
 			if (key == GLFW_KEY_L && action == GLFW_PRESS) {
 				cascadeIndexDebug++;
 				if (cascadeIndexDebug > 8)
 					cascadeIndexDebug = 0;
-				vulkanRenderer->ChangeFinalDescriptorImageView(
-					vulkanRenderer->mShadows->mCascades[cascadeIndexDebug].mImageView);
 			}
 			if (key == GLFW_KEY_G && action == GLFW_PRESS)
 				Application::Get()->showCascadeLevels = !Application::Get()->showCascadeLevels;

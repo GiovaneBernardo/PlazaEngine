@@ -17,7 +17,7 @@ namespace Plaza {
 			// haves the project extension.
 			if (filePath != "") {
 				Project::Load(filePath);
-				Cache::Serialize(Application::Get()->enginePathAppData + "/cache" + Standards::editorCacheExtName);
+				Cache::Serialize(FilesManager::sEngineSettingsFolder.string() + "/cache" + Standards::editorCacheExtName);
 			}
 		}
 

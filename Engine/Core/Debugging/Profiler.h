@@ -31,6 +31,7 @@ namespace Plaza {
 		}
 
 		std::chrono::microseconds GetDuration() { return std::chrono::microseconds(mDurationNanoSeconds / 1000); }
+		std::chrono::milliseconds GetDurationMilliseconds() const { return std::chrono::milliseconds(mDurationNanoSeconds / 1000000); }
 
 		std::chrono::high_resolution_clock::time_point mStart;
 		std::chrono::high_resolution_clock::time_point mEnd;
