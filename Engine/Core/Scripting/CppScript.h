@@ -10,6 +10,8 @@ namespace Plaza {
 		virtual void OnUpdate(Scene* scene) {};
 		virtual void OnTerminate(Scene* scene) {};
 		virtual void OnUpdateEditorGUI(Scene* scene) {};
+
+		virtual void OnCollide(Scene* scene, const RaycastHit hit) {};
 	};
 
 	class PLAZA_API CppEditorScript : public Script {

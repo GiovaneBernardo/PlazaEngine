@@ -47,32 +47,15 @@ namespace Plaza {
 					uint64_t uuid1 = (uint64_t)(pairHeader.actors[0]->userData);
 					uint64_t uuid2 = (uint64_t)(pairHeader.actors[1]->userData);
 
-					// FIX: Reimplement physics OnContact
-					////if (name != "Road")
-					////	std::cout << "Found: " << name << "\n";
-					// auto it1 = Scene::GetActiveScene()->csScriptComponents.find(uuid1);
-					// if (it1 != Scene::GetActiveScene()->csScriptComponents.end()) {
-					//	for (auto [key, value] : it1->second.scriptClasses) {
-					//		void* params[] =
-					//		{
-					//			(void*)(new uint64_t(uuid2)),
-					//			new glm::vec3(collisionPoint.x, collisionPoint.y, collisionPoint.z)
-					//		};
-					//		Mono::CallMethod(value->monoObject, value->methods.find("OnCollide")->second, params);
-					//	}
-					// }
-					//
-					// auto it2 = Scene::GetActiveScene()->csScriptComponents.find(uuid2);
-					// if (it2 != Scene::GetActiveScene()->csScriptComponents.end()) {
-					//	for (auto [key, value] : it2->second.scriptClasses) {
-					//		void* params[] =
-					//		{
-					//			(void*)(new uint64_t(uuid1)),
-					//			new glm::vec3(collisionPoint.x, collisionPoint.y, collisionPoint.z)
-					//		};
-					//		Mono::CallMethod(value->monoObject, value->methods.find("OnCollide")->second, params);
-					//	}
-					// }
+					Scene* scene = Scene::GetActiveScene();
+					Entity* mainEntity = scene->GetEntity(uuid1);
+					CppScriptComponent* scriptComponent = scene->GetComponent<CppScriptComponent>(uuid1);
+					if (scriptComponent) {
+						RaycastHit hit = RaycastHit(uuid2, Physics::PhysXToGlm(collisionPoint), Physics::PhysXToGlm(contacts[0].normal), false);
+						for (CppScript* script : scriptComponent->mScripts) {
+							script->OnCollide(scene, hit);
+						}
+					}
 				}
 			}
 		}
@@ -485,4 +468,5 @@ namespace Plaza {
 	}
 
 	physx::PxVec3 Physics::GlmToPhysX(const glm::vec3& vector) { return physx::PxVec3(vector.x, vector.y, vector.z); }
+	glm::vec3 Physics::PhysXToGlm(const physx::PxVec3& vector) { return glm::vec3(vector.x, vector.y, vector.z); }
 } // namespace Plaza
