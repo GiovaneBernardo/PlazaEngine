@@ -306,7 +306,7 @@ vec3 CalculateDirectionalLight(vec3 fragPos, vec3 albedo, vec3 normal, float met
     float ambientOcclusion = 1.0f;
     vec3 ambient = (kD * diffuse + specular) * ambientOcclusion;
 
-    vec3 shadow = (1.0f - ShadowCalculation(fragPos.xyz, normal)) * (ubo.directionalLightColor.xyz) + (ubo.ambientLightColor.xyz * ubo.ambientLightColor.w);
+    vec3 shadow = max((1.0f - ShadowCalculation(fragPos.xyz, normal)) * (ubo.directionalLightColor.xyz) + (ubo.ambientLightColor.xyz * ubo.ambientLightColor.w), 0.5f);
     vec3 color = ambient;
     color += Lo;
     color *= shadow;

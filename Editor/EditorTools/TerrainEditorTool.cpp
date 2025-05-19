@@ -252,7 +252,7 @@ namespace Plaza {
 			if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && mEditTerrain) {
 				Application::Get()->mThreadsManager->mFrameRendererAfterGeometry->AddToQueue([&]() {
 					float xposGame = Callbacks::lastX - Application::Get()->appSizes->hierarchySize.x;
-					float yposGame = Callbacks::lastY - Application::Get()->appSizes->sceneImageStart.y - 35;
+					float yposGame = Callbacks::lastY - Application::Get()->appSizes->sceneImageStart.y;
 					// yposGame = Application::Get()->appSizes->sceneSize.y - (yposGame - 35);
 					VulkanRenderer::GetRenderer()->mRenderGraph->GetTexture<VulkanTexture>("SceneDepth")->mLayout =
 						VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;

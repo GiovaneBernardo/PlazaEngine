@@ -2,7 +2,17 @@
 #include "Input.h"
 #include "Cursor.h"
 namespace Plaza {
-	void Input::Update() { Cursor::Update(); }
+	std::unordered_map<int, bool> Input::sCurrentKeyStates = std::unordered_map<int, bool>();
+	std::unordered_map<int, bool> Input::sPreviousKeyStates = std::unordered_map<int, bool>();
+	void Input::Update() {
+		Cursor::Update();
+
+		sPreviousKeyStates = sCurrentKeyStates;
+
+		for (auto& [key, _] : sCurrentKeyStates) {
+			sCurrentKeyStates[key] = glfwGetKey(Application::Get()->mWindow->glfwWindow, key) == GLFW_PRESS;
+		}
+	}
 
 	bool Input::GetKeyDown(int key) {
 		if (Application::Get()->focusedMenu == mCheckFocusedMenu) {
@@ -10,8 +20,22 @@ namespace Plaza {
 		}
 	}
 
-	bool Input::GetKeyDownOnce() { return false; }
-	bool Input::GetKeyReleased() { return false; }
+	bool Input::GetKeyDownOnce(int key) {
+		if (Application::Get()->focusedMenu != mCheckFocusedMenu) return false;
+
+		bool current = glfwGetKey(Application::Get()->mWindow->glfwWindow, key) == GLFW_PRESS;
+		bool previous = sPreviousKeyStates[key];
+
+		// Store current state for next frame
+		sCurrentKeyStates[key] = current;
+
+		return current && !previous;
+	}
+	bool Input::GetKeyReleased(int key) {
+		if (Application::Get()->focusedMenu == mCheckFocusedMenu) {
+			return glfwGetKey(Application::Get()->mWindow->glfwWindow, key) == GLFW_RELEASE;
+		}
+	}
 	bool Input::GetKeyReleasedOnce() { return false; }
 
 	bool Input::GetMouseDown(int button) {

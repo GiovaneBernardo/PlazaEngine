@@ -39,19 +39,8 @@ struct DebugRectangle {
     vec3 corners[8];
 };
 
-mat4 GetTransform(vec3 position, vec3 rotation, vec3 scale) {
-    mat4 t = translate(mat4(1.0), position);
-    mat4 rx = rotate(mat4(1.0), rotation.x, vec3(1,0,0));
-    mat4 ry = rotate(mat4(1.0), rotation.y, vec3(0,1,0));
-    mat4 rz = rotate(mat4(1.0), rotation.z, vec3(0,0,1));
-    mat4 r = rz * ry * rx;
-    mat4 s = scale(mat4(1.0), scale);
-    return t * r * s;
-}
-
 void main(void)
 {
-    mat4 model = GetTransform();
+    mat4 model = mat4(1.0f);//GetTransform();
     gl_Position = pushConstants.viewMatrix * model * vec4(inPosition.xy, 0.0f, 1.0f);
-    outUV = inTexCoord;
 }

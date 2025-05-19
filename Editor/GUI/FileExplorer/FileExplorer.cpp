@@ -18,6 +18,8 @@
 #include "Editor/GUI/FileExplorer/Files/MaterialFile.h"
 #include "fwd.hpp"
 #include "imgui.h"
+#include "Files/SceneFile.h"
+
 #include <filesystem>
 #include <iterator>
 
@@ -118,6 +120,8 @@ namespace Plaza {
 					files.emplace_back(make_unique<FolderFile>(filename, entry.path().string(), ""));
 				else if (extension == Standards::materialExtName)
 					files.emplace_back(make_unique<MaterialFile>(filename, entry.path().string(), extension));
+				else if (extension == Standards::sceneExtName)
+					files.emplace_back(make_unique<SceneFile>(filename, entry.path().string(), extension));
 				else
 					files.emplace_back(make_unique<File>(filename, entry.path().string(), extension));
 			}

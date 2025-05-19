@@ -1826,6 +1826,7 @@ namespace Plaza {
 		this->mPicking = new VulkanPicking();
 		this->mGuiRenderer = new VulkanGuiRenderer();
 		this->mRenderGraph = new VulkanRenderGraph();
+		this->mDebugRenderer = new DebugRenderer();
 
 		this->mGuiRenderer->Init();
 

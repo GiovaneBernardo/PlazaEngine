@@ -44,7 +44,7 @@ namespace Plaza {
 			// Position entity to where the mouse is looking if pressed ALT + mouse middle button
 			if (button == GLFW_MOUSE_BUTTON_MIDDLE && action == GLFW_PRESS && glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS && Editor::selectedGameObject) {
 				float xposGame = Callbacks::lastX - Application::Get()->appSizes->hierarchySize.x;
-				float yposGame = Callbacks::lastY - Application::Get()->appSizes->sceneImageStart.y - 35;
+				float yposGame = Callbacks::lastY - Application::Get()->appSizes->sceneImageStart.y;
 
 				// Get depth
 				float depth = VulkanRenderer::GetRenderer()
@@ -75,7 +75,7 @@ namespace Plaza {
 				float xposGame = lastX - appSizes.hierarchySize.x;
 				float yposGame = lastY - appSizes.sceneImageStart.y;
 				// yposGame = appSizes.sceneSize.y - yposGame;
-				yposGame = appSizes.sceneSize.y - (lastY - appSizes.sceneImageStart.y - 35);
+				yposGame = appSizes.sceneSize.y - (lastY - appSizes.sceneImageStart.y);
 				uint64_t clickUuid = 0;
 
 				if (Editor::selectedGameObject &&

@@ -52,11 +52,11 @@ namespace Plaza {
 
     class DebugRenderer {
     public:
-        std::vector<DebugLine> mDebugLines;
-        std::vector<DebugBox> mDebugBoxes;
-        std::vector<DebugSphere> mDebugSpheres;
-        std::vector<DebugCircle> mDebugCircles;
-        std::vector<DebugRectangle> mDebugRectangles;
+        std::vector<DebugLine> mDebugLines = std::vector<DebugLine>();
+        std::vector<DebugBox> mDebugBoxes = std::vector<DebugBox>();
+        std::vector<DebugSphere> mDebugSpheres = std::vector<DebugSphere>();
+        std::vector<DebugCircle> mDebugCircles = std::vector<DebugCircle>();
+        std::vector<DebugRectangle> mDebugRectangles = std::vector<DebugRectangle>();
 
         void Clear();
         void AddLine(const glm::vec3& start, const glm::vec3& end, float thickness, const PlColor& color = PlColor::WHITE);

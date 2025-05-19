@@ -140,6 +140,7 @@ namespace Plaza {
 			// if (entities.size() < uuid)
 			//	entities.resize(uuid + 1);
 			entities.emplace(uuid, Entity(name, nullptr, uuid));
+			entitiesNames[name].emplace(uuid);
 			this->SetParent(&entities.at(uuid), parent);
 			if (newTransform)
 				this->NewComponent<TransformComponent>(uuid);

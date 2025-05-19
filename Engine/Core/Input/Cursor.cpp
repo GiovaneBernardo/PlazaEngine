@@ -28,7 +28,7 @@ namespace Plaza {
 	const glm::vec2& Input::Cursor::GetMousePosition() {
 #ifdef EDITOR_MODE
 		return glm::vec2(lastX - Application::Get()->appSizes->hierarchySize.x,
-						 lastY - Application::Get()->appSizes->sceneImageStart.y - 35);
+						 lastY - Application::Get()->appSizes->sceneImageStart.y);
 #else
 		return glm::vec2(this->lastX, this->lastY);
 #endif

@@ -47,9 +47,9 @@ namespace Plaza::Editor {
 			if (ImGui::MenuItem("Cube")) {
 				entity = NewEntity("Cube", parent, DefaultModels::Cube(), true, true, scene);
 				TransformComponent* transform = scene->GetComponent<TransformComponent>(entity->uuid);
-				Collider* collider = scene->NewComponent<Collider>(entity->uuid);
-				ECS::ColliderSystem::CreateShape(collider, transform, ColliderShape::ColliderShapeEnum::BOX);
-				ECS::ColliderSystem::InitCollider(scene, collider->mUuid);
+				//Collider* collider = scene->NewComponent<Collider>(entity->uuid);
+				//ECS::ColliderSystem::CreateShape(collider, transform, ColliderShape::ColliderShapeEnum::BOX);
+				//ECS::ColliderSystem::InitCollider(scene, collider->mUuid);
 			}
 
 			if (ImGui::MenuItem("Sphere")) {
