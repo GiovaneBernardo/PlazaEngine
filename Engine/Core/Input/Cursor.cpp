@@ -34,9 +34,6 @@ namespace Plaza {
 #endif
 	}
 	const glm::vec2& Input::Cursor::GetDeltaMousePosition() {
-		if (deltaX != 0 || deltaY != 0) {
-			PL_CORE_INFO("Puts");
-		}
 		return glm::vec2(deltaX, deltaY);
 	}
 } // namespace Plaza
