@@ -170,4 +170,23 @@ namespace Plaza {
 		sEditorScene.reset();
 		sRuntimeScene.reset();
 	}
+
+	void Scene::RemoveEntity(uint64_t uuid) {
+		// Remove all components related to entity
+		for (auto& componentPool : mComponentPools) {
+			if (componentPool->Get(uuid) != nullptr) {
+				componentPool->Remove(uuid);
+			}
+		}
+
+		// Remove entity reference on entities names
+		auto it = entitiesNames.find(GetEntity(uuid)->name);
+		if (it != entitiesNames.end()) {
+			it->second.erase(std::find(it->second.begin(), it->second.end(), uuid));
+		}
+
+		// Remove entity
+		entities.erase(entities.find(uuid));
+
+	}
 } // namespace Plaza

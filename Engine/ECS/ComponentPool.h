@@ -39,6 +39,15 @@ namespace Plaza {
 			return component;
 		}
 
+		void Remove(size_t index) {
+			void* storage = Get(index);
+
+			mData.erase(std::find(mData.begin(), mData.end(), mData[mSparseMap[index]]));
+
+			mSparseMap.erase(mSparseMap.find(index));
+			mSize--;
+		}
+
 		std::map<EntityId, EntityId> mSparseMap;
 		std::vector<std::shared_ptr<Component>> mData;
 		size_t mSize = 1;

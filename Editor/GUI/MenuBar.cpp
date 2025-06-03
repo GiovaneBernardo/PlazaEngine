@@ -158,12 +158,16 @@ namespace Plaza {
 					std::string path = FileDialog::SaveFileDialog(("Engine (*.%s)", Standards::sceneExtName).c_str());
 					if (!path.empty()) {
 						Asset* asset = AssetsManager::GetAsset(Scene::GetActiveScene()->mAssetUuid);
+						// Serialize
 						if (!asset) {
 							AssetsSerializer::SerializeFile<Scene>(
 								*Scene::GetActiveScene(), path, Application::Get()->mSettings.mSceneSerializationMode);
 							asset = AssetsReader::ReadAssetAtPath(path);
 						}
-						bool sceneFileIsEditorScene = path == asset->mAssetPath.string();
+
+						// Change scene uuid
+						if (path != Scene::GetActiveScene()->mAssetPath)
+							Scene::GetActiveScene()->mAssetUuid = Plaza::UUID::NewUUID();
 
 						Scene::GetActiveScene()->mAssetPath = path;
 						Scene::GetActiveScene()->mAssetName = std::filesystem::path{path}.filename().string();

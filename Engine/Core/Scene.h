@@ -194,9 +194,11 @@ namespace Plaza {
 			return static_cast<T*>(mComponentPools[componentId]->Get(id));
 		}
 
-		template <typename T> void RemoveComponent(uint64_t id) {}
+		template <typename T> void RemoveComponent(uint64_t id) {
+			mComponentPools[GetComponentId<T>()]->Remove(id);
+		}
 
-		void RemoveEntity(uint64_t uuid) {}
+		void RemoveEntity(uint64_t uuid);
 
 		Entity* GetEntityByName(const std::string& name) {
 			auto it = entitiesNames.find(name);
