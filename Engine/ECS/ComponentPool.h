@@ -17,6 +17,10 @@ namespace Plaza {
 			return mData[sparsedIndex].get();
 		}
 
+		inline bool Has(size_t index) {
+			return mSparseMap.find(index) != mSparseMap.end();
+		}
+
 		template <typename T> inline T* New(size_t index) {
 			mSparseMap[index] = mSize;
 			std::shared_ptr<T> component = std::make_shared<T>();

@@ -172,9 +172,17 @@ namespace Plaza {
 	}
 
 	void Scene::RemoveEntity(uint64_t uuid) {
+#ifdef EDITOR_MODE
+		if (Editor::selectedGameObject->uuid == uuid) {
+			Editor::selectedGameObject = nullptr;
+		}
+#endif
+
 		// Remove all components related to entity
 		for (auto& componentPool : mComponentPools) {
-			if (componentPool->Get(uuid) != nullptr) {
+			if (!componentPool)
+				continue;
+			if (componentPool->Has(uuid)) {
 				componentPool->Remove(uuid);
 			}
 		}
@@ -185,8 +193,13 @@ namespace Plaza {
 			it->second.erase(std::find(it->second.begin(), it->second.end(), uuid));
 		}
 
+		// Remove entity from parent's children list
+		auto parentIt = entities.find(entities.at(uuid).parentUuid);
+		if (parentIt != entities.end()) {
+			parentIt->second.childrenUuid.erase(std::find(parentIt->second.childrenUuid.begin(), parentIt->second.childrenUuid.end(), uuid));
+		}
+
 		// Remove entity
 		entities.erase(entities.find(uuid));
-
 	}
 } // namespace Plaza
