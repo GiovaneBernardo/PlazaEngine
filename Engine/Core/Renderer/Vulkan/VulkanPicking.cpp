@@ -186,9 +186,9 @@ namespace Plaza {
 
 	void VulkanPicking::InitializePicking() {
 		const std::string pickingVertexPath =
-			VulkanShadersCompiler::Compile(Application::Get()->enginePath + "/Shaders/Vulkan/picking/picking.vert");
+			VulkanShadersCompiler::Compile(FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/picking/picking.vert");
 		const std::string pickingFragmentPath =
-			VulkanShadersCompiler::Compile(Application::Get()->enginePath + "/Shaders/Vulkan/picking/picking.frag");
+			VulkanShadersCompiler::Compile(FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/picking/picking.frag");
 
 		this->mRenderPickingTexturePostEffects = new VulkanPlazaPipeline();
 

@@ -4,6 +4,13 @@
 #include <regex>
 
 namespace Plaza {
+	std::filesystem::path FilesManager::sEngineFolder; // This is the Engine folder inside the engine root
+	std::filesystem::path FilesManager::sEditorFolder; // This is the Editor folder inside the engine root
+	std::filesystem::path FilesManager::sEngineSettingsFolder; // Stored in AppData on windows
+	std::filesystem::path FilesManager::sGameFolder;
+	std::filesystem::path FilesManager::sGameSettingsFolder; // Stored in AppData on windows
+	std::filesystem::path FilesManager::sEngineExecutablePath;
+
 	std::filesystem::path FilesManager::CopyPasteFile(const std::filesystem::path& from,
 													  const std::filesystem::path& to, bool override) {
 		if (!FilesManager::PathExists(from))
@@ -103,5 +110,19 @@ namespace Plaza {
 #endif
 	}
 
-	void FilesManager::SaveFile(const std::filesystem::path& path, void* data, size_t size) {}
+	void FilesManager::SaveFile(const std::filesystem::path& path, void* data, size_t size) {
+		std::ofstream file(path);
+		file.write(static_cast<char*>(data), size);
+		file.close();
+	}
+
+	char* FilesManager::ReadFile(const std::filesystem::path& path, size_t& size, std::ios_base::openmode mode) {
+		std::ifstream file(path, mode);
+		size = file.tellg();
+		file.seekg(0, std::ios::beg);
+		std::vector<char> data(size);
+		file.read(reinterpret_cast<char*>(data.data()), size);
+		file.close();
+		return data.data();
+	}
 } // namespace Plaza

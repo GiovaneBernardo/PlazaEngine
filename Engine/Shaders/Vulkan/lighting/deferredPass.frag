@@ -273,7 +273,7 @@ float ShadowCalculation(vec3 fragPos, vec3 Normal)
     return shadow;
 }
 
-vec3 CalculateDirectionalLight(vec3 fragPos, vec3 albedo, vec3 normal, float metallic, float roughness, vec3 shadow) {
+vec3 CalculateDirectionalLight(vec3 fragPos, vec3 albedo, vec3 normal, float metallic, float roughness) {
     vec3 V =  normalize(-fragPos);
     float NdotV = dot(normal, V);
     if (NdotV < 0.0) {
@@ -306,7 +306,7 @@ vec3 CalculateDirectionalLight(vec3 fragPos, vec3 albedo, vec3 normal, float met
     float ambientOcclusion = 1.0f;
     vec3 ambient = (kD * diffuse + specular) * ambientOcclusion;
 
-    shadow = (1.0f - ShadowCalculation(fragPos.xyz, normal)) * (ubo.directionalLightColor.xyz) + ubo.ambientLightColor.x;
+    vec3 shadow = max((1.0f - ShadowCalculation(fragPos.xyz, normal)) * (ubo.directionalLightColor.xyz) + (ubo.ambientLightColor.xyz * ubo.ambientLightColor.w), 0.5f);
     vec3 color = ambient;
     color += Lo;
     color *= shadow;
@@ -360,11 +360,10 @@ void main()
         const vec3 Normal = texture(gNormal, TexCoords).rgb;
         const vec3 Others = texture(gOthers, TexCoords).xyz;
         const float Specular = Others.x;
-        const float metalness = 1.0f - Others.y;
+        const float metalness = Others.y;
         const float roughness = Others.z;
         color = vec3(0.0f);
-        vec3 shadow = (1.0f - ShadowCalculation(fragViewPos.xyz, Normal)) * ubo.directionalLightColor.xyz;
-        color = CalculateDirectionalLight(fragViewPos, Diffuse, Normal, metalness, roughness, shadow);
+        color = CalculateDirectionalLight(fragViewPos, Diffuse, Normal, metalness, roughness);
         //lighting = CalculateDirectionalLight(FragPos, Diffuse, Normal, metalness, roughness, shadow);
         //lighting = vec3(1.0f);//CalculateDirectionalLight(FragPos, Diffuse, Normal, metalness, roughness, shadow);
        // float shadow = (1.0f - ShadowCalculation(FragPos.xyz, Normal)); //* ubo.directionalLightColor.xyz;
@@ -384,11 +383,38 @@ void main()
 
     //color += max((lighting - 1.0f) * Diffuse, vec3(0.0f));
 
-//    #define SHOW_HEATMAP
-//#ifdef SHOW_HEATMAP
-//    vec3 heatmap = HeatMap(clusterIndex, currentCluster.lightsCount).xyz;
-//    color = (color + heatmap) * 0.5f;
-//#endif
+    //#define SHOW_HEATMAP
+#ifdef SHOW_HEATMAP
+    vec4 fragPosViewSpace = vec4(ReconstructViewPosition(TexCoords, depth), 1.0f);//ubo.view * vec4(fragPosWorldSpace, 1.0);
+    float depthValue = abs(fragPosViewSpace.z);
+    int layer = ubo.cascadeCount;
+    for (int i = 0; i < ubo.cascadeCount - 1; ++i)
+    {
+        if (depthValue < ubo.cascadePlaneDistances[i].x)
+        {
+            layer = i;
+            break;
+        }
+    }
+    if(layer == 0)
+    color = vec3(1.0f, 0.0f, 0.0f);
+    if(layer == 1)
+    color = vec3(0.5f, 0.0f, 0.0f);
+    if(layer == 2)
+    color = vec3(0.25f, 0.25f, 0.0f);
+    if(layer == 3)
+    color = vec3(1.0f, 0.50f, 0.0f);
+    if(layer == 4)
+    color = vec3(0.0f, 1.0f, 0.0f);
+    if(layer == 5)
+    color = vec3(0.0f, 1.0f, 0.25f);
+    if(layer == 6)
+    color = vec3(0.0f, 1.0f, 0.50f);
+    if(layer == 7)
+    color = vec3(0.0f, 1.0f, 1.0f);
+
+    color = Diffuse + (color * 2.5f);
+#endif
 
     FragColor = vec4(color, 1.0f);
 }

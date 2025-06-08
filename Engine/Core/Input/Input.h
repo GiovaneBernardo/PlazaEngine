@@ -10,8 +10,8 @@ namespace Plaza {
 		class Cursor;
 		static void Update();
 		static bool GetKeyDown(int key);
-		static bool GetKeyDownOnce();
-		static bool GetKeyReleased();
+		static bool GetKeyDownOnce(int key);
+		static bool GetKeyReleased(int key);
 		static bool GetKeyReleasedOnce();
 		static void AddFunctionToOnKeyPress(std::function<void()> function,
 											Editor::GuiLayer layer = Editor::GuiLayer::SCENE,
@@ -21,5 +21,7 @@ namespace Plaza {
 		static glm::vec2 GetScreenSize();
 
 	  private:
+		static std::unordered_map<int, bool> sCurrentKeyStates;
+		static std::unordered_map<int, bool> sPreviousKeyStates;
 	};
 } // namespace Plaza

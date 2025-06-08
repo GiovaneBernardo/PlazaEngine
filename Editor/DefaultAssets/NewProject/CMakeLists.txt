@@ -59,6 +59,8 @@ target_link_libraries(GameLib PUBLIC PlazaEngineCore PlazaEngineCoreLibs)
 
 target_include_directories(GameLib PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Assets/Scripts/"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Scripts/"
 )
 
 set(OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/bin")

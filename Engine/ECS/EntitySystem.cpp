@@ -97,9 +97,7 @@ namespace Plaza {
 	}
 
 	void ECS::EntitySystem::Delete(Scene* scene, uint64_t uuid) {
-		// FIX: Implement proper deletion of entites
-		for (auto& componentPool : scene->mComponentPools) {
-		}
+		scene->RemoveEntity(uuid);
 	}
 
 } // namespace Plaza

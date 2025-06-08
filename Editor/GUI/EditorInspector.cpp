@@ -4,7 +4,6 @@
 #include <iostream>
 #include "Editor/Settings/EditorSettings.h"
 #include "Editor/Settings/SettingsSerializer.h"
-#include "Engine/Core/Renderer/Vulkan/VulkanBloom.h"
 #include "Editor/GUI/Utils/DataVisualizer.h"
 #include "Engine/Core/Renderer/Vulkan/Renderer.h"
 #include "Engine/Core/AssetsManager/Serializer/AssetsSerializer.h"
@@ -22,33 +21,34 @@ namespace Plaza::Editor {
 
 				ImGui::Checkbox("Show Cascade Levels", &Application::Get()->showCascadeLevels);
 
-				ImGui::DragFloat("Bloom Intensity", &VulkanRenderer::GetRenderer()->mBloom.mBloomIntensity);
-				ImGui::DragFloat("Bloom Knee", &VulkanRenderer::GetRenderer()->mBloom.mKnee);
-				ImGui::DragFloat("Bloom Threshold", &VulkanRenderer::GetRenderer()->mBloom.mThreshold);
-				ImGui::DragInt("Bloom Mip Count", &VulkanRenderer::GetRenderer()->mBloom.mMipCount);
+				ImGui::DragFloat("Bloom Intensity", &VulkanRenderer::GetRenderer()->mRendererSettings.mBloomSettings.mBloomIntensity);
+				ImGui::DragFloat("Bloom Knee", &VulkanRenderer::GetRenderer()->mRendererSettings.mBloomSettings.mKnee);
+				ImGui::DragFloat("Bloom Threshold", &VulkanRenderer::GetRenderer()->mRendererSettings.mBloomSettings.mThreshold);
+				ImGui::DragInt("Bloom Mip Count", &VulkanRenderer::GetRenderer()->mRendererSettings.mBloomSettings.mMipCount);
 
 				ImGui::DragFloat("Exposure", &VulkanRenderer::GetRenderer()->exposure);
 				ImGui::DragFloat("Gamma", &VulkanRenderer::GetRenderer()->gamma);
 				ImGui::ColorPicker3("Directional Light Color",
-									&VulkanRenderer::GetRenderer()->mLighting->directionalLightColor.x);
+									&VulkanRenderer::GetRenderer()->mRendererSettings.mLightingSettings.directionalLightColor.x);
 				ImGui::DragFloat("Directional Intensity",
-								 &VulkanRenderer::GetRenderer()->mLighting->directionalLightIntensity);
+								 &VulkanRenderer::GetRenderer()->mRendererSettings.mLightingSettings.directionalLightIntensity);
 				ImGui::ColorPicker3("Ambient Light Color",
-									&VulkanRenderer::GetRenderer()->mLighting->ambientLightColor.x);
-				ImGui::DragFloat("Ambient Intesnity", &VulkanRenderer::GetRenderer()->mLighting->ambientLightIntensity);
+									&VulkanRenderer::GetRenderer()->mRendererSettings.mLightingSettings.ambientLightColor.x);
+				ImGui::DragFloat("Ambient Intesnity", &VulkanRenderer::GetRenderer()->mRendererSettings.mLightingSettings.ambientLightIntensity);
+				ImGui::DragFloat("Skybox Intesnity", &VulkanRenderer::GetRenderer()->mSkyboxIntensity);
 
 				if (ImGui::Button("Save Settings")) {
 					// Editor::EditorSettingsSerializer::Serialize();
 					AssetsSerializer::SerializeFile<EngineSettings>(
 						Application::Get()->mSettings,
-						Application::Get()->enginePathAppData + "Settings" + Standards::editorSettingsExtName,
+						FilesManager::sEngineSettingsFolder.string() + "Settings" + Standards::editorSettingsExtName,
 						Application::Get()->mSettings.mCommonSerializationMode);
 				}
 			}
 
 			/* Render Graph */
 			if (Utils::ComponentInspectorHeader(nullptr, "RenderGraph", 0)) {
-				ImGui::BeginTable("Terrain Editor Tool Settings", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg);
+				ImGui::BeginTable("RenderGraph Settings", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg);
 				for (const auto& [key, pass] : VulkanRenderer::GetRenderer()->mRenderGraph->mPasses) {
 					Utils::AddTableSingleString(pass->mName);
 					bool recompile;

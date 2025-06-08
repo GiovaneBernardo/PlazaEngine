@@ -61,9 +61,9 @@ vec3 GetNormalFromMap() {
 void main() {
     vec3 albedo;
     if(material.diffuseIndex > -1) {
-        vec4 textureColor = pow(texture(textures[material.diffuseIndex], fragTexCoord), vec4(vec3(ubo.gamma), 1.0f));
+        vec4 textureColor = texture(textures[material.diffuseIndex], fragTexCoord);//pow(texture(textures[material.diffuseIndex], fragTexCoord), vec4(vec3(ubo.gamma), 1.0f));
         //vec4 textureColor = pow(texture(textures[material.diffuseIndex], fragTexCoord), vec4(vec3(1.0f / 2.2f), 1.0f));
-        if(textureColor.w <= 0.1f)
+        if(textureColor.w <= 0.05f)
             discard;
         albedo = textureColor.xyz;
     }
@@ -87,7 +87,7 @@ void main() {
     float roughness = material.roughnessFloat;
 
     if(material.metalnessIndex > -1) {
-        float factor = 1.0f - (metallic * 2.0f);
+        float factor = metallic;
         metallic =  (texture(textures[material.metalnessIndex], fragTexCoord).r) * factor;
     }
 
@@ -97,7 +97,7 @@ void main() {
     }
 
     /* Geometry */
-    gOthers = vec4(0.0f, material.metalnessIndex > -1 ? 1.0f - metallic : metallic, roughness, 1.0f);
+    gOthers = vec4(0.0f, metallic, roughness, 1.0f);
     gDiffuse = vec4(albedo, 1.0f);
     gNormal = vec4(N.xyz, 1.0f);
 }

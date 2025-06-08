@@ -49,8 +49,8 @@ namespace Plaza {
 						" \"C:/Program Files/Microsoft Visual Studio/2022/Community/MSBuild/Current/Bin/msbuild.exe\" ";
 					std::string outPath = "\"" + Application::Get()->projectPath + "/../" +
 										  Application::Get()->activeProject->mAssetName + "build//\"";
-					std::string command = "\"" + devEnv + "\"" + Application::Get()->enginePath +
-										  "/../OpenGLEngine.sln\" /p:Configuration=GameRel /t:Build "
+					std::string command = "\"" + devEnv + "\"" + FilesManager::sEngineFolder.string() +
+										  "/OpenGLEngine.sln\" /p:Configuration=GameRel /t:Build "
 										  "/p:PROJECT_NAME=YourMacroValue /p:OutDir=" +
 										  outPath + "\"";
 					std::cout << command << std::endl;
@@ -114,7 +114,7 @@ namespace Plaza {
 					Application::Get()->runEngine = false;
 					Application::Get()->runProjectManagerGui = true;
 					Application::Get()->activeProject = std::make_unique<Project>();
-					Cache::Serialize(Application::Get()->enginePathAppData + "/cache.yaml");
+					Cache::Serialize(FilesManager::sEngineSettingsFolder.string() + "/cache.yaml");
 					Application::Get()->focusedMenu = "ProjectManager";
 				}
 
@@ -158,12 +158,16 @@ namespace Plaza {
 					std::string path = FileDialog::SaveFileDialog(("Engine (*.%s)", Standards::sceneExtName).c_str());
 					if (!path.empty()) {
 						Asset* asset = AssetsManager::GetAsset(Scene::GetActiveScene()->mAssetUuid);
+						// Serialize
 						if (!asset) {
 							AssetsSerializer::SerializeFile<Scene>(
 								*Scene::GetActiveScene(), path, Application::Get()->mSettings.mSceneSerializationMode);
 							asset = AssetsReader::ReadAssetAtPath(path);
 						}
-						bool sceneFileIsEditorScene = path == asset->mAssetPath.string();
+
+						// Change scene uuid
+						if (path != Scene::GetActiveScene()->mAssetPath)
+							Scene::GetActiveScene()->mAssetUuid = Plaza::UUID::NewUUID();
 
 						Scene::GetActiveScene()->mAssetPath = path;
 						Scene::GetActiveScene()->mAssetName = std::filesystem::path{path}.filename().string();

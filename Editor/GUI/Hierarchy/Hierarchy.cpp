@@ -39,7 +39,7 @@ namespace Plaza::Editor {
 		}
 
 		appSizes.hierarchySize.x = ImGui::GetWindowSize().x;
-		HierarchyPopup::Update(scene, Editor::selectedGameObject);
+		HierarchyPopup::Update(scene, sHoveringItem ? Editor::selectedGameObject : nullptr);
 
 		if (Editor::selectedGameObject)
 			Editor::selectedFiles.clear();
@@ -57,6 +57,7 @@ namespace Plaza::Editor {
 
 		// Gui::curHierarchySize = ImGui::glmVec2(ImGui::GetWindowSize());
 		ImGui::End();
+		sHoveringItem = false;
 	}
 
 	void HierarchyWindow::OnKeyPress(int key, int scancode, int action, int mods) {
@@ -191,6 +192,8 @@ namespace Plaza::Editor {
 			HierarchyWindow::Item::HierarchyDragDrop(entity, &entity, treeNodeMin, treeNodeMax, scene);
 		}
 		bool treePop = !entity.changingName && !nameChanged;
+		if (ImGui::IsItemHovered())
+			sHoveringItem = true;
 		if (ImGui::IsItemHovered() || ImGui::IsPopupOpen("ItemPopup")) {
 			HierarchyWindow::Item::ItemPopup(&entity, scene);
 		}

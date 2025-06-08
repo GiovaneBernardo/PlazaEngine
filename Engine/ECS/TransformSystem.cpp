@@ -55,11 +55,45 @@ namespace Plaza {
 	}
 
 	void ECS::TransformSystem::SetWorldPosition(TransformComponent& transform, Scene* scene, const glm::vec3& vector,
-												bool updateWorldMatrix) {}
+												bool updateWorldMatrix) {
+		glm::mat4 parentTransform;
+		if (scene->GetEntity(transform.mUuid)->parentUuid) {
+			parentTransform = scene->GetComponent<TransformComponent>(scene->GetEntity(transform.mUuid)->parentUuid)->GetWorldMatrix();
+		}
+		else {
+			parentTransform = glm::mat4(1.0f);
+		}
+		ECS::TransformSystem::SetLocalPosition(transform, scene, glm::inverse(parentTransform) * glm::vec4(vector, 1.0f));
+	}
+
+
 	void ECS::TransformSystem::SetWorldRotation(TransformComponent& transform, Scene* scene, const glm::vec3& vector,
-												bool updateWorldMatrix) {}
+												bool updateWorldMatrix) {
+		glm::quat parentQuat;
+		if (scene->GetEntity(transform.mUuid)->parentUuid) {
+			parentQuat = scene->GetComponent<TransformComponent>(scene->GetEntity(transform.mUuid)->parentUuid)
+								  ->GetWorldQuaternion();
+		}
+		else {
+			parentQuat = glm::quat();
+		}
+		ECS::TransformSystem::SetLocalRotation(transform, scene, glm::inverse(parentQuat) * glm::quat(vector));
+	}
+
 	void ECS::TransformSystem::SetWorldScale(TransformComponent& transform, Scene* scene, const glm::vec3& vector,
-											 bool updateWorldMatrix) {}
+											 bool updateWorldMatrix) {
+		glm::vec3 parentScale;
+		if (scene->GetEntity(transform.mUuid)->parentUuid) {
+			parentScale = scene->GetComponent<TransformComponent>(scene->GetEntity(transform.mUuid)->parentUuid)
+							 ->GetWorldScale();
+		}
+		else {
+			parentScale = glm::vec3(1.0f);
+		}
+
+		glm::vec3 localScale = vector / glm::max(parentScale, glm::vec3(0.0001f));
+		ECS::TransformSystem::SetLocalScale(transform, scene, localScale);
+	}
 
 	void ECS::TransformSystem::UpdateSelfAndChildrenTransform(TransformComponent& transform,
 															  TransformComponent* parentTransform, Scene* scene,

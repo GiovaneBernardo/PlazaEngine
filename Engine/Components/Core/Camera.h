@@ -10,6 +10,7 @@ const float ZOOM = 60.0f;
 
 #include "Engine/Components/Core/Transform.h"
 #include "Engine/Core/Engine.h"
+#include "Engine/Core/Renderer/Viewport.h"
 
 namespace Plaza {
 	class Scene;
@@ -120,6 +121,8 @@ namespace Plaza {
 		}
 
 		glm::vec3 ScreenPositionToRay(const glm::vec2& position, const glm::vec2& size);
+		const PlViewport& GetViewport();
+		void SetViewport(PlViewport* viewport);
 
 		template <class Archive> void serialize(Archive& archive) {
 			archive(cereal::base_class<Component>(this), PL_SER(isEditorCamera), PL_SER(Position), PL_SER(Front),
@@ -131,5 +134,6 @@ namespace Plaza {
 	  private:
 		// calculates the front vector from the Camera's (updated) Euler Angles
 		void updateCameraVectors(Scene* scene);
+		PlViewport* mViewport = nullptr;
 	};
 }; // namespace Plaza

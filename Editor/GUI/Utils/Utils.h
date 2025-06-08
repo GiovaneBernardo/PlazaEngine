@@ -1,5 +1,6 @@
 #pragma once
 #include "Engine/Core/PreCompiledHeaders.h"
+#include "Engine/Core/Scene.h"
 namespace Plaza::Editor::Utils {
 	static bool ComponentInspectorHeader(Component* component, std::string name,
 										 ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen) {

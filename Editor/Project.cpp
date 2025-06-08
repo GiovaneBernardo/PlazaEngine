@@ -12,6 +12,7 @@
 #include "Engine/Core/AssetsManager/AssetsReader.h"
 #include "Engine/Core/Scene.h"
 #include "Engine/Core/AssetsManager/Serializer/AssetsSerializer.h"
+#include "Engine/Core/Scripting/Scripting.h"
 
 namespace Plaza::Editor {
 	void Project::Load(const std::string filePath) {
@@ -115,6 +116,7 @@ namespace Plaza::Editor {
 				Scene::SetEditorScene(AssetsSerializer::DeSerializeFile<Scene>(
 					sceneFilePath, Application::Get()->mSettings.mSceneSerializationMode));
 				Scene::SetActiveScene(Scene::GetEditorScene());
+				Scripting::LoadProjectCppDll(Scene::GetActiveScene(), *Application::Get()->activeProject);
 				Scene::GetActiveScene()->RecalculateAddedComponents();
 			}
 			// if (sceneFileExists)

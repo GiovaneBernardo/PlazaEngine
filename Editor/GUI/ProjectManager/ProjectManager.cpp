@@ -68,7 +68,7 @@ namespace Plaza {
 
 					Application::Get()->projectPath =
 						Application::Get()->activeProject->mAssetPath.parent_path().string();
-					Cache::Serialize(Application::Get()->enginePathAppData + "/cache" + Standards::editorCacheExtName);
+					Cache::Serialize(FilesManager::sEngineSettingsFolder.string() + "/cache" + Standards::editorCacheExtName);
 
 					Project::Load(Application::Get()->activeProject->mAssetPath.string());
 

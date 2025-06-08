@@ -27,6 +27,7 @@ namespace Plaza {
 
 		bool canUpdate = true;
 
+		bool mUseGravity = true;
 		bool kinematic = false;
 		bool dynamic = true;
 		bool continuousDetection = false;
@@ -58,7 +59,7 @@ namespace Plaza {
 			uint8_t rigidDynamicLockFlagsInt = static_cast<uint8_t>(rigidDynamicLockFlags);
 			archive(cereal::base_class<Component>(this), PL_SER(kinematic), PL_SER(dynamic),
 					PL_SER(continuousDetection), PL_SER(mStaticFriction), PL_SER(mDynamicFriction),
-					PL_SER(mRestitution), PL_SER(density), PL_SER(gravity), PL_SER(rigidDynamicLockFlagsInt));
+					PL_SER(mRestitution), PL_SER(density), PL_SER(gravity), PL_SER(rigidDynamicLockFlagsInt), PL_SER(mUseGravity));
 			rigidDynamicLockFlags.setAll(static_cast<physx::PxRigidDynamicLockFlag::Enum>(rigidDynamicLockFlagsInt));
 		}
 

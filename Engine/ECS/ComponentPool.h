@@ -17,6 +17,10 @@ namespace Plaza {
 			return mData[sparsedIndex].get();
 		}
 
+		inline bool Has(size_t index) {
+			return mSparseMap.find(index) != mSparseMap.end();
+		}
+
 		template <typename T> inline T* New(size_t index) {
 			mSparseMap[index] = mSize;
 			std::shared_ptr<T> component = std::make_shared<T>();
@@ -37,6 +41,15 @@ namespace Plaza {
 			mSize++; //= std::max(mSize, index + 1);
 
 			return component;
+		}
+
+		void Remove(size_t index) {
+			void* storage = Get(index);
+
+			mData.erase(std::find(mData.begin(), mData.end(), mData[mSparseMap[index]]));
+
+			mSparseMap.erase(mSparseMap.find(index));
+			mSize--;
 		}
 
 		std::map<EntityId, EntityId> mSparseMap;

@@ -101,6 +101,7 @@ namespace Plaza {
 			return sComponentId;
 		}
 
+		PlViewport mViewport;
 		Entity* mainSceneEntity = nullptr;
 		uint64_t mainSceneEntityUuid = 0;
 
@@ -139,6 +140,7 @@ namespace Plaza {
 			// if (entities.size() < uuid)
 			//	entities.resize(uuid + 1);
 			entities.emplace(uuid, Entity(name, nullptr, uuid));
+			entitiesNames[name].emplace(uuid);
 			this->SetParent(&entities.at(uuid), parent);
 			if (newTransform)
 				this->NewComponent<TransformComponent>(uuid);
@@ -192,11 +194,18 @@ namespace Plaza {
 			return static_cast<T*>(mComponentPools[componentId]->Get(id));
 		}
 
-		template <typename T> void RemoveComponent(uint64_t id) {}
+		template <typename T> void RemoveComponent(uint64_t id) {
+			mComponentPools[GetComponentId<T>()]->Remove(id);
+		}
 
-		void RemoveEntity(uint64_t uuid) {}
+		void RemoveEntity(uint64_t uuid);
 
-		Entity* GetEntityByName(const std::string& name) { return nullptr; }
+		Entity* GetEntityByName(const std::string& name) {
+			auto it = entitiesNames.find(name);
+			if (it != entitiesNames.end() && !it->second.empty())
+				return GetEntity(*it->second.cbegin());
+			return nullptr;
+		}
 
 		RenderGroup* AddRenderGroup(Mesh* newMesh, std::vector<Material*> newMaterials, bool resizeBuffer = true) {
 			if (!newMesh)

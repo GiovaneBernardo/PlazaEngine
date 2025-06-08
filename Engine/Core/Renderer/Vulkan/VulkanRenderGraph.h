@@ -1068,6 +1068,41 @@ namespace Plaza {
 		}
 	}
 
+	static VkStencilOp PlStencilOpToVkStencilOp(PlStencilOp op) {
+		switch (op) {
+			case PL_STENCIL_OP_KEEP:
+				return VK_STENCIL_OP_KEEP;
+			case PL_STENCIL_OP_ZERO:
+				return VK_STENCIL_OP_ZERO;
+			case PL_STENCIL_OP_REPLACE:
+				return VK_STENCIL_OP_REPLACE;
+			case PL_STENCIL_OP_INCREMENT_AND_CLAMP:
+				return VK_STENCIL_OP_INCREMENT_AND_CLAMP;
+			case PL_STENCIL_OP_DECREMENT_AND_CLAMP:
+				return VK_STENCIL_OP_DECREMENT_AND_CLAMP;
+			case PL_STENCIL_OP_INVERT:
+				return VK_STENCIL_OP_INVERT;
+			case PL_STENCIL_OP_INCREMENT_AND_WRAP:
+				return VK_STENCIL_OP_INCREMENT_AND_WRAP;
+			case PL_STENCIL_OP_DECREMENT_AND_WRAP:
+				return VK_STENCIL_OP_DECREMENT_AND_WRAP;
+			default:
+				return VK_STENCIL_OP_KEEP;
+		}
+	}
+
+	static VkStencilOpState PlStencilOpStateToVkStencilOpState(const PlStencilOpState& state) {
+		VkStencilOpState vkState = {};
+		vkState.compareMask = state.compareMask;
+		vkState.compareOp = PlCompareOpToVkCompareOp(state.compareOp);
+		vkState.depthFailOp = PlStencilOpToVkStencilOp(state.depthFailOp);
+		vkState.failOp = PlStencilOpToVkStencilOp(state.failOp);
+		vkState.passOp = PlStencilOpToVkStencilOp(state.passOp);
+		vkState.reference = state.reference;
+		vkState.writeMask = state.writeMask;
+		return vkState;
+	}
+
 	static VkBlendFactor PlBlendFactorToVkBlendFactor(PlBlendFactor factor) {
 		switch (factor) {
 			case PL_BLEND_FACTOR_ZERO:
@@ -1271,29 +1306,6 @@ namespace Plaza {
 				return VK_LOGIC_OP_SET;
 			default:
 				return VK_LOGIC_OP_CLEAR;
-		}
-	}
-
-	static VkStencilOp PlStencilOpToVkStencilOp(PlStencilOp op) {
-		switch (op) {
-			case PL_STENCIL_OP_KEEP:
-				return VK_STENCIL_OP_KEEP;
-			case PL_STENCIL_OP_ZERO:
-				return VK_STENCIL_OP_ZERO;
-			case PL_STENCIL_OP_REPLACE:
-				return VK_STENCIL_OP_REPLACE;
-			case PL_STENCIL_OP_INCREMENT_AND_CLAMP:
-				return VK_STENCIL_OP_INCREMENT_AND_CLAMP;
-			case PL_STENCIL_OP_DECREMENT_AND_CLAMP:
-				return VK_STENCIL_OP_DECREMENT_AND_CLAMP;
-			case PL_STENCIL_OP_INVERT:
-				return VK_STENCIL_OP_INVERT;
-			case PL_STENCIL_OP_INCREMENT_AND_WRAP:
-				return VK_STENCIL_OP_INCREMENT_AND_WRAP;
-			case PL_STENCIL_OP_DECREMENT_AND_WRAP:
-				return VK_STENCIL_OP_DECREMENT_AND_WRAP;
-			default:
-				return VK_STENCIL_OP_KEEP;
 		}
 	}
 
@@ -1535,7 +1547,7 @@ namespace Plaza {
 		VulkanBufferBinding(const VulkanBufferBinding& other) = default;
 		VulkanBufferBinding(uint64_t descriptorCount, uint8_t binding, PlBufferType type, PlRenderStage stage,
 							std::shared_ptr<PlBuffer> buffer)
-			: PlazaBufferBinding(descriptorCount, binding, type, stage, buffer){};
+			: PlazaBufferBinding(descriptorCount, binding, type, stage, buffer) {};
 		virtual void Compile(std::set<std::string>& compiledBindings) override;
 		virtual void Destroy() override;
 
@@ -1628,6 +1640,7 @@ namespace Plaza {
 
 		virtual void Compile(PlazaRenderGraph* renderGraph) override;
 		virtual void BindMainBuffers() override;
+		virtual void BindPipelineBuffers(PlazaPipeline* pipeline) override;
 		virtual void BindRenderPass() override;
 		virtual void EndRenderPass() override;
 		virtual void RenderIndirectBuffer(PlazaPipeline* pipeline) override;
@@ -1715,6 +1728,7 @@ namespace Plaza {
 		}
 
 		void BuildDefaultRenderGraph() override;
+		void DebugRendererNodes(const PlViewport& viewport, const std::string& textureToDraw);
 		VulkanRenderGraph* BuildSkyboxRenderGraph();
 		void RunSkyboxRenderGraph(VulkanRenderGraph* renderGraph);
 		void AddPipeline() override;

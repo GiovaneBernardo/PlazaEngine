@@ -99,7 +99,7 @@ namespace Plaza {
 			FpsCounter* fpsCounter = new FpsCounter();
 			// Load Icons
 			playPauseButtonImageId = Utils::LoadImageToImGuiTexture(
-				std::string(Application::Get()->editorPath + "/Images/Other/playPauseButton.png").c_str());
+				std::string(FilesManager::sEditorFolder.string() + "/Images/Other/playPauseButton.png").c_str());
 			sEditorTools.emplace(EditorTool::ToolType::TERRAIN_EDITOR, std::make_unique<TerrainEditorTool>());
 
 			ImGui::SetCurrentContext(mMainProgressBarContext);
@@ -124,8 +124,8 @@ namespace Plaza {
 			ImGuiIO& io = ImGui::GetIO();
 			(void)io;
 
-			const char* iniFilePath = new char[(Application::Get()->enginePath + "/imgui.ini").size() + 1];
-			strcpy(const_cast<char*>(iniFilePath), (Application::Get()->enginePath + "/imgui.ini").c_str());
+			const char* iniFilePath = new char[(FilesManager::sEngineFolder.string() + "/imgui.ini").size() + 1];
+			strcpy(const_cast<char*>(iniFilePath), (FilesManager::sEngineFolder.string() + "/imgui.ini").c_str());
 			ImGui::GetIO().IniFilename = iniFilePath;
 			io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 			if (Application::Get()->mRenderer->api == RendererAPI::Vulkan) {
@@ -140,7 +140,7 @@ namespace Plaza {
 			}
 			// ImGui_ImplGlfw_InitForVulkan(Application::Get()->Window->glfwWindow, true);
 			// C:/Users/Giovane/Desktop/Workspace 2023/OpenGL/OpenGLEngine/Engine/Font/Poppins-Regular.ttf
-			io.Fonts->AddFontFromFileTTF((Application::Get()->enginePath + "/Font/Poppins-Regular.ttf").c_str(), 18);
+			io.Fonts->AddFontFromFileTTF((FilesManager::sEngineFolder.string() + "/Font/Poppins-Regular.ttf").c_str(), 18);
 			io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleFonts | ImGuiConfigFlags_DpiEnableScaleViewports;
 
 #pragma region ImGui Style
@@ -289,10 +289,10 @@ namespace Plaza {
 				if (sceneViewUsingEditorCamera)
 					Application::Get()->activeCamera = Application::Get()->editorCamera;
 				else {
-					// FIX: Make active camera depdendant on the scene
-					// if (Application::Get()->activeCamera->isEditorCamera &&
-					// Scene::GetActiveScene()->cameraComponents.size() > 0) 	Application::Get()->activeCamera =
-					//&Scene::GetActiveScene()->cameraComponents.begin()->second;
+					for (const uint64_t& uuid : SceneView<Camera>(scene)) {
+						Application::Get()->activeCamera = scene->GetComponent<Camera>(uuid);
+						break;
+					}
 				}
 			}
 

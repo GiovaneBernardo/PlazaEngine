@@ -83,6 +83,9 @@ vec3 reconstructViewPos(float depth, vec2 uv, mat4 invProj, vec2 screenSize) {
 }
 
 void main() {
+    fragColor = vec4(texture(sceneTexture, inUV).xyz, 1.0f);
+	return;
+
     vec2 texSize = pushConstants.screenSize.xy;
     vec2 texCoord = clamp(inUV, vec2(0.0), vec2(1.0));
     float sceneDepth = GetDepthUV(texCoord);
@@ -108,9 +111,6 @@ vec3 worldPivot = normalize(reflect(unitWorldViewPos, worldNormal));
 mat3 piv = mat3(pushConstants.view);
 vec3 pivot = ((piv) * worldPivot);
 
-
-fragColor = vec4(pivot, 1.0f);
-//return;
 
     float maxDistance = 8.0;
     float resolution = 0.3;

@@ -159,4 +159,11 @@ namespace Plaza {
 		glm::vec3 rayWorld = glm::vec3(glm::inverse(this->GetViewMatrix()) * rayEye);
 		return glm::normalize(rayWorld);
 	}
+
+	const PlViewport& Camera::GetViewport() {
+		if (mViewport)
+			return *mViewport;
+		return PlViewport(0.0f, 0.0f, Application::Get()->appSizes->sceneSize.x, Application::Get()->appSizes->sceneSize.y, 0.0f, 1.0f);
+	}
+	void Camera::SetViewport(PlViewport* viewport) { mViewport = viewport; }
 } // namespace Plaza

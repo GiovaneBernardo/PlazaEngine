@@ -31,3 +31,5 @@ lib/assimp-vc143-mtd.lib
 /cmake_installcmake
 /enc_temp_folder
 .cache
+
+/.idea

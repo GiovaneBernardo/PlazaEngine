@@ -18,6 +18,7 @@ namespace Plaza {
 														   physx::PxReal(rigidBody->density));
 			physx::PxRigidBodyExt::updateMassAndInertia(*rigidBody->mRigidActor->is<physx::PxRigidDynamic>(),
 														physx::PxReal(rigidBody->density));
+
 			collider->SetFlags(collider, rigidBody->rigidDynamicLockFlags);
 		}
 		else {
@@ -27,6 +28,7 @@ namespace Plaza {
 		rigidBody->SetRigidBodyFlag(physx::PxRigidBodyFlag::eENABLE_CCD, rigidBody->continuousDetection);
 		rigidBody->mRigidActor->is<physx::PxRigidDynamic>()->setLinearDamping(0.0f);
 		rigidBody->mRigidActor->is<physx::PxRigidDynamic>()->setAngularDamping(0.0f);
+		rigidBody->mRigidActor->setActorFlag(physx::PxActorFlag::eDISABLE_GRAVITY, true);
 	}
 
 	void ECS::RigidBodySystem::Update(Scene* scene, uint64_t uuid) {
@@ -76,6 +78,17 @@ namespace Plaza {
 				collider->RemoveActor();
 				AddCollidersOfChildren(scene, child);
 			}
+		}
+	}
+
+	void ECS::RigidBodySystem::UpdateRigidBody(Scene* scene, uint64_t uuid) {
+		RigidBody* rigidBody = scene->GetComponent<RigidBody>(uuid);
+		if (rigidBody->mRigidActor) {
+			Physics::m_scene->removeActor(*rigidBody->mRigidActor);
+			rigidBody->mRigidActor = nullptr;
+			if (scene->HasComponent<Collider>(uuid))
+				scene->GetComponent<Collider>(uuid)->mRigidActor = nullptr;
+			ECS::RigidBodySystem::Init(scene, uuid);
 		}
 	}
 } // namespace Plaza

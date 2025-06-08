@@ -46,7 +46,8 @@ void main() {
     vec2 uv = vec2(atan(dir.z, dir.x) * invAtan.x + 0.5, asin(dir.y) * invAtan.y + 0.5);
 
 	vec3 color = texture(equirectangularMap, uv).rgb;
-	color *= 0.1f;
+	//color = color / (color + vec3(1.0f));
+	//color *= 0.1f;
 	//color = filmicTonemap(color);
     //color = gammaCorrect(color);
 	//color = clamp(color, 0.0, 1.0);

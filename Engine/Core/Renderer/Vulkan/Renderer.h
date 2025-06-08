@@ -8,12 +8,8 @@
 
 #include "VulkanRenderGraph.h"
 #include "VulkanTexture.h"
-#include "VulkanShadows.h"
-#include "VulkanSkybox.h"
-#include "VulkanLighting.h"
 #include "VulkanPicking.h"
 #include "VulkanComputeShaders.h"
-#include "VulkanBloom.h"
 
 #include "ThirdParty/include/VulkanMemoryAllocator/vk_mem_alloc.h"
 #include "VulkanPlazaWrapper.h"
@@ -55,6 +51,8 @@ namespace Plaza {
 
 		std::map<uint64_t, Bone> mBones = std::map<uint64_t, Bone>();
 		VkSemaphore semaphore;
+
+		bool mShowWireframe = false;
 
 		struct PushConstants {
 			glm::vec4 color = glm::vec4(1.0f);
@@ -166,7 +164,6 @@ namespace Plaza {
 		static bool IsFormatDepthStencil(VkFormat format);
 		static VkImageAspectFlags GetFormatAspectMask(VkFormat format);
 
-		void ChangeFinalDescriptorImageView(VkImageView newImageView);
 		VkFormat mFinalDeferredFormat = VK_FORMAT_R32G32B32A32_SFLOAT;
 		VkFormat mSwapChainImageFormat;
 		std::vector<VkDescriptorSet> mSwapchainDescriptorSets = std::vector<VkDescriptorSet>();
@@ -174,6 +171,13 @@ namespace Plaza {
 		VkImageView mFinalSceneImageView;
 		VkImage mDeferredFinalImage;
 		VkImageView mDeferredFinalImageView;
+
+		VkPipelineCache mPipelineCache = VK_NULL_HANDLE;
+		void LoadPipelineCache();
+		void SavePipelineCache();
+		const VkPipelineCache& GetPipelineCache() {
+			return mPipelineCache;
+		}
 
 		VkPhysicalDevice mPhysicalDevice = VK_NULL_HANDLE;
 		VkFramebuffer mFinalSceneFramebuffer;
@@ -191,6 +195,8 @@ namespace Plaza {
 		void CopyImage(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size, VkDeviceSize offset = 0);
 		void CopyTexture(VulkanTexture* srcTexture, VkImageLayout srcLayout, VulkanTexture* dstTexture,
 						 VkImageLayout dstLayout, VkCommandBuffer commandBuffer = VK_NULL_HANDLE);
+		void CopyDifferentSizeTexture(VulkanTexture* srcTexture, VkImageLayout srcLayout, VulkanTexture* dstTexture,
+						 VkImageLayout dstLayout, VkCommandBuffer commandBuffer = VK_NULL_HANDLE);
 		VkSampler mImGuiTextureSampler;
 		VkSampler mTextureSampler;
 		std::vector<VkFence> mComputeInFlightFences;
@@ -202,10 +208,6 @@ namespace Plaza {
 		std::vector<VkFramebuffer> mSwapChainFramebuffers;
 
 		RendererAPI api = RendererAPI::Vulkan;
-		VulkanShadows* mShadows;
-		VulkanSkybox* mSkybox;
-		VulkanLighting* mLighting;
-		VulkanBloom mBloom;
 		VkDevice mDevice = VK_NULL_HANDLE;
 		VkDescriptorPool mDescriptorPool;
 		VkRenderPass mRenderPass;
@@ -278,7 +280,7 @@ namespace Plaza {
 		uint32_t mCurrentImage;
 		const int MAX_FRAMES_IN_FLIGHT = 2;
 
-		bool mEnableValidationLayers = true;
+		bool mEnableValidationLayers = false;
 		void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 		VkResult CreateDebugUtilsMessengerEXT(VkInstance instance,
 											  const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
@@ -322,7 +324,6 @@ namespace Plaza {
 		void CreateUniformBuffers();
 		void CreateDescriptorPool();
 		void CreateDescriptorSets();
-		void UpdateUniformBuffer(uint32_t currentImage);
 		void CreateDescriptorSetLayout();
 		void InitializeGeometryPassRenderer();
 
@@ -410,27 +411,7 @@ namespace Plaza {
 		static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 															VkDebugUtilsMessageTypeFlagsEXT messageType,
 															const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-															void* pUserData) {
-			std::cout << "Message ID: " << pCallbackData->pMessageIdName << "\n";
-			switch (messageSeverity) {
-				case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
-					PL_CORE_INFO(pCallbackData->pMessage);
-					break;
-				case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
-					PL_CORE_INFO(pCallbackData->pMessage);
-					break;
-				case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
-					PL_CORE_WARN(pCallbackData->pMessage);
-					break;
-				case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
-					PL_CORE_ERROR(pCallbackData->pMessage);
-					break;
-				default:
-					PL_CORE_INFO(pCallbackData->pMessage);
-					break;
-			}
-			return VK_FALSE;
-		}
+															void* pUserData);
 
 		std::vector<Vertex> vertices;
 		std::vector<uint32_t> indices;

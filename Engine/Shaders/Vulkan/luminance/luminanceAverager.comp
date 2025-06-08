@@ -1,0 +1,30 @@
+#version 450
+layout (local_size_x = 8, local_size_y = 8) in;
+
+layout (binding = 0) uniform sampler2D hdrImage;
+layout (binding = 2, rgba32f) uniform image2D lumTexture;
+
+shared uint localLumSum;
+
+void main() {
+    if (gl_LocalInvocationIndex == 0) localLumSum = 0;
+    memoryBarrierShared();
+    barrier();
+
+    ivec2 texSize = textureSize(hdrImage, 0);
+    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
+
+    if (coord.x < texSize.x && coord.y < texSize.y) {
+        vec3 hdrColor = texture(hdrImage, coord / vec2(texSize)).rgb;
+        float lum = dot(hdrColor, vec3(0.2126, 0.7152, 0.0722));
+        uint lumInt = uint(lum * 100000.0);
+        atomicAdd(localLumSum, lumInt);
+    }
+
+    barrier();
+
+    if (gl_LocalInvocationIndex == 0) {
+        float avgLum = float(localLumSum) / 100000.0 / float(texSize.x * texSize.y);
+        imageStore(lumTexture, ivec2(0, 0), vec4(avgLum));
+    }
+}

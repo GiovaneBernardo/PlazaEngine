@@ -44,6 +44,7 @@
 #include "Engine/Core/Scene.h"
 #include "Editor/GUI/Console/Console.h"
 #include "VulkanPushConstants.h"
+#include "Editor/GUI/Utils/Filesystem.h"
 
 namespace Plaza {
 #pragma region Vulkan Setup
@@ -51,6 +52,33 @@ namespace Plaza {
 
 	VulkanRenderer* VulkanRenderer::GetRenderer() {
 		return static_cast<VulkanRenderer*>(Application::Get()->mRenderer);
+	}
+
+	VKAPI_ATTR VkBool32 VKAPI_CALL VulkanRenderer::debugCallback(
+		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType,
+		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData) {
+		if (!pCallbackData || !pCallbackData->pMessageIdName || !pCallbackData->pMessage)
+			return VK_FALSE;
+
+		std::cout << "Message ID: " << pCallbackData->pMessageIdName << "\n";
+		switch (messageSeverity) {
+			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
+				PL_CORE_INFO(pCallbackData->pMessage);
+				break;
+			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
+				PL_CORE_INFO(pCallbackData->pMessage);
+				break;
+			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
+				PL_CORE_WARN(pCallbackData->pMessage);
+				break;
+			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
+				PL_CORE_ERROR(pCallbackData->pMessage);
+				break;
+			default:
+				PL_CORE_INFO(pCallbackData->pMessage);
+				break;
+		}
+		return VK_FALSE;
 	}
 
 	VkResult VulkanRenderer::CreateDebugUtilsMessengerEXT(VkInstance instance,
@@ -1052,10 +1080,6 @@ namespace Plaza {
 	}
 
 	void VulkanRenderer::CleanupSwapChain() {
-		vkDestroyImageView(mDevice, mDepthImageView, nullptr);
-		vkDestroyImage(mDevice, mDepthImage, nullptr);
-		vkFreeMemory(mDevice, mDepthImageMemory, nullptr);
-
 		for (size_t i = 0; i < mSwapChainFramebuffers.size(); i++) {
 			vkDestroyFramebuffer(mDevice, mSwapChainFramebuffers[i], nullptr);
 		}
@@ -1180,6 +1204,28 @@ namespace Plaza {
 						   &imageCopyRegion);
 		}
 		// if (commandBuffer == VK_NULL_HANDLE) VulkanRenderer::GetRenderer()->EndSingleTimeCommands(commandBuffer);
+	}
+
+	void VulkanRenderer::CopyDifferentSizeTexture(VulkanTexture* srcTexture, VkImageLayout srcLayout,
+												  VulkanTexture* dstTexture, VkImageLayout dstLayout,
+												  VkCommandBuffer commandBuffer) {
+		VkImageBlit blitRegion{};
+		blitRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		blitRegion.srcSubresource.mipLevel = 0;
+		blitRegion.srcSubresource.baseArrayLayer = 0;
+		blitRegion.srcSubresource.layerCount = 1;
+		blitRegion.srcOffsets[0] = {0, 0, 0};
+		blitRegion.srcOffsets[1] = {srcTexture->mWidth, srcTexture->mHeight, 1};
+
+		blitRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		blitRegion.dstSubresource.mipLevel = 0;
+		blitRegion.dstSubresource.baseArrayLayer = 0;
+		blitRegion.dstSubresource.layerCount = 1;
+		blitRegion.dstOffsets[0] = {0, 0, 0};
+		blitRegion.dstOffsets[1] = {dstTexture->mWidth, dstTexture->mHeight, 1};
+
+		vkCmdBlitImage(commandBuffer, srcTexture->mImage, srcLayout, dstTexture->mImage, dstLayout, 1, &blitRegion,
+					   VK_FILTER_LINEAR);
 	}
 
 	void VulkanRenderer::CreateIndexBuffer(vector<uint32_t> indices, VkBuffer& indicesBuffer,
@@ -1307,44 +1353,6 @@ namespace Plaza {
 		}
 	}
 
-	void VulkanRenderer::UpdateUniformBuffer(uint32_t currentImage) {
-		UniformBufferObject ubo{};
-		ubo.projection = Application::Get()->activeCamera->GetProjectionMatrix();
-		ubo.view = Application::Get()->activeCamera->GetViewMatrix();
-		ubo.model = glm::mat4(1.0f);
-
-		ubo.cascadeCount = 9;
-		ubo.farPlane = 15000.0f;
-		ubo.nearPlane = 0.01f;
-
-		glm::vec3 lightDir = this->mShadows->mLightDirection;
-		glm::vec3 lightDistance = glm::vec3(100.0f, 400.0f, 0.0f);
-		glm::vec3 lightPos;
-
-		ubo.lightDirection = glm::vec4(lightDir, 1.0f);
-		ubo.viewPos = glm::vec4(Application::Get()->activeCamera->Position, 1.0f);
-
-		ubo.directionalLightColor =
-			glm::vec4(this->mLighting->directionalLightColor * this->mLighting->directionalLightIntensity);
-		ubo.directionalLightColor.a = 1.0f;
-		ubo.ambientLightColor = glm::vec4(this->mLighting->ambientLightColor * this->mLighting->ambientLightIntensity);
-		ubo.ambientLightColor.a = 1.0f;
-		ubo.gamma = this->gamma;
-
-		VulkanShadows::ShadowsUniformBuffer ub{};
-		for (int i = 0; i < this->mShadows->mCascades.size(); ++i) {
-			ubo.lightSpaceMatrices[i] = this->mShadows->mUbo[currentImage].lightSpaceMatrices[i];
-			if (i <= 8)
-				ubo.cascadePlaneDistances[i] = glm::vec4(this->mShadows->shadowCascadeLevels[i], 1.0f, 1.0f, 1.0f);
-			else
-				ubo.cascadePlaneDistances[i] = glm::vec4(this->mShadows->shadowCascadeLevels[8], 1.0f, 1.0f, 1.0f);
-		}
-
-		ubo.showCascadeLevels = Application::Get()->showCascadeLevels;
-
-		memcpy(mUniformBuffersMapped[currentImage], &ubo, sizeof(ubo));
-	}
-
 	void VulkanRenderer::CreateDescriptorPool() {
 		static const uint32_t maxBindlessTextures = 16536 * 4;
 
@@ -1376,73 +1384,6 @@ namespace Plaza {
 
 		if (vkCreateDescriptorPool(mDevice, &poolInfo, nullptr, &mDescriptorPool) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create descriptor pool!");
-		}
-	}
-
-	void VulkanRenderer::CreateDescriptorSets() {
-		std::vector<VkDescriptorSetLayout> layouts(mMaxFramesInFlight, mDescriptorSetLayout);
-		VkDescriptorSetAllocateInfo allocInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO};
-		allocInfo.descriptorPool = mDescriptorPool;
-		allocInfo.descriptorSetCount = layouts.size();
-		allocInfo.pSetLayouts = layouts.data();
-
-		VkDescriptorSetVariableDescriptorCountAllocateInfoEXT countInfo{
-			VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO_EXT};
-		static const uint32_t maxBindlessResources = 16536;
-		std::vector<uint32_t> maxBinding(mMaxFramesInFlight, maxBindlessResources - 1);
-		countInfo.descriptorSetCount = 2;
-		countInfo.pDescriptorCounts = maxBinding.data();
-		allocInfo.pNext = &countInfo;
-
-		mDescriptorSets.resize(mMaxFramesInFlight);
-		if (vkAllocateDescriptorSets(mDevice, &allocInfo, mDescriptorSets.data()) != VK_SUCCESS) {
-			throw std::runtime_error("failed to allocate descriptor sets!");
-		}
-
-		std::vector<VkDescriptorImageInfo> imageInfos = std::vector<VkDescriptorImageInfo>();
-		imageInfos.resize(9);
-		for (size_t i = 0; i < imageInfos.size(); ++i) {
-			imageInfos[i].imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-			imageInfos[i].imageView = this->mShadows->mCascades[i].mImageView;
-			imageInfos[i].sampler = this->mShadows->mShadowsSampler;
-		}
-
-		for (size_t i = 0; i < mMaxFramesInFlight; i++) {
-			VkDescriptorBufferInfo bufferInfo{};
-			bufferInfo.buffer = mUniformBuffers[i];
-			bufferInfo.offset = 0;
-			bufferInfo.range = sizeof(UniformBufferObject);
-
-			VkDescriptorImageInfo imageInfo{};
-			imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			imageInfo.imageView = mTextureImageView;
-			imageInfo.sampler = mImGuiTextureSampler;
-
-			std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
-
-			descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			descriptorWrites[0].dstSet = mDescriptorSets[i];
-			descriptorWrites[0].dstBinding = 0;
-			descriptorWrites[0].dstArrayElement = 0;
-			descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-			descriptorWrites[0].descriptorCount = 1;
-			descriptorWrites[0].pBufferInfo = &bufferInfo;
-
-			VkDescriptorImageInfo imageInfo2{};
-			imageInfo2.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-			imageInfo2.imageView = this->mShadows->mShadowDepthImageViews[i];
-			imageInfo2.sampler = this->mShadows->mShadowsSampler;
-
-			descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			descriptorWrites[1].dstSet = mDescriptorSets[i];
-			descriptorWrites[1].dstBinding = 9;
-			descriptorWrites[1].dstArrayElement = 0;
-			descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-			descriptorWrites[1].descriptorCount = 1;
-			descriptorWrites[1].pImageInfo = &imageInfo2;
-
-			vkUpdateDescriptorSets(mDevice, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0,
-								   nullptr);
 		}
 	}
 
@@ -1694,7 +1635,7 @@ namespace Plaza {
 		//	std::cout << " UNSUPPORTED LAYOUT TRANSITION \n";
 		//	EndSingleTimeCommands(commandBuffer);
 		//	TransitionImageLayout(image, format, VK_IMAGE_LAYOUT_UNDEFINED, newLayout, aspectMask, layerCount, mipCount,
-		//forceSynchronization); 	return;
+		// forceSynchronization); 	return;
 		//		//	assert("unsupported layout transition!");
 		//}
 
@@ -1846,237 +1787,59 @@ namespace Plaza {
 		mDepthImageView = CreateImageView(mDepthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
 	}
 
-	void VulkanRenderer::InitializeGeometryPassRenderer() {
-		VkImageUsageFlags imageUsageFlags = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
-											VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-		this->mDeferredPositionTexture.CreateTextureImage(
-			this->mDevice, VK_FORMAT_R32G32B32A32_SFLOAT, Application::Get()->appSizes->sceneSize.x,
-			Application::Get()->appSizes->sceneSize.y, false, imageUsageFlags);
-		this->mDeferredPositionTexture.CreateImageView(VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT);
-		this->AddTrackerToImage(this->mDeferredPositionTexture.mImage, "Deferred Position", this->mImGuiTextureSampler,
-								this->mDeferredPositionTexture.GetTextureInfo(),
-								this->mDeferredPositionTexture.GetLayout());
+	void VulkanRenderer::LoadPipelineCache() {
+		// Initialize pipeline cache, so loadings are faster in editor
+		if (Plaza::FilesManager::PathExists(FilesManager::sEngineSettingsFolder / "engineVulkanShadersCache.bin")) {
+			size_t size;
+			char* data =FilesManager::ReadFile(FilesManager::sEngineSettingsFolder / "engineVulkanShadersCache.bin", size, std::ios::binary | std::ios::ate);
 
-		this->mDeferredNormalTexture.CreateTextureImage(
-			this->mDevice, VK_FORMAT_R32G32B32A32_SFLOAT, Application::Get()->appSizes->sceneSize.x,
-			Application::Get()->appSizes->sceneSize.y, false, imageUsageFlags);
-		this->mDeferredNormalTexture.CreateImageView(VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT);
-		this->AddTrackerToImage(this->mDeferredNormalTexture.mImage, "Deferred Normal", this->mImGuiTextureSampler,
-								this->mDeferredNormalTexture.GetTextureInfo(),
-								this->mDeferredNormalTexture.GetLayout());
+			VkPipelineCacheCreateInfo cacheCreateInfo{};
+			cacheCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
+			cacheCreateInfo.initialDataSize = size;
+			cacheCreateInfo.pInitialData = data;
 
-		this->mDeferredDiffuseTexture.CreateTextureImage(
-			this->mDevice, VK_FORMAT_R32G32B32A32_SFLOAT, Application::Get()->appSizes->sceneSize.x,
-			Application::Get()->appSizes->sceneSize.y, false, imageUsageFlags);
-		this->mDeferredDiffuseTexture.CreateImageView(VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT);
-		this->AddTrackerToImage(this->mDeferredDiffuseTexture.mImage, "Deferred Diffuse", this->mImGuiTextureSampler,
-								this->mDeferredDiffuseTexture.GetTextureInfo(),
-								this->mDeferredDiffuseTexture.GetLayout());
+			vkCreatePipelineCache(mDevice, &cacheCreateInfo, nullptr, &mPipelineCache);
+		} else {
+			VkPipelineCacheCreateInfo cacheCreateInfo{};
+			cacheCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
+			cacheCreateInfo.initialDataSize = 0;
+			cacheCreateInfo.pInitialData = nullptr;
 
-		this->mDeferredOthersTexture.CreateTextureImage(
-			this->mDevice, VK_FORMAT_R32G32B32A32_SFLOAT, Application::Get()->appSizes->sceneSize.x,
-			Application::Get()->appSizes->sceneSize.y, false, imageUsageFlags);
-		this->mDeferredOthersTexture.CreateImageView(VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT);
-		this->AddTrackerToImage(this->mDeferredOthersTexture.mImage, "Deferred Others", this->mImGuiTextureSampler,
-								this->mDeferredOthersTexture.GetTextureInfo(),
-								this->mDeferredOthersTexture.GetLayout());
-
-		// Render Pass
-		std::vector<VkAttachmentReference> colorReferences;
-		colorReferences.push_back({0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL});
-		colorReferences.push_back({1, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL});
-		colorReferences.push_back({2, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL});
-		colorReferences.push_back({3, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL});
-		VkAttachmentReference depthReference = {};
-		depthReference.attachment = 4;
-		depthReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-		VkSubpassDescription subpass = {};
-		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-		subpass.pColorAttachments = colorReferences.data();
-		subpass.colorAttachmentCount = static_cast<uint32_t>(colorReferences.size());
-		subpass.pDepthStencilAttachment = &depthReference;
-
-		std::vector<VkSubpassDependency> dependencies{};
-		dependencies.push_back(plvk::subpassDependency(
-			VK_SUBPASS_EXTERNAL, 0,
-			VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
-			VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
-			VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-			VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT, 0));
-		dependencies.push_back(
-			plvk::subpassDependency(VK_SUBPASS_EXTERNAL, 0, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-									VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0,
-									VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT, 0));
-
-		std::vector<VkAttachmentDescription> attachmentDescs{};
-		for (uint32_t i = 0; i < 5; ++i) {
-			VkImageLayout finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			if (i == 4) {
-				finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-			}
-
-			attachmentDescs.push_back(plvk::attachmentDescription(
-				VK_FORMAT_R32G32B32A32_SFLOAT, VK_SAMPLE_COUNT_1_BIT, VK_ATTACHMENT_LOAD_OP_CLEAR,
-				VK_ATTACHMENT_STORE_OP_STORE, VK_ATTACHMENT_LOAD_OP_DONT_CARE, VK_ATTACHMENT_STORE_OP_DONT_CARE,
-				VK_IMAGE_LAYOUT_UNDEFINED, finalLayout));
-		}
-		attachmentDescs[4].format = VK_FORMAT_D32_SFLOAT_S8_UINT;
-
-		this->mGeometryPassRenderer.InitializeRenderPass(attachmentDescs.data(), attachmentDescs.size(), &subpass, 1,
-														 dependencies.data(), dependencies.size());
-
-		// Framebuffer
-		std::vector<VkImageView> attachments{
-			this->mDeferredPositionTexture.mImageView, this->mDeferredNormalTexture.mImageView,
-			this->mDeferredDiffuseTexture.mImageView, this->mDeferredOthersTexture.mImageView, this->mDepthImageView};
-		this->mGeometryPassRenderer.InitializeFramebuffer(attachments.data(), attachments.size(),
-														  Application::Get()->appSizes->sceneSize, 1);
-
-		// Descriptor set
-		std::vector<VkDescriptorSetLayoutBinding> descriptorSets{};
-		descriptorSets.push_back(
-			plvk::descriptorSetLayoutBinding(0, 1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, nullptr, VK_SHADER_STAGE_ALL));
-		static const uint32_t maxBindlessResources = 16536;
-		descriptorSets.push_back(plvk::descriptorSetLayoutBinding(20, maxBindlessResources,
-																  VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, nullptr,
-																  VK_SHADER_STAGE_FRAGMENT_BIT));
-		descriptorSets.push_back(plvk::descriptorSetLayoutBinding(6, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-																  nullptr, VK_SHADER_STAGE_FRAGMENT_BIT));
-		descriptorSets.push_back(plvk::descriptorSetLayoutBinding(7, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-																  nullptr, VK_SHADER_STAGE_FRAGMENT_BIT));
-		descriptorSets.push_back(plvk::descriptorSetLayoutBinding(8, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-																  nullptr, VK_SHADER_STAGE_FRAGMENT_BIT));
-		descriptorSets.push_back(plvk::descriptorSetLayoutBinding(9, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-																  nullptr, VK_SHADER_STAGE_FRAGMENT_BIT));
-		descriptorSets.push_back(plvk::descriptorSetLayoutBinding(19, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, nullptr,
-																  VK_SHADER_STAGE_VERTEX_BIT));
-		descriptorSets.push_back(plvk::descriptorSetLayoutBinding(1, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, nullptr,
-																  VK_SHADER_STAGE_VERTEX_BIT));
-		descriptorSets.push_back(plvk::descriptorSetLayoutBinding(2, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, nullptr,
-																  VK_SHADER_STAGE_VERTEX_BIT));
-		descriptorSets.push_back(plvk::descriptorSetLayoutBinding(3, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, nullptr,
-																  VK_SHADER_STAGE_VERTEX_BIT));
-
-		VkDescriptorBindingFlags bindlessFlags =
-			VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT_EXT | VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT_EXT;
-		VkDescriptorSetLayoutBindingFlagsCreateInfoEXT extendedInfo{
-			VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO_EXT, nullptr};
-		VkDescriptorBindingFlagsEXT bindingFlags[] = {0, bindlessFlags, 0, 0, 0, 0, 0, 0, 0, 0};
-		extendedInfo.pBindingFlags = bindingFlags;
-		extendedInfo.bindingCount = static_cast<uint32_t>(descriptorSets.size());
-
-		VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = plvk::descriptorSetLayoutCreateInfo(
-			descriptorSets, VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT_EXT, &extendedInfo);
-
-		vkCreateDescriptorSetLayout(this->mDevice, &descriptorSetLayoutCreateInfo, nullptr,
-									&this->mGeometryPassRenderer.mShaders->mDescriptorSetLayout);
-
-		VkPushConstantRange pushConstantRange =
-			plvk::pushConstantRange(VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushConstants));
-		VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = plvk::pipelineLayoutCreateInfo(
-			1, &this->mGeometryPassRenderer.mShaders->mDescriptorSetLayout, 1, &pushConstantRange);
-
-		this->mGeometryPassRenderer.mShaders->mVertexShaderPath = VulkanShadersCompiler::Compile(
-			Application::Get()->enginePath + "/Shaders/Vulkan/deferred/geometryPass.vert");
-		this->mGeometryPassRenderer.mShaders->mFragmentShaderPath = VulkanShadersCompiler::Compile(
-			Application::Get()->enginePath + "/Shaders/Vulkan/deferred/geometryPass.frag");
-		auto bindingsArray = VertexGetBindingDescription();
-		std::vector<VkVertexInputBindingDescription> bindings(std::begin(bindingsArray), std::end(bindingsArray));
-		auto attributesArray = VertexGetAttributeDescriptions();
-		std::vector<VkVertexInputAttributeDescription> attributes(std::begin(attributesArray),
-																  std::end(attributesArray));
-		VkPipelineVertexInputStateCreateInfo vertexInputInfo =
-			plvk::pipelineVertexInputStateCreateInfo(bindings, attributes);
-		VkPipelineInputAssemblyStateCreateInfo inputAssemblyState =
-			plvk::pipelineInputAssemblyStateCreateInfo(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, VK_FALSE);
-		VkPipelineRasterizationStateCreateInfo rasterizationState = plvk::pipelineRasterizationStateCreateInfo(
-			VK_FALSE, VK_FALSE, VK_POLYGON_MODE_FILL, 1.0f, VK_FALSE, 0.0f, 0.0f, 0.0f, VK_CULL_MODE_BACK_BIT,
-			VK_FRONT_FACE_COUNTER_CLOCKWISE);
-		VkPipelineColorBlendAttachmentState blendAttachmentState = plvk::pipelineColorBlendAttachmentState(VK_TRUE);
-		std::vector<VkPipelineColorBlendAttachmentState> blendAttachments{blendAttachmentState, blendAttachmentState,
-																		  blendAttachmentState, blendAttachmentState};
-		VkPipelineColorBlendStateCreateInfo colorBlendState =
-			plvk::pipelineColorBlendStateCreateInfo(4, blendAttachments.data());
-		VkPipelineDepthStencilStateCreateInfo depthStencilState =
-			plvk::pipelineDepthStencilStateCreateInfo(VK_TRUE, VK_TRUE, VK_COMPARE_OP_LESS_OR_EQUAL);
-		VkPipelineViewportStateCreateInfo viewportState = plvk::pipelineViewportStateCreateInfo(1, 1);
-		VkPipelineMultisampleStateCreateInfo multisampleState =
-			plvk::pipelineMultisampleStateCreateInfo(VK_SAMPLE_COUNT_1_BIT, 0);
-		std::vector<VkDynamicState> dynamicStateEnables = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
-		VkPipelineDynamicStateCreateInfo dynamicState = plvk::pipelineDynamicStateCreateInfo(dynamicStateEnables);
-		this->mGeometryPassRenderer.mShaders->InitializeFull(
-			this->mDevice, pipelineLayoutCreateInfo, true, Application::Get()->appSizes->sceneSize.x,
-			Application::Get()->appSizes->sceneSize.y, {}, vertexInputInfo, inputAssemblyState, viewportState,
-			rasterizationState, multisampleState, colorBlendState, dynamicState,
-			this->mGeometryPassRenderer.mRenderPass, depthStencilState);
-
-		VkDescriptorSetAllocateInfo allocInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO};
-		allocInfo.descriptorPool = this->mDescriptorPool;
-		allocInfo.descriptorSetCount = 1;
-		allocInfo.pSetLayouts = &this->mGeometryPassRenderer.mShaders->mDescriptorSetLayout;
-
-		this->mGeometryPassRenderer.mShaders->mDescriptorSets.resize(Application::Get()->mRenderer->mMaxFramesInFlight);
-		for (unsigned int i = 0; i < Application::Get()->mRenderer->mMaxFramesInFlight; ++i) {
-			if (vkAllocateDescriptorSets(this->mDevice, &allocInfo,
-										 &this->mGeometryPassRenderer.mShaders->mDescriptorSets[i]) != VK_SUCCESS) {
-				throw std::runtime_error("failed to allocate descriptor sets!");
-			}
-			VkDescriptorBufferInfo bufferInfo =
-				plvk::descriptorBufferInfo(this->mUniformBuffers[i], 0, sizeof(UniformBufferObject));
-			VkDescriptorImageInfo imageInfo =
-				plvk::descriptorImageInfo(VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL,
-										  this->mShadows->mShadowDepthImageViews[i], this->mShadows->mShadowsSampler);
-			VkDescriptorBufferInfo bonesBufferInfo =
-				plvk::descriptorBufferInfo(this->mBoneMatricesBuffers[i], 0, 1024 * 16 * sizeof(glm::mat4));
-
-			std::vector<VkWriteDescriptorSet> descriptorWrites = std::vector<VkWriteDescriptorSet>();
-			descriptorWrites.push_back(
-				plvk::writeDescriptorSet(this->mGeometryPassRenderer.mShaders->mDescriptorSets[i], 0, 0,
-										 VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, nullptr, &bufferInfo));
-			descriptorWrites.push_back(
-				plvk::writeDescriptorSet(this->mGeometryPassRenderer.mShaders->mDescriptorSets[i], 9, 0,
-										 VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, &imageInfo));
-			descriptorWrites.push_back(
-				plvk::writeDescriptorSet(this->mGeometryPassRenderer.mShaders->mDescriptorSets[i], 1, 0,
-										 VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, nullptr, &bonesBufferInfo));
-
-			VkDescriptorBufferInfo renderGroupOffsetsBufferInfo = plvk::descriptorBufferInfo(
-				this->mMainInstanceRenderGroupOffsetsBuffers[i], 0, 1024 * 256 * (64 * sizeof(unsigned int)));
-			descriptorWrites.push_back(
-				plvk::writeDescriptorSet(this->mGeometryPassRenderer.mShaders->mDescriptorSets[i], 2, 0,
-										 VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, nullptr, &renderGroupOffsetsBufferInfo));
-			VkDescriptorBufferInfo materialOffsetsbufferInfo = plvk::descriptorBufferInfo(
-				this->mMainInstanceMaterialOffsetsBuffers[i], 0, 1024 * 256 * (64 * sizeof(unsigned int)));
-			descriptorWrites.push_back(
-				plvk::writeDescriptorSet(this->mGeometryPassRenderer.mShaders->mDescriptorSets[i], 3, 0,
-										 VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, nullptr, &materialOffsetsbufferInfo));
-
-			vkUpdateDescriptorSets(this->mDevice, static_cast<uint32_t>(descriptorWrites.size()),
-								   descriptorWrites.data(), 0, nullptr);
+			vkCreatePipelineCache(mDevice, &cacheCreateInfo, nullptr, &mPipelineCache);
 		}
 	}
 
+	void VulkanRenderer::SavePipelineCache() {
+		size_t cacheSize = 0;
+		vkGetPipelineCacheData(mDevice, mPipelineCache, &cacheSize, nullptr);
+
+		std::vector<uint8_t> cacheData(cacheSize);
+		vkGetPipelineCacheData(mDevice, mPipelineCache, &cacheSize, cacheData.data());
+
+		FilesManager::SaveFile(FilesManager::sEngineSettingsFolder / "engineVulkanShadersCache.bin", static_cast<void*>(cacheData.data()), cacheSize);
+	}
+
 	void VulkanRenderer::Init() {
+		SectionProfiler initializationProfiler = SectionProfiler("SectionProfiler");
 		Application::Get()->mRendererAPI = RendererAPI::Vulkan;
-		this->mShadows = new VulkanShadows();
-		this->mLighting = new VulkanLighting();
-		this->mSkybox = new VulkanSkybox();
+		mEnableValidationLayers = false;
 		this->mPicking = new VulkanPicking();
 		this->mGuiRenderer = new VulkanGuiRenderer();
 		this->mRenderGraph = new VulkanRenderGraph();
+		this->mDebugRenderer = new DebugRenderer();
 
 		this->mGuiRenderer->Init();
 
-		VulkanShadersCompiler::mDefaultOutDirectory = Application::Get()->exeDirectory + "/CompiledShaders/";
+		VulkanShadersCompiler::mDefaultOutDirectory = FilesManager::sEngineExecutablePath.string() + "/CompiledShaders/";
 
 #ifdef _WIN32
-		VulkanShadersCompiler::mGlslcExePath = Application::Get()->enginePath + "/../ThirdParty/glslc/glslc.exe";
+		VulkanShadersCompiler::mGlslcExePath = FilesManager::sEngineFolder.string() + "/../ThirdParty/glslc/glslc.exe";
 #else
-		VulkanShadersCompiler::mGlslcExePath = Application::Get()->enginePath + "/../ThirdParty/glslc/glslc";
+		VulkanShadersCompiler::mGlslcExePath = FilesManager::sEngineFolder.string() + "/../ThirdParty/glslc/glslc";
 #endif
 
-		VulkanShadersCompiler::Compile(Application::Get()->enginePath + "/Shaders/vulkanTriangle.vert");
-		VulkanShadersCompiler::Compile(Application::Get()->enginePath + "/Shaders/vulkanTriangle.frag");
+		VulkanShadersCompiler::Compile(FilesManager::sEngineFolder.string() + "/Shaders/vulkanTriangle.vert");
+		VulkanShadersCompiler::Compile(FilesManager::sEngineFolder.string() + "/Shaders/vulkanTriangle.frag");
 
 		std::string shadersFolder = VulkanShadersCompiler::mDefaultOutDirectory;
 		std::cout << "Initializing vulkan \n";
@@ -2142,8 +1905,6 @@ namespace Plaza {
 						 mMainInstanceMaterialBuffers[i], mMainInstanceMaterialBufferMemories[i]);
 		}
 
-		std::cout << "Initializing Shadows \n";
-		this->mShadows->Init();
 		std::cout << "Initializing image views \n";
 		CreateImageViews(VK_IMAGE_LAYOUT_UNDEFINED);
 		std::cout << "CreateRenderPass \n";
@@ -2159,6 +1920,9 @@ namespace Plaza {
 		InitComputeCommandBuffers();
 		InitSyncStructures();
 		CreateImGuiTextureSampler();
+
+		// Initialize pipeline cache, so loadings are faster in editor
+		LoadPipelineCache();
 
 #ifdef EDITOR_MODE
 		this->mPicking->Init();
@@ -2193,8 +1957,8 @@ namespace Plaza {
 		// for (auto& [key, value] : mRenderGraph->mBuffers) {
 		//	if (mRenderGraph->mCompiledBindings.find(value->mName) == mRenderGraph->mCompiledBindings.end()) {
 		//		value->CreateBuffer(value->mMaxItems * value->mStride,
-		//PlBufferUsageToVkBufferUsage(value->mBufferUsage), PlMemoryUsageToVmaMemoryUsage(value->mMemoryUsage), 0,
-		//value->mBufferCount); 		value->CreateMemory(0, value->mBufferCount);
+		// PlBufferUsageToVkBufferUsage(value->mBufferUsage), PlMemoryUsageToVmaMemoryUsage(value->mMemoryUsage), 0,
+		// value->mBufferCount); 		value->CreateMemory(0, value->mBufferCount);
 		//	}
 		// }
 
@@ -2294,6 +2058,9 @@ namespace Plaza {
 #ifdef EDITOR_MODE
 		Editor::Gui::Init(Application::Get()->mWindow->glfwWindow);
 #endif
+
+		initializationProfiler.Stop();
+		PL_CORE_INFO("Finished initializing Vulkan, took: {} milliseconds", std::to_string(initializationProfiler.GetDurationMilliseconds().count()));
 	}
 
 	void VulkanRenderer::InitializeRenderGraph(PlazaRenderGraph* renderGraph) {
@@ -2459,33 +2226,20 @@ namespace Plaza {
 	}
 
 	void VulkanRenderer::Destroy() {
-		this->mSkybox->Terminate();
-		this->mShadows->Terminate();
 		/* Clean Renderer */
 		CleanupSwapChain();
 
 		vkDestroySampler(mDevice, mImGuiTextureSampler, nullptr);
-		vkDestroyImageView(mDevice, mTextureImageView, nullptr);
-		vkDestroyImage(mDevice, mTextureImage, nullptr);
-		vkFreeMemory(mDevice, mTextureImageMemory, nullptr);
-
-		vkDestroyDescriptorSetLayout(mDevice, mDescriptorSetLayout, nullptr);
 
 		vkDestroyCommandPool(mDevice, mCommandPool, nullptr);
 
 		vkDestroyDescriptorPool(mDevice, mDescriptorPool, nullptr);
-		vkDestroyDescriptorSetLayout(mDevice, mDescriptorSetLayout, nullptr);
 
 		for (size_t i = 0; i < mMaxFramesInFlight; i++) {
 			vkDestroySemaphore(mDevice, mRenderFinishedSemaphores[i], nullptr);
 			vkDestroySemaphore(mDevice, mImageAvailableSemaphores[i], nullptr);
 			vkDestroyFence(mDevice, mInFlightFences[i], nullptr);
-
-			vkDestroyBuffer(mDevice, mUniformBuffers[i], nullptr);
-			vkFreeMemory(mDevice, mUniformBuffersMemory[i], nullptr);
 		}
-		vkDestroyDescriptorSetLayout(mDevice, mDescriptorSetLayout, nullptr);
-
 		mMainVertexBuffer->Destroy();
 		mMainIndexBuffer->Destroy();
 		// vkDestroyBuffer(mDevice, mIndexBuffer, nullptr);
@@ -2494,16 +2248,16 @@ namespace Plaza {
 		// vkDestroyBuffer(mDevice, mVertexBuffer, nullptr);
 		// vkFreeMemory(mDevice, mVertexBufferMemory, nullptr);
 
-		vkDestroyInstance(mVulkanInstance, nullptr);
-		vkDestroyDevice(mDevice, nullptr);
-		vkDestroySwapchainKHR(mDevice, mSwapChain, nullptr);
+		//vkDestroyInstance(mVulkanInstance, nullptr);
+		//vkDestroyDevice(mDevice, nullptr);
+		//vkDestroySwapchainKHR(mDevice, mSwapChain, nullptr);
 
 		for (auto framebuffer : mSwapChainFramebuffers) {
-			vkDestroyFramebuffer(mDevice, framebuffer, nullptr);
+			//vkDestroyFramebuffer(mDevice, framebuffer, nullptr);
 		}
 
 		for (auto imageView : mSwapChainImageViews) {
-			vkDestroyImageView(mDevice, imageView, nullptr);
+			//vkDestroyImageView(mDevice, imageView, nullptr);
 		}
 	}
 	void VulkanRenderer::CopyLastFramebufferToFinalDrawBuffer() {}
@@ -2647,7 +2401,6 @@ namespace Plaza {
 		VulkanTexture::mLastBindingIndex++;
 		if (std::filesystem::exists(path)) {
 			// Application::Get()->mThreadsManager->mAssetsLoadingThread->AddToParallelQueue([texture, path, this]() {
-			std::cout << "eaeae \n";
 			// SectionProfiler profiler;
 			bool textureCreated = texture->CreateTextureImage(
 				mDevice, path, PlImageFormatToVkFormat(texture->GetTextureInfo().mFormat), true);
@@ -2758,7 +2511,7 @@ namespace Plaza {
 		//	uint64_t siz = mBones.size();
 		//	uint64_t siz1 = mBones.size() + 1;
 		//	if (uniqueBonesInfo[i].mParentId != 0 && this->mBones.find(uniqueBonesInfo[i].mParentId) !=
-		//this->mBones.end()) {
+		// this->mBones.end()) {
 		//		this->mBones.at(uniqueBonesInfo[i].mParentId).mChildren.push_back(uniqueBonesInfo[i].mId);
 		//	}
 		// }
@@ -2940,13 +2693,6 @@ namespace Plaza {
 		Time::mTotalTriangles += meshTriangles * renderGroup->instanceModelMatrices.size();
 		Time::drawCalls++;
 		renderGroup->instanceModelMatrices.clear();
-	}
-
-	void VulkanRenderer::ChangeFinalDescriptorImageView(VkImageView newImageView) {
-		this->mFinalSceneDescriptorSet =
-			ImGui_ImplVulkan_AddTexture(this->mImGuiTextureSampler, newImageView,
-										VK_IMAGE_LAYOUT_PRESENT_SRC_KHR); // TODO: FIX VALIDATION ERROR
-		UpdateUniformBuffer(mCurrentFrame);
 	}
 
 	Mesh* VulkanRenderer::RestartMesh(Mesh* mesh) {
@@ -3272,6 +3018,16 @@ namespace Plaza {
 		// return this->mGeometryPassRenderer.mShaders->mDescriptorSets[frame];
 	}
 
+	std::vector<RendererSettings::LightStruct> GetLights(Scene* scene) {
+		std::vector<RendererSettings::LightStruct> lights = std::vector<RendererSettings::LightStruct>();
+		for (const uint64_t& uuid : SceneView<Light>(scene)) {
+			Light& component = *scene->GetComponent<Light>(uuid);
+			const glm::vec3& position = scene->GetComponent<TransformComponent>(uuid)->GetWorldPosition();
+			lights.push_back(RendererSettings::LightStruct{component.color, component.radius, position, component.intensity, component.cutoff});
+		}
+		return lights;
+	}
+
 	void VulkanRenderer::UpdateInstancesData(Scene* scene) {
 		PLAZA_PROFILE_SECTION("Update Instances Data");
 		unsigned int allMaterialsCount = 0;
@@ -3481,21 +3237,16 @@ namespace Plaza {
 
 		if (Application::Get()->mEditor->mGui.mConsole->mTemporaryVariables.updateIndirectInstances) {
 			PlVkBuffer* buffer = mRenderGraph->GetBuffer<PlVkBuffer>("LightsBuffer");
-			VulkanRenderer::GetRenderer()->mLighting->mLights.clear();
-			// for (uint64_t uuid : SceneView<Light>(scene)) {
-			//	Light& value = *scene->GetComponent<Light>(uuid);
-			//	const glm::vec3 position = scene->GetComponent<TransformComponent>(uuid)->GetWorldPosition();
-			//	VulkanRenderer::GetRenderer()->mLighting->mLights.push_back(Lighting::LightStruct{ value.color,
-			//value.radius, position, value.intensity, value.cutoff, 0.0f });
-			// }
+			std::vector<RendererSettings::LightStruct> lights = GetLights(scene);
 
-			size_t bufferSize = sizeof(Lighting::LightStruct) * mLighting->mLights.size();
+			size_t bufferSize = sizeof(RendererSettings::LightStruct) * lights.size();
 			if (bufferSize > 0) {
 				void* data;
 				vmaMapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame), &data);
-				memcpy(data, mLighting->mLights.data(), bufferSize);
+				memcpy(data, lights.data(), bufferSize);
 				vmaUnmapMemory(mVmaAllocator, buffer->GetAllocation(mCurrentFrame));
 			}
+			mRendererSettings.mLightingSettings.mLightsCount = lights.size();
 		}
 	}
 

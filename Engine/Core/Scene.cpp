@@ -39,7 +39,11 @@ namespace Plaza {
 
 	void Scene::NewRuntimeScene(Scene* baseScene) {}
 
-	Scene::Scene() { this->mAssetUuid = Plaza::UUID::NewUUID(); }
+	Scene::Scene() {
+		this->mAssetUuid = Plaza::UUID::NewUUID();
+		mViewport = PlViewport(0.0f, 0.0f, Application::Get()->appSizes->sceneSize.x,
+							   Application::Get()->appSizes->sceneSize.y, 0.0f, 1.0f);
+	}
 
 	void Scene::Play() {
 		/* Restart physics */
@@ -86,6 +90,9 @@ namespace Plaza {
 												  scene->GetComponent<TransformComponent>(uuid)->GetWorldScale());
 			ECS::ColliderSystem::UpdatePose(&collider, scene->GetComponent<TransformComponent>(uuid));
 		}
+
+		ECS::TransformSystem::UpdateSelfAndChildrenTransform(
+			*scene->GetComponent<TransformComponent>(scene->mainSceneEntityUuid), nullptr, scene);
 	}
 
 	void Scene::Stop() {
@@ -132,7 +139,7 @@ namespace Plaza {
 		// for (auto& [componentUuid, component] : guiComponents) {
 		//	for (auto& [key, value] : component.mGuiItems) {
 		//		glm::mat4 parentTransform = component.HasGuiItem(value->mGuiParentUuid) ?
-		//component.GetGuiItem<GuiItem>(value->mGuiParentUuid)->mTransform : glm::mat4(1.0f);
+		// component.GetGuiItem<GuiItem>(value->mGuiParentUuid)->mTransform : glm::mat4(1.0f);
 		//		GuiItem::UpdateSelfAndChildrenTransform(value.get(), parentTransform);
 		//	}
 		// }
@@ -162,5 +169,37 @@ namespace Plaza {
 		sActiveScene = nullptr;
 		sEditorScene.reset();
 		sRuntimeScene.reset();
+	}
+
+	void Scene::RemoveEntity(uint64_t uuid) {
+#ifdef EDITOR_MODE
+		if (Editor::selectedGameObject->uuid == uuid) {
+			Editor::selectedGameObject = nullptr;
+		}
+#endif
+
+		// Remove all components related to entity
+		for (auto& componentPool : mComponentPools) {
+			if (!componentPool)
+				continue;
+			if (componentPool->Has(uuid)) {
+				componentPool->Remove(uuid);
+			}
+		}
+
+		// Remove entity reference on entities names
+		auto it = entitiesNames.find(GetEntity(uuid)->name);
+		if (it != entitiesNames.end()) {
+			it->second.erase(std::find(it->second.begin(), it->second.end(), uuid));
+		}
+
+		// Remove entity from parent's children list
+		auto parentIt = entities.find(entities.at(uuid).parentUuid);
+		if (parentIt != entities.end()) {
+			parentIt->second.childrenUuid.erase(std::find(parentIt->second.childrenUuid.begin(), parentIt->second.childrenUuid.end(), uuid));
+		}
+
+		// Remove entity
+		entities.erase(entities.find(uuid));
 	}
 } // namespace Plaza

@@ -87,7 +87,8 @@ namespace Plaza {
 
 		static void Raycast(glm::vec3 origin, glm::vec3 direction, RaycastHit& hit);
 
-	  private:
+	  public:
 		static physx::PxVec3 GlmToPhysX(const glm::vec3& vector);
+		static glm::vec3 PhysXToGlm(const physx::PxVec3& vector);
 	};
 } // namespace Plaza

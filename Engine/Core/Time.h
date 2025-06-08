@@ -1,5 +1,5 @@
 #pragma once
-#include "Engine/Application/Application.h"
+#include "Engine/Core/Engine.h"
 
 #include <chrono>
 using namespace std;
@@ -7,17 +7,18 @@ using namespace std::chrono;
 namespace Plaza {
 	class PLAZA_API Time {
 	  public:
-		static inline uint64_t mUniqueTriangles = 0;
-		static inline uint64_t mTotalTriangles = 0;
-		static inline int drawCalls = 0;
-		static inline int addInstanceCalls = 0;
-		static inline int frameCount = 0;
-		static inline float previousTime = 0;
-		static inline float deltaTime = 0;
-		static inline float lastFrame = 0;
-		static inline float fps = 0;
-		static inline float msPerFrame = 0;
+		static uint64_t mUniqueTriangles;
+		static uint64_t mTotalTriangles;
+		static int drawCalls;
+		static int addInstanceCalls;
+		static int frameCount;
+		static float previousTime;
+		static float deltaTime;
+		static float lastFrame;
+		static float fps;
+		static float msPerFrame;
 		static void Update();
+		static float GetDeltaTime();
 	};
 
 	// class PLAZA_API Profiler {

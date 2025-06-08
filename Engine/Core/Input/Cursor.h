@@ -16,7 +16,7 @@ namespace Plaza {
 
 		static void SetX(float value);
 		static void SetY(float value);
-		static glm::vec2 GetMousePosition();
-		static glm::vec2 GetDeltaMousePosition();
+		static const glm::vec2& GetMousePosition();
+		static const glm::vec2& GetDeltaMousePosition();
 	};
 } // namespace Plaza
