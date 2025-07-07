@@ -254,8 +254,8 @@ namespace Plaza {
 					float xposGame = Callbacks::lastX - Application::Get()->appSizes->hierarchySize.x;
 					float yposGame = Callbacks::lastY - Application::Get()->appSizes->sceneImageStart.y;
 					// yposGame = Application::Get()->appSizes->sceneSize.y - (yposGame - 35);
-					VulkanRenderer::GetRenderer()->mRenderGraph->GetTexture<VulkanTexture>("SceneDepth")->mLayout =
-						VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+					VulkanRenderer::GetRenderer()->mRenderGraph->GetTexture<VulkanTexture>("SceneDepth")->mCurrentImageLayout =
+						PL_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
 					glm::vec4 clickPosition =
 						VulkanRenderer::GetRenderer()
 							->mRenderGraph->GetTexture<VulkanTexture>("SceneDepth")

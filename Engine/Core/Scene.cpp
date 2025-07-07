@@ -39,11 +39,15 @@ namespace Plaza {
 
 	void Scene::NewRuntimeScene(Scene* baseScene) {}
 
-	Scene::Scene() {
+	Scene::Scene() : Scene(nullptr) { };
+
+	 Scene::Scene(Renderer* renderer) {
 		this->mAssetUuid = Plaza::UUID::NewUUID();
 		mViewport = PlViewport(0.0f, 0.0f, Application::Get()->appSizes->sceneSize.x,
 							   Application::Get()->appSizes->sceneSize.y, 0.0f, 1.0f);
+		mRenderer = renderer;
 	}
+
 
 	void Scene::Play() {
 		/* Restart physics */
@@ -150,9 +154,9 @@ namespace Plaza {
 		// }
 	}
 
-	void Scene::InitializeScenes() {
-		sEditorScene = std::make_shared<Scene>();
-		sRuntimeScene = std::make_shared<Scene>();
+	void Scene::InitializeScenes(Renderer* renderer) {
+		sEditorScene = std::make_shared<Scene>(renderer);
+		sRuntimeScene = std::make_shared<Scene>(renderer);
 	}
 
 	Scene* Scene::GetEditorScene() { return sEditorScene.get(); }

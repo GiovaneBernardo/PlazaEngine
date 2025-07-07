@@ -104,6 +104,7 @@ namespace Plaza {
 		PlViewport mViewport;
 		Entity* mainSceneEntity = nullptr;
 		uint64_t mainSceneEntityUuid = 0;
+		Renderer* mRenderer = nullptr;
 
 		std::map<uint64_t, Animation*> mPlayingAnimations = std::map<uint64_t, Animation*>();
 
@@ -258,6 +259,7 @@ namespace Plaza {
 		}
 
 		Scene();
+		Scene(Renderer* renderer);
 		Scene(Scene& other) = default;
 
 		void InitMainEntity() {
@@ -320,7 +322,7 @@ namespace Plaza {
 			}
 		}
 
-		static void InitializeScenes();
+		static void InitializeScenes(Renderer* renderer);
 		static Scene* GetEditorScene();
 		static void SetEditorScene(std::shared_ptr<Scene> scene);
 		static void ClearEditorScene();

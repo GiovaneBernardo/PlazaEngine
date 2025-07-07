@@ -64,9 +64,6 @@ namespace Plaza {
 		VkFormat GetFormat();
 		void SetFormat(PlTextureFormat newFormat);
 
-		VkImageLayout GetLayout() { return this->mLayout; }
-		VkImageLayout mLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-
 		void Destroy() override {
 			// TODO: IMPLEMENT TEXTURE DESTROY
 		}

@@ -24,6 +24,7 @@ namespace Plaza {
 		PlImageLayout mInitialLayout = PL_IMAGE_LAYOUT_UNDEFINED;
 		std::string mPath = "";
 		PlSamplerAddressMode mSamplerAddressMode = PL_SAMPLER_ADDRESS_MODE_REPEAT;
+		PlImageTiling mImageTiling = PL_IMAGE_TILING_OPTIMAL;
 		bool mIsHdr = false;
 		uint64_t mUuid = 0;
 
@@ -65,6 +66,7 @@ namespace Plaza {
 		glm::vec3 mResolution = glm::vec3(1, 1, 1);
 		uint8_t mMipCount = 1;
 		uint64_t mTextureInfoUuid = 0;
+		PlImageLayout mCurrentImageLayout = PL_IMAGE_LAYOUT_UNDEFINED;
 
 		Texture() { this->SetTextureInfo(TextureInfo{}); }
 		Texture(glm::vec4 rgba, float intensity = 1.0f) {
@@ -76,7 +78,7 @@ namespace Plaza {
 				PlTextureFormat format, glm::vec3 resolution, uint8_t mipCount, uint16_t layersCount,
 				const std::string& name) {
 			this->SetTextureInfo(TextureInfo{descriptorCount, imageType, viewType, format, imageUsage, layersCount,
-											 PL_IMAGE_LAYOUT_UNDEFINED, "", PL_SAMPLER_ADDRESS_MODE_REPEAT, false});
+											 PL_IMAGE_LAYOUT_UNDEFINED, "", PL_SAMPLER_ADDRESS_MODE_REPEAT, PL_IMAGE_TILING_OPTIMAL, false});
 			mResolution = resolution;
 			mMipCount = mipCount;
 			mAssetName = name;

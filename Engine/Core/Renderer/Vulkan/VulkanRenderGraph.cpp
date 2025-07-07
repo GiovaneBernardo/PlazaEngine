@@ -10,165 +10,165 @@
 #include "Engine/Core/Scene.h"
 
 namespace Plaza {
-	void GetChilrendUuid(std::vector<uint64_t>& vector, Entity* entity, Scene* scene) {
-		if (scene->GetComponent<MeshRenderer>(entity->uuid))
-			vector.push_back(entity->uuid);
-		for (uint64_t child : entity->childrenUuid) {
-			if (vector.size() < 8192)
-				GetChilrendUuid(vector, scene->GetEntity(child), scene);
-		}
-	}
+	// void GetChildrendUuid(std::vector<uint64_t>& vector, Entity* entity, Scene* scene) {
+	//	if (scene->GetComponent<MeshRenderer>(entity->uuid))
+	//		vector.push_back(entity->uuid);
+	//	for (uint64_t child : entity->childrenUuid) {
+	//		if (vector.size() < 8192)
+	//			GetChildrendUuid(vector, scene->GetEntity(child), scene);
+	//	}
+	// }
+	//
+	//// Helper function to get the corner points of a frustum slice based on split planes
+	// std::vector<glm::vec3> getFrustumSliceCornersWorldSpace(float nearClip, float farClip, float aspect, float fovY,
+	//														const glm::mat4& camView) {
+	//	glm::mat4 proj = glm::perspective(glm::radians(fovY), aspect, nearClip, farClip);
+	//	const auto inv = glm::inverse(proj * camView);
+	//
+	//	std::vector<glm::vec3> frustumCorners;
+	//	for (unsigned int x = 0; x < 2; ++x) {
+	//		for (unsigned int y = 0; y < 2; ++y) {
+	//			for (unsigned int z = 0; z < 2; ++z) {
+	//				const glm::vec4 pt = inv * glm::vec4(2.0f * x - 1.0f, 2.0f * y - 1.0f, 2.0f * z - 1.0f, 1.0f);
+	//				frustumCorners.push_back(glm::vec3(pt) / pt.w);
+	//			}
+	//		}
+	//	}
+	//
+	//	return frustumCorners;
+	//
+	//	proj = glm::perspective(glm::radians(fovY), aspect, nearClip, farClip);
+	//	// inv = glm::inverse(proj * camView);
+	//
+	//	std::vector<glm::vec4> clipCorners = {{-1, -1, -1, 1}, {1, -1, -1, 1}, {1, 1, -1, 1}, {-1, 1, -1, 1},
+	//										  {-1, -1, 1, 1},  {1, -1, 1, 1},  {1, 1, 1, 1},  {-1, 1, 1, 1}};
+	//
+	//	// std::vector<glm::vec3> frustumCorners;
+	//	for (const auto& c : clipCorners) {
+	//		glm::vec4 world = inv * c;
+	//		frustumCorners.push_back(glm::vec3(world) / world.w);
+	//	}
+	//
+	//	return frustumCorners;
+	//}
+	//
+	//// Function to calculate the split distances based on the provided formula
+	// std::vector<float> calculateSplitDistances(float nearClip, float farClip, int numSplits, float lambda = 0.5f) {
+	//	std::vector<float> splitDistances(numSplits + 1);
+	//	splitDistances[0] = nearClip;
+	//	// splitDistances[numSplits] = farClip;
+	//
+	//	for (int i = 1; i < numSplits; ++i) {
+	//		float i_normalized = static_cast<float>(i) / static_cast<float>(numSplits);
+	//		float log_term = nearClip * std::pow(farClip / nearClip, i_normalized);
+	//		float linear_term = nearClip + (farClip - nearClip) * i_normalized;
+	//		// splitDistances[i] = lambda * log_term + (1.0f - lambda) * linear_term;
+	//	}
+	//
+	//	float mult = 1.0f;
+	//	splitDistances[0] = Application::Get()->activeCamera->farPlane / (9000.0f * mult);
+	//	splitDistances[1] = Application::Get()->activeCamera->farPlane / (3000.0f * mult);
+	//	splitDistances[2] = Application::Get()->activeCamera->farPlane / (1000.0f * mult);
+	//	splitDistances[3] = Application::Get()->activeCamera->farPlane / (500.0f * mult);
+	//	splitDistances[4] = Application::Get()->activeCamera->farPlane / (100.0f * mult);
+	//	splitDistances[5] = Application::Get()->activeCamera->farPlane / (35.0f * mult);
+	//	splitDistances[6] = Application::Get()->activeCamera->farPlane / (10.0f * mult);
+	//	splitDistances[7] = Application::Get()->activeCamera->farPlane / (2.0f * mult);
+	//	splitDistances[8] = Application::Get()->activeCamera->farPlane / (1.0f * mult);
+	//
+	//	return splitDistances;
+	//}
+	//
+	// glm::mat4 getShadowMapMatrix(const glm::vec3& lightDirection, float shadowMapResolution, float nearPlane,
+	//							 float farPlane, const glm::mat4& viewMatrix, float ratio) {
+	//	const auto proj =
+	//		glm::perspective(glm::radians(Application::Get()->activeCamera->Zoom), ratio, nearPlane, farPlane);
+	//	const auto corners = Application::Get()->activeCamera->getFrustumCornersWorldSpace(proj, viewMatrix);
+	//
+	//	glm::vec3 center = glm::vec3(0, 0, 0);
+	//	for (const auto& v : corners) {
+	//		center += glm::vec3(v);
+	//	}
+	//	center /= corners.size();
+	//
+	//	const float LARGE_CONSTANT = std::abs(std::numeric_limits<float>::min());
+	//	auto lightView = glm::lookAt(center + lightDirection, center, glm::vec3(0.0f, 1.0f, 0.0f));
+	//	float minX = std::numeric_limits<float>::max();
+	//	float maxX = std::numeric_limits<float>::lowest();
+	//	float minY = std::numeric_limits<float>::max();
+	//	float maxY = std::numeric_limits<float>::lowest();
+	//	float minZ = std::numeric_limits<float>::max();
+	//	float maxZ = std::numeric_limits<float>::lowest();
+	//	for (const auto& v : corners) {
+	//		const auto trf = lightView * v;
+	//		minX = std::min(minX, trf.x);
+	//		maxX = std::max(maxX, trf.x);
+	//		minY = std::min(minY, trf.y);
+	//		maxY = std::max(maxY, trf.y);
+	//		minZ = std::min(minZ, trf.z);
+	//		maxZ = std::max(maxZ, trf.z);
+	//	}
+	//
+	//	// Tune this parameter according to the scene
+	//	// lightView = glm::lookAt(center - lightDir * (minZ), center, glm::vec3(0.0f, 1.0f, 0.0f));
+	//
+	//	constexpr float zMult = 22.0f;
+	//	if (minZ < 0) {
+	//		minZ *= zMult;
+	//	}
+	//	else {
+	//		minZ /= zMult;
+	//	}
+	//	if (maxZ < 0) {
+	//		maxZ /= zMult;
+	//	}
+	//	else {
+	//		maxZ *= zMult;
+	//	}
+	//
+	//	// const glm::mat4 lightProjection = glm::ortho(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.01f,
+	//	// maxExtents.z - minExtents.z);
+	//	const glm::mat4 lightProjection = glm::ortho(minX, maxX, minY, maxY, minZ, maxZ);
+	//	return lightProjection * lightView;
+	//}
+	//
+	// std::vector<glm::mat4> GetShadowMatrices(const RendererSettings::LightingSettings& settings,
+	//										 const glm::mat4& camProj, const glm::mat4& camView) {
+	//	int numSplits = settings.mCascadeCount;
+	//	glm::vec3 lightDir = (settings.mLightDirection);
+	//
+	//	float nearClip = Application::Get()->activeCamera->nearPlane;
+	//	float farClip = Application::Get()->activeCamera->farPlane;
+	//
+	//	float fovY = glm::degrees(2.0f * atan(1.0f / camProj[1][1]));
+	//	fovY = Application::Get()->activeCamera->Zoom;
+	//	float aspect = camProj[1][1] / camProj[0][0];
+	//	aspect = Application::Get()->appSizes->sceneSize.x / Application::Get()->appSizes->sceneSize.y;
+	//
+	//	std::vector<float> splitDistances = calculateSplitDistances(nearClip, farClip, numSplits, settings.mLambda);
+	//	for (int i = 0; i < splitDistances.size(); ++i)
+	//		VulkanRenderer::GetRenderer()->mRendererSettings.mLightingSettings.shadowCascadeLevels[i] =
+	//			splitDistances[i];
+	//
+	//	std::vector<glm::mat4> shadowMatrices;
+	//	for (int i = 0; i < numSplits + 1; ++i) {
+	//		float nearSplit = 0.0f;
+	//		if (i == 0)
+	//			nearSplit = Application::Get()->activeCamera->nearPlane - 1.0f;
+	//		else
+	//			nearSplit = splitDistances[i - 1] - 1.0f;
+	//		float farSplit = splitDistances[i];
+	//		const auto proj = glm::perspective((Application::Get()->activeCamera->Zoom), aspect, nearSplit, farSplit);
+	//		auto corners = Application::Get()->activeCamera->getFrustumCornersWorldSpace(
+	//			proj, camView); // getFrustumSliceCornersWorldSpace(nearSplit, farSplit, aspect, fovY, camView);
+	//		shadowMatrices.push_back(getShadowMapMatrix(lightDir, 2048, nearSplit, farSplit,
+	//													Application::Get()->activeCamera->GetViewMatrix(), aspect));
+	//	}
+	//
+	//	return shadowMatrices;
+	//}
 
-	// Helper function to get the corner points of a frustum slice based on split planes
-	std::vector<glm::vec3> getFrustumSliceCornersWorldSpace(float nearClip, float farClip, float aspect, float fovY,
-															const glm::mat4& camView) {
-		glm::mat4 proj = glm::perspective(glm::radians(fovY), aspect, nearClip, farClip);
-		const auto inv = glm::inverse(proj * camView);
-
-		std::vector<glm::vec3> frustumCorners;
-		for (unsigned int x = 0; x < 2; ++x) {
-			for (unsigned int y = 0; y < 2; ++y) {
-				for (unsigned int z = 0; z < 2; ++z) {
-					const glm::vec4 pt = inv * glm::vec4(2.0f * x - 1.0f, 2.0f * y - 1.0f, 2.0f * z - 1.0f, 1.0f);
-					frustumCorners.push_back(glm::vec3(pt) / pt.w);
-				}
-			}
-		}
-
-		return frustumCorners;
-
-		proj = glm::perspective(glm::radians(fovY), aspect, nearClip, farClip);
-		// inv = glm::inverse(proj * camView);
-
-		std::vector<glm::vec4> clipCorners = {{-1, -1, -1, 1}, {1, -1, -1, 1}, {1, 1, -1, 1}, {-1, 1, -1, 1},
-											  {-1, -1, 1, 1},  {1, -1, 1, 1},  {1, 1, 1, 1},  {-1, 1, 1, 1}};
-
-		// std::vector<glm::vec3> frustumCorners;
-		for (const auto& c : clipCorners) {
-			glm::vec4 world = inv * c;
-			frustumCorners.push_back(glm::vec3(world) / world.w);
-		}
-
-		return frustumCorners;
-	}
-
-	// Function to calculate the split distances based on the provided formula
-	std::vector<float> calculateSplitDistances(float nearClip, float farClip, int numSplits, float lambda = 0.5f) {
-		std::vector<float> splitDistances(numSplits + 1);
-		splitDistances[0] = nearClip;
-		// splitDistances[numSplits] = farClip;
-
-		for (int i = 1; i < numSplits; ++i) {
-			float i_normalized = static_cast<float>(i) / static_cast<float>(numSplits);
-			float log_term = nearClip * std::pow(farClip / nearClip, i_normalized);
-			float linear_term = nearClip + (farClip - nearClip) * i_normalized;
-			// splitDistances[i] = lambda * log_term + (1.0f - lambda) * linear_term;
-		}
-
-		float mult = 1.0f;
-		splitDistances[0] = Application::Get()->activeCamera->farPlane / (9000.0f * mult);
-		splitDistances[1] = Application::Get()->activeCamera->farPlane / (3000.0f * mult);
-		splitDistances[2] = Application::Get()->activeCamera->farPlane / (1000.0f * mult);
-		splitDistances[3] = Application::Get()->activeCamera->farPlane / (500.0f * mult);
-		splitDistances[4] = Application::Get()->activeCamera->farPlane / (100.0f * mult);
-		splitDistances[5] = Application::Get()->activeCamera->farPlane / (35.0f * mult);
-		splitDistances[6] = Application::Get()->activeCamera->farPlane / (10.0f * mult);
-		splitDistances[7] = Application::Get()->activeCamera->farPlane / (2.0f * mult);
-		splitDistances[8] = Application::Get()->activeCamera->farPlane / (1.0f * mult);
-
-		return splitDistances;
-	}
-
-	glm::mat4 getShadowMapMatrix(const glm::vec3& lightDirection, float shadowMapResolution, float nearPlane,
-								 float farPlane, const glm::mat4& viewMatrix, float ratio) {
-		const auto proj =
-			glm::perspective(glm::radians(Application::Get()->activeCamera->Zoom), ratio, nearPlane, farPlane);
-		const auto corners = Application::Get()->activeCamera->getFrustumCornersWorldSpace(proj, viewMatrix);
-
-		glm::vec3 center = glm::vec3(0, 0, 0);
-		for (const auto& v : corners) {
-			center += glm::vec3(v);
-		}
-		center /= corners.size();
-
-		const float LARGE_CONSTANT = std::abs(std::numeric_limits<float>::min());
-		auto lightView = glm::lookAt(center + lightDirection, center, glm::vec3(0.0f, 1.0f, 0.0f));
-		float minX = std::numeric_limits<float>::max();
-		float maxX = std::numeric_limits<float>::lowest();
-		float minY = std::numeric_limits<float>::max();
-		float maxY = std::numeric_limits<float>::lowest();
-		float minZ = std::numeric_limits<float>::max();
-		float maxZ = std::numeric_limits<float>::lowest();
-		for (const auto& v : corners) {
-			const auto trf = lightView * v;
-			minX = std::min(minX, trf.x);
-			maxX = std::max(maxX, trf.x);
-			minY = std::min(minY, trf.y);
-			maxY = std::max(maxY, trf.y);
-			minZ = std::min(minZ, trf.z);
-			maxZ = std::max(maxZ, trf.z);
-		}
-
-		// Tune this parameter according to the scene
-		// lightView = glm::lookAt(center - lightDir * (minZ), center, glm::vec3(0.0f, 1.0f, 0.0f));
-
-		constexpr float zMult = 22.0f;
-		if (minZ < 0) {
-			minZ *= zMult;
-		}
-		else {
-			minZ /= zMult;
-		}
-		if (maxZ < 0) {
-			maxZ /= zMult;
-		}
-		else {
-			maxZ *= zMult;
-		}
-
-		// const glm::mat4 lightProjection = glm::ortho(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.01f,
-		// maxExtents.z - minExtents.z);
-		const glm::mat4 lightProjection = glm::ortho(minX, maxX, minY, maxY, minZ, maxZ);
-		return lightProjection * lightView;
-	}
-
-	std::vector<glm::mat4> GetShadowMatrices(const RendererSettings::LightingSettings& settings,
-											 const glm::mat4& camProj, const glm::mat4& camView) {
-		int numSplits = settings.mCascadeCount;
-		glm::vec3 lightDir = (settings.mLightDirection);
-
-		float nearClip = Application::Get()->activeCamera->nearPlane;
-		float farClip = Application::Get()->activeCamera->farPlane;
-
-		float fovY = glm::degrees(2.0f * atan(1.0f / camProj[1][1]));
-		fovY = Application::Get()->activeCamera->Zoom;
-		float aspect = camProj[1][1] / camProj[0][0];
-		aspect = Application::Get()->appSizes->sceneSize.x / Application::Get()->appSizes->sceneSize.y;
-
-		std::vector<float> splitDistances = calculateSplitDistances(nearClip, farClip, numSplits, settings.mLambda);
-		for (int i = 0; i < splitDistances.size(); ++i)
-			VulkanRenderer::GetRenderer()->mRendererSettings.mLightingSettings.shadowCascadeLevels[i] =
-				splitDistances[i];
-
-		std::vector<glm::mat4> shadowMatrices;
-		for (int i = 0; i < numSplits + 1; ++i) {
-			float nearSplit = 0.0f;
-			if (i == 0)
-				nearSplit = Application::Get()->activeCamera->nearPlane - 1.0f;
-			else
-				nearSplit = splitDistances[i - 1] - 1.0f;
-			float farSplit = splitDistances[i];
-			const auto proj = glm::perspective((Application::Get()->activeCamera->Zoom), aspect, nearSplit, farSplit);
-			auto corners = Application::Get()->activeCamera->getFrustumCornersWorldSpace(
-				proj, camView); // getFrustumSliceCornersWorldSpace(nearSplit, farSplit, aspect, fovY, camView);
-			shadowMatrices.push_back(getShadowMapMatrix(lightDir, 2048, nearSplit, farSplit,
-														Application::Get()->activeCamera->GetViewMatrix(), aspect));
-		}
-
-		return shadowMatrices;
-	}
-
-	void VulkanRenderGraph::BuildDefaultRenderGraph() {
+	/*void VulkanRenderGraph::BuildDefaultRenderGraphe() {
 		const int maxOutlineMeshes = 8192;
 
 		PlImageUsage inImageUsageFlags =
@@ -242,7 +242,7 @@ namespace Plaza {
 									   glm::vec3(Application::Get()->appSizes->sceneSize, 1), 1, 1, "OutlineStencil"));
 
 		TextureInfo info{};
-		info.mPath = "deferred";
+		info.mImageTiling = PL_IMAGE_TILING_LINEAR;
 		this->GetTexture<VulkanTexture>("GDiffuse")->CreateTextureInfo(info);
 		this->GetTexture<VulkanTexture>("GNormal")->CreateTextureInfo(info);
 		this->GetTexture<VulkanTexture>("GOthers")->CreateTextureInfo(info);
@@ -765,7 +765,7 @@ namespace Plaza {
 				->UpdateData<DeferredLightingPassUbo>(Application::Get()->mRenderer->mCurrentFrame, ubo);
 		});
 
-		/* Bloom */
+		/* Bloom #1#
 		struct BloomPassPC {
 			glm::vec4 u_threshold;
 			glm::vec2 u_texel_size;
@@ -1041,7 +1041,7 @@ namespace Plaza {
 					"main")},
 				{}, {}, {}, {}, {}, {}, {}, {}, {}, {},
 				{pl::pushConstantRange(PL_STAGE_COMPUTE, 0, sizeof(LightSorterPC))}));
-		*/
+		#1#
 		this->GetRenderPass("Luminance Pass")->AddPipeline(luminancePipelineCreateInfo);
 
 		// Final Post Processing
@@ -1309,7 +1309,7 @@ namespace Plaza {
 
 		this->GetRenderPass("OutlineSceneMergePass")->AddPipeline(outlinePipelineInfo);
 
-		//DebugRendererNodes(Application::Get()->activeCamera->GetViewport(), "FinalTexture");
+		// DebugRendererNodes(Application::Get()->activeCamera->GetViewport(), "FinalTexture");
 
 		this->OrderPasses();
 		this->UpdateUsedTexturesInfo();
@@ -1625,7 +1625,7 @@ namespace Plaza {
 			}
 		}
 		VulkanRenderer::GetRenderer()->EndSingleTimeCommands(commandBuffer);
-	}
+	}*/
 
 	void VulkanRenderPass::CompilePipeline(std::shared_ptr<PlazaPipeline> plazaPipeline) {
 		plazaPipeline->mCompiled = true;
@@ -1870,6 +1870,7 @@ namespace Plaza {
 		if (mMaxBindlessResources > 0)
 			return;
 
+		//this->mTexture->mCurrentImageLayout = this->GetTextureInfo().mInitialLayout;
 		bool viewMustBeNonDefault = mBaseMipLevel != 0 || mBaseLayerLevel != 0;
 
 		VkImageAspectFlags aspect = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -1893,16 +1894,16 @@ namespace Plaza {
 		VkImageUsageFlags flags = 0;
 		if (GetTextureInfo().mViewType == PL_VIEW_TYPE_CUBE)
 			flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
-		if (GetTextureInfo().mPath == "" || GetTextureInfo().mPath == "deferred") {
+		if (GetTextureInfo().mPath == "") {
 			this->GetTexture()->CreateTextureImage(
 				VulkanRenderer::GetRenderer()->mDevice, PlImageFormatToVkFormat(GetTextureInfo().mFormat),
 				mTexture->mResolution.x, mTexture->mResolution.y, mTexture->mMipCount == 0 ? true : false,
 				PlImageUsageToVkImageUsage(GetTextureInfo().mImageUsage),
 				PlTextureTypeToVkImageType(GetTextureInfo().mTextureType),
-				GetTextureInfo().mPath == "deferred" ? VK_IMAGE_TILING_LINEAR : VK_IMAGE_TILING_OPTIMAL,
-				VK_IMAGE_LAYOUT_UNDEFINED, GetTextureInfo().mLayersCount, flags, true, VK_SHARING_MODE_EXCLUSIVE);
+				PlImageTilingToVkImageTiling(GetTextureInfo().mImageTiling), VK_IMAGE_LAYOUT_UNDEFINED,
+				GetTextureInfo().mLayersCount, flags, true, VK_SHARING_MODE_EXCLUSIVE);
 			VulkanRenderer::GetRenderer()->TransitionTextureLayout(
-				*this->GetTexture(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+				*this->GetTexture(), PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
 				VulkanRenderer::GetFormatAspectMask(PlImageFormatToVkFormat(mTexture->GetTextureInfo().mFormat)),
 				this->GetTextureInfo().mLayersCount, this->mTexture->mMipCount);
 		}
@@ -1915,7 +1916,7 @@ namespace Plaza {
 
 		if (GetTextureInfo().mInitialLayout != PL_IMAGE_LAYOUT_UNDEFINED) {
 			VulkanRenderer::GetRenderer()->TransitionTextureLayout(
-				*this->GetTexture(), PlImageLayoutToVkImageLayout(GetTextureInfo().mInitialLayout), aspect,
+				*this->GetTexture(), GetTextureInfo().mInitialLayout, aspect,
 				this->GetTexture()->GetTextureInfo().mLayersCount, this->mTexture->mMipCount);
 		}
 
@@ -1930,6 +1931,8 @@ namespace Plaza {
 			this->GetTexture()->GetTextureInfo(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 	}
 	void VulkanTextureBinding::Destroy() {}
+
+	VulkanTexture* VulkanTextureBinding::GetTexture() { return static_cast<VulkanTexture*>(mTexture.get()); }
 
 	void VulkanRenderPass::CompileGraphics(PlazaRenderGraph* renderGraph) {
 		glm::vec2 biggestSize = this->mRenderSize; // glm::vec2(0.0f);
@@ -2839,4 +2842,69 @@ namespace Plaza {
 			vkCmdDraw(mCommandBuffer, 4, 1, j * 4, 0);
 		}
 	}
+
+	PlazaRenderPass* VulkanRenderGraph::AddRenderPass(const std::string& name, int stage, PlRenderPassMode renderMethod,
+													  glm::vec2 size, bool flipViewPort) {
+		std::shared_ptr<VulkanRenderPass> newRenderPass =
+			std::make_shared<VulkanRenderPass>(name, stage, renderMethod, size, flipViewPort);
+		mOrderedPasses.push_back(newRenderPass);
+		mPasses.emplace(newRenderPass->mName, newRenderPass);
+		return mPasses[newRenderPass->mName].get();
+	}
+
+	void VulkanRenderGraph::AddTexture(uint64_t descriptorCount, PlImageUsage imageUsage, PlTextureType imageType,
+									   PlViewType viewType, PlTextureFormat format, glm::vec3 resolution,
+									   uint8_t mipCount, uint16_t layersCount, const std::string& name) {
+		mTextures.emplace(name, std::make_shared<VulkanTexture>(descriptorCount, imageUsage, imageType, viewType,
+																format, resolution, mipCount, layersCount, name));
+	}
+
+	void VulkanRenderGraph::AddBuffer(PlBufferType type, uint64_t maxItems, uint16_t stride, uint8_t bufferCount,
+									  PlBufferUsage bufferUsage, PlMemoryUsage memoryUsage, const std::string& name) {
+		mBuffers.emplace(
+			name, std::make_shared<PlVkBuffer>(type, maxItems, stride, bufferCount, bufferUsage, memoryUsage, name));
+	}
+
+	PlazaRenderPass* VulkanRenderPass::AddInputTexture(uint64_t descriptorCount, uint8_t location, uint8_t binding,
+													   PlBufferType bufferType, PlRenderStage renderStage,
+													   PlImageLayout initialLayout, uint16_t baseMipLevel,
+													   uint16_t baseLayerLevel, std::shared_ptr<Texture> texture,
+													   PlAttachmentOp attachmentOp, bool useAsDepthStencilAttachment) {
+		this->AddInputResource(std::make_shared<VulkanTextureBinding>(
+			descriptorCount, location, binding, bufferType, renderStage, initialLayout, baseMipLevel, baseLayerLevel,
+			texture, attachmentOp, useAsDepthStencilAttachment));
+		return this;
+	}
+
+	PlazaRenderPass* VulkanRenderPass::AddInputBuffer(uint64_t descriptorCount, uint8_t binding, PlBufferType type,
+													  PlRenderStage stage, std::shared_ptr<PlBuffer> buffer) {
+		this->AddInputResource(std::make_shared<VulkanBufferBinding>(descriptorCount, binding, type, stage, buffer));
+		return this;
+	}
+
+	PlazaRenderPass* VulkanRenderPass::AddOutputTexture(uint64_t descriptorCount, uint8_t location, uint8_t binding,
+														PlBufferType bufferType, PlRenderStage renderStage,
+														PlImageLayout initialLayout, uint16_t baseMipLevel,
+														uint16_t baseLayerLevel, std::shared_ptr<Texture> texture,
+														PlAttachmentOp attachmentOp, bool useAsDepthStencilAttachment) {
+		this->AddOutputResource(std::make_shared<VulkanTextureBinding>(
+			descriptorCount, location, binding, bufferType, renderStage, initialLayout, baseMipLevel, baseLayerLevel,
+			texture, attachmentOp, useAsDepthStencilAttachment));
+		return this;
+	}
+
+	PlazaRenderPass* VulkanRenderPass::AddOutputBuffer(uint64_t descriptorCount, uint8_t binding, PlBufferType type,
+													   PlRenderStage stage, std::shared_ptr<PlBuffer> buffer) {
+		this->AddOutputResource(std::make_shared<VulkanBufferBinding>(descriptorCount, binding, type, stage, buffer));
+		return this;
+	}
+
+	PlazaRenderPass* VulkanRenderPass::AddChildPass(const std::string& name, int stage, PlRenderPassMode renderMethod,
+													glm::vec2 size, bool flipViewPort) {
+		std::shared_ptr<VulkanRenderPass> pass =
+			std::make_shared<VulkanRenderPass>(name, stage, renderMethod, size, flipViewPort);
+		mChildPasses.push_back(pass);
+		return pass.get();
+	}
+
 } // namespace Plaza

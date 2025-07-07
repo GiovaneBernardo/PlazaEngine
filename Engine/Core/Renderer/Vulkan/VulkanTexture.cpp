@@ -2,6 +2,7 @@
 #include "VulkanTexture.h"
 #include "Renderer.h"
 #include "ThirdParty/dds_image/dds.hpp"
+#include "VulkanRenderGraph.h"
 
 namespace Plaza {
 	/// Takes image with VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL and outputs it with
@@ -81,7 +82,7 @@ namespace Plaza {
 		vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0,
 							 nullptr, 0, nullptr, 1, &barrier);
 
-		this->mLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		this->mCurrentImageLayout = PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		VulkanRenderer::GetRenderer()->EndSingleTimeCommands(commandBuffer);
 	}
 
@@ -272,7 +273,7 @@ namespace Plaza {
 				VulkanRenderer::GetRenderer()->TransitionImageLayout(
 					mImage, imageFormat, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
 					1U, 1, this->mMipCount, true, VK_NULL_HANDLE, true);
-			mLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			mCurrentImageLayout = PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 			vkDestroyBuffer(device, mStagingBuffer, nullptr);
 			vkFreeMemory(device, mStagingBufferMemory, nullptr);
 		}
@@ -332,18 +333,18 @@ namespace Plaza {
 			VulkanRenderer::GetRenderer()->TransitionImageLayout(
 				mImage, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 				VulkanRenderer::GetFormatAspectMask(format), layers, this->mMipCount);
-			mLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+			mCurrentImageLayout = PL_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 		}
 
 		if (generateMipMaps) {
 			GenerateMipmaps(this->mImage, width, height, this->mMipCount, format, layers);
-			mLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			mCurrentImageLayout = PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		}
 		else if (transition) {
 			VulkanRenderer::GetRenderer()->TransitionImageLayout(
 				mImage, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
 				VulkanRenderer::GetFormatAspectMask(format), layers, this->mMipCount);
-			mLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			mCurrentImageLayout = PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		}
 
 		// vkDestroyBuffer(device, mStagingBuffer, nullptr);
@@ -508,8 +509,8 @@ namespace Plaza {
 														VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 													stagingBuffer, stagingBufferMemory);
 
-		VkImageLayout oldLayout = this->GetLayout();
-		VulkanRenderer::GetRenderer()->TransitionTextureLayout(*this, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, aspect);
+		PlImageLayout oldLayout = this->mCurrentImageLayout;
+		VulkanRenderer::GetRenderer()->TransitionTextureLayout(*this, PL_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, aspect);
 
 		VkCommandBuffer commandBuffer = VulkanRenderer::GetRenderer()->BeginSingleTimeCommands();
 		VkImageSubresourceLayers subResource = {};
