@@ -85,6 +85,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(battery-embed)
 add_subdirectory("ThirdParty/GLFW/" EXCLUDE_FROM_ALL)
 #add_subdirectory("ThirdParty/pfr/" EXCLUDE_FROM_ALL)
+add_subdirectory("ThirdParty/spirv-cross" EXCLUDE_FROM_ALL)
 add_subdirectory("ThirdParty/Tracy/" EXCLUDE_FROM_ALL)
 add_subdirectory("ThirdParty/PhysX/physx/compiler/public/")
 
@@ -120,11 +121,12 @@ add_library(PlazaEngineCoreLibs INTERFACE)
 
 target_link_directories(PlazaEngineCoreLibs INTERFACE "${PX_OUTPUT_LIB_DIR}/${PX_OUTPUT_LIB_PREFIX}/${CMAKE_BUILD_TYPE_LOWER}/")
 target_link_libraries(PlazaEngineCoreLibs INTERFACE
-    $<BUILD_INTERFACE:glfw>
-    $<BUILD_INTERFACE:OpenAL>
-    $<BUILD_INTERFACE:TracyClient>
-    $<BUILD_INTERFACE:Vulkan::Vulkan>
-    $<BUILD_INTERFACE:${PHYSX_LIBRARIES}>
+        $<BUILD_INTERFACE:glfw>
+        $<BUILD_INTERFACE:OpenAL>
+        $<BUILD_INTERFACE:TracyClient>
+        $<BUILD_INTERFACE:Vulkan::Vulkan>
+        $<BUILD_INTERFACE:spirv-cross-core>
+        $<BUILD_INTERFACE:${PHYSX_LIBRARIES}>
 )
 
 # PlazaEngineCore
