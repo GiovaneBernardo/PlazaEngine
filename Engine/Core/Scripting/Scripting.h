@@ -11,6 +11,7 @@ namespace Plaza {
 		static void ReloadAllScripts(Scene* scene);
 		static void UnloadAllScripts(Scene* scene);
 		static void Update(Scene* scene);
+		static void Terminate(Scene* scene);
 
 		static std::filesystem::path CopyPasteDevelopmentLibraryFiles(const Editor::Project& project);
 		static void PasteEngineLibToGameProject(const Editor::Project& project);

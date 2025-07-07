@@ -100,6 +100,17 @@ namespace Plaza {
 		}
 	}
 
+	void Scripting::Terminate(Scene* scene) {
+		PLAZA_PROFILE_SECTION("Scripting: Terminate");
+
+		for (const uint64_t& uuid : SceneView<CppScriptComponent>(scene)) {
+			auto& component = *scene->GetComponent<CppScriptComponent>(uuid);
+			for (auto& script : component.mScripts) {
+				script->OnTerminate(scene);
+			}
+		}
+	}
+
 	bool Scripting::LoadCppDll(const std::filesystem::path& path) {
 		if (!FilesManager::PathExists(path)) {
 			PL_CORE_WARN("Dll not found");
