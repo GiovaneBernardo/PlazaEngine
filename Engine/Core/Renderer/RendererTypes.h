@@ -592,6 +592,13 @@ namespace Plaza {
 		PL_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE = 4
 	};
 
+	enum PlImageTiling {
+		PL_IMAGE_TILING_OPTIMAL = 0,
+		PL_IMAGE_TILING_LINEAR = 1,
+		PL_IMAGE_TILING_DRM_FORMAT_MODIFIER_EXT = 1000158000,
+		PL_IMAGE_TILING_MAX_ENUM = 0x7FFFFFFF
+	};
+
 	struct PlPipelineRasterizationStateCreateInfo {
 		bool depthClampEnable;
 		bool rasterizerDiscardEnable;

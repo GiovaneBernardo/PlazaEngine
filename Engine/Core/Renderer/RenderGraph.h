@@ -163,11 +163,11 @@ namespace Plaza {
 		std::map<std::string, shared_ptr<PlazaShadersBinding>> mOutputBindingNames =
 			std::map<std::string, shared_ptr<PlazaShadersBinding>>();
 
-		std::function<void(PlazaRenderGraph*, PlazaRenderPass*)> mCallback = [](PlazaRenderGraph*, PlazaRenderPass*) {};
+		std::function<void(PlazaRenderGraph*, PlazaRenderPass*, Scene* scene)> mCallback = [](PlazaRenderGraph*, PlazaRenderPass*, Scene* scene) {};
 
 		virtual void Compile(PlazaRenderGraph* renderGraph) {};
 		virtual void Execute(Scene* scene, PlazaRenderGraph* renderGraph) {
-			mCallback(renderGraph, this);
+			mCallback(renderGraph, this, scene);
 			if (mRenderMethod != PL_RENDER_PASS_HOLDER) {
 				if (mRenderMethod != PL_RENDER_PASS_COMPUTE) {
 					this->BindRenderPass();
@@ -249,36 +249,45 @@ namespace Plaza {
 			mPipelines.push_back(pipeline);
 			return pipeline;
 		};
-		virtual std::shared_ptr<PlazaPipeline> AddPipeline(PlPipelineCreateInfo createInfo) { return nullptr; };
+		virtual std::shared_ptr<PlazaPipeline> AddPipeline(const PlPipelineCreateInfo& createInfo) { return nullptr; };
 
-		void SetRecordingCallback(std::function<void(PlazaRenderGraph*, PlazaRenderPass*)> callback) {
+		void SetRecordingCallback(std::function<void(PlazaRenderGraph*, PlazaRenderPass*, Scene*)> callback) {
 			mCallback = callback;
 		}
 
-		PlazaRenderPass* AddInputResource(std::shared_ptr<PlazaShadersBinding> resource) {
-			mInputBindings.push_back(resource);
-			mInputBindingNames.emplace(resource->mName, resource);
-			return this;
-		}
+		/* Textures */
+		virtual PlazaRenderPass* AddInputTexture(uint64_t descriptorCount, uint8_t location, uint8_t binding, PlBufferType bufferType,
+					 PlRenderStage renderStage, PlImageLayout initialLayout, uint16_t baseMipLevel,
+					 uint16_t baseLayerLevel, std::shared_ptr<Texture> texture,
+					 PlAttachmentOp attachmentOp = PL_ATTACHMENT_OP_AUTO,
+					 bool useAsDepthStencilAttachment = false) = 0;
 
-		PlazaRenderPass* AddOutputResource(std::shared_ptr<PlazaShadersBinding> resource) {
-			mOutputBindings.push_back(resource);
-			mOutputBindingNames.emplace(resource->mName, resource);
-			return this;
-		}
+		virtual PlazaRenderPass* AddOutputTexture(uint64_t descriptorCount, uint8_t location, uint8_t binding, PlBufferType bufferType,
+							 PlRenderStage renderStage, PlImageLayout initialLayout, uint16_t baseMipLevel,
+							 uint16_t baseLayerLevel, std::shared_ptr<Texture> texture,
+							 PlAttachmentOp attachmentOp = PL_ATTACHMENT_OP_AUTO,
+							 bool useAsDepthStencilAttachment = false) = 0;
 
-		template <typename T> T* GetInputResource(std::string name) {
+		/* Buffers */
+		virtual PlazaRenderPass* AddInputBuffer(uint64_t descriptorCount, uint8_t binding, PlBufferType type, PlRenderStage stage,
+							std::shared_ptr<PlBuffer> buffer) = 0;
+
+		virtual PlazaRenderPass* AddOutputBuffer(uint64_t descriptorCount, uint8_t binding, PlBufferType type, PlRenderStage stage,
+							std::shared_ptr<PlBuffer> buffer) = 0;
+
+		template <typename T> T* GetInputResource(const std::string& name) {
 			if (mInputBindingNames.find(name) == mInputBindingNames.end())
 				return nullptr;
 			return dynamic_cast<T*>(mInputBindingNames.at(name).get());
 		}
 
-		template <typename T> T* GetOutputResource(std::string name) {
+		template <typename T> T* GetOutputResource(const std::string& name) {
 			if (mOutputBindingNames.find(name) == mOutputBindingNames.end())
 				return nullptr;
 			return dynamic_cast<T*>(mOutputBindingNames.at(name).get());
 		}
 
+		virtual PlazaRenderPass* AddChildPass(const std::string& name, int stage, PlRenderPassMode renderMethod, glm::vec2 size, bool flipViewPort) = 0;
 		PlazaRenderPass* AddChildPass(std::shared_ptr<PlazaRenderPass> pass) {
 			mChildPasses.push_back(pass);
 			return pass.get();
@@ -294,11 +303,24 @@ namespace Plaza {
 
 	  private:
 		virtual void CompileGraphics(PlazaRenderGraph* renderGraph) {};
+
+	protected:
+		PlazaRenderPass* AddInputResource(std::shared_ptr<PlazaShadersBinding> resource) {
+			mInputBindings.push_back(resource);
+			mInputBindingNames.emplace(resource->mName, resource);
+			return this;
+		}
+
+		PlazaRenderPass* AddOutputResource(std::shared_ptr<PlazaShadersBinding> resource) {
+			mOutputBindings.push_back(resource);
+			mOutputBindingNames.emplace(resource->mName, resource);
+			return this;
+		}
 	};
 
 	struct BindingModifiers {
-		BindingModifiers(){};
-		BindingModifiers(shared_ptr<PlazaShadersBinding> bind) : binding(bind){};
+		BindingModifiers() {};
+		BindingModifiers(shared_ptr<PlazaShadersBinding> bind) : binding(bind) {};
 		std::vector<std::string> writePasses = std::vector<std::string>();
 		std::vector<std::string> readPasses = std::vector<std::string>();
 		shared_ptr<PlazaShadersBinding> binding = nullptr;
@@ -306,8 +328,11 @@ namespace Plaza {
 
 	class PLAZA_API PlazaRenderGraph : public Asset {
 	  public:
-		PlazaRenderGraph() {}
-		virtual void BuildDefaultRenderGraph() {}
+		Renderer* mRenderer;
+		PlazaRenderGraph(Renderer* renderer) {
+			mRenderer = renderer;
+		}
+		void BuildDefaultRenderGraph();
 
 		virtual void Execute(Scene* scene, uint8_t imageIndex, uint8_t currentFrame) {};
 		virtual void OrderPasses() {};
@@ -325,21 +350,32 @@ namespace Plaza {
 
 		virtual bool BindPass(std::string passName) { return false; };
 
-		PlazaRenderPass* AddRenderPass(std::shared_ptr<PlazaRenderPass> newRenderPass) {
-			mOrderedPasses.push_back(newRenderPass);
-			mPasses.emplace(newRenderPass->mName, newRenderPass);
-			return mPasses[newRenderPass->mName].get();
-		}
+		virtual PlazaRenderPass* AddRenderPass(const std::string& name, int stage, PlRenderPassMode renderMethod, glm::vec2 size, bool flipViewPort) = 0;
 
 		void AddRenderPassCallback(std::string passName,
-								   std::function<void(PlazaRenderGraph*, PlazaRenderPass*)> callback) {
+								   std::function<void(PlazaRenderGraph*, PlazaRenderPass*, Scene*)> callback) {
 			if (mPasses.find(passName) != mPasses.end())
 				mPasses[passName]->SetRecordingCallback(callback);
 		}
 
+		/* Deprecated */
 		void AddTexture(std::shared_ptr<Texture> texture) { mTextures.emplace(texture->mAssetName, texture); }
-
 		void AddBuffer(std::shared_ptr<PlBuffer> buffer) { mBuffers.emplace(buffer->mName, buffer); }
+		/* ---------- */
+
+		// Resources
+		virtual void AddTexture(uint64_t descriptorCount, PlImageUsage imageUsage, PlTextureType imageType,
+								PlViewType viewType, PlTextureFormat format, glm::vec3 resolution, uint8_t mipCount,
+								uint16_t layersCount, const std::string& name) = 0;
+
+		virtual void AddBuffer(PlBufferType type, uint64_t maxItems, uint16_t stride, uint8_t bufferCount,
+							   PlBufferUsage bufferUsage, PlMemoryUsage memoryUsage, const std::string& name) = 0;
+
+		PlazaRenderPass* GetRenderPass(const std::string& name) {
+			if (mPasses.find(name) != mPasses.end())
+				return mPasses.find(name)->second.get();
+			return nullptr;
+		}
 
 		template <typename T> T* GetTexture(const std::string& name) {
 			assert(mTextures.find(name) != mTextures.end());
@@ -416,27 +452,6 @@ namespace Plaza {
 			attributeDescriptions.push_back(
 				pl::vertexInputAttributeDescription(8, 0, PL_FORMAT_R32_UINT, offsetof(Vertex, materialIndex)));
 			return attributeDescriptions;
-
-			/*
-			{
-				pl::vertexInputAttributeDescription(0, 0, PL_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, position))},
-			{
-				pl::vertexInputAttributeDescription(1, 0, PL_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, normal))},
-			{
-				pl::vertexInputAttributeDescription(2, 0, PL_FORMAT_R32G32_SFLOAT, offsetof(Vertex, texCoords))},
-			{
-				pl::vertexInputAttributeDescription(3, 0, PL_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, tangent))},
-			{
-				pl::vertexInputAttributeDescription(4, 1, PL_FORMAT_R32G32B32A32_SFLOAT, 0)},
-			{
-				pl::vertexInputAttributeDescription(5, 1, PL_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 4)},
-			{
-				pl::vertexInputAttributeDescription(6, 1, PL_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 8)},
-			{
-				pl::vertexInputAttributeDescription(7, 1, PL_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 12)},
-			{
-				pl::vertexInputAttributeDescription(8, 0, PL_FORMAT_R32_UINT, offsetof(Vertex, materialIndex))}
-			*/
 		}
 
 		static std::vector<PlVertexInputAttributeDescription> SkinnedVertexGetAttributeDescriptions() {
@@ -489,6 +504,15 @@ namespace Plaza {
 		std::map<std::string, std::shared_ptr<Texture>> mTextures = std::map<std::string, std::shared_ptr<Texture>>();
 
 	  private:
+		void BuildResources();
+		void BuildNodes();
+
+	protected:
+		PlazaRenderPass* AddRenderPass(std::shared_ptr<PlazaRenderPass> newRenderPass) {
+			mOrderedPasses.push_back(newRenderPass);
+			mPasses.emplace(newRenderPass->mName, newRenderPass);
+			return mPasses[newRenderPass->mName].get();
+		}
 	};
 
 	struct EquirectangularToCubeMapPC {

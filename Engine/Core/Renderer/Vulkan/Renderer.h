@@ -1,13 +1,13 @@
 #pragma once
 #include "Engine/Core/Renderer/Renderer.h"
 #include "Engine/Components/Core/Entity.h"
-#include "Engine/Core/Renderer/Vulkan/ShadersCompiler.h"
+#include "../ShadersCompiler.h"
 
 #include "Mesh.h"
 #include "Engine/Core/Renderer/Mesh.h"
 
-#include "VulkanRenderGraph.h"
 #include "VulkanTexture.h"
+#include "VulkanRenderGraph.h"
 #include "VulkanPicking.h"
 #include "VulkanComputeShaders.h"
 
@@ -15,6 +15,7 @@
 #include "VulkanPlazaWrapper.h"
 #include "Engine/Core/Debugging/Log.h"
 #include <stb_image.h>
+#include "../RendererTypes.h"
 
 #define PLVK_CHECK_RESULT(x)                                                                                           \
 	{                                                                                                                  \
@@ -51,8 +52,6 @@ namespace Plaza {
 
 		std::map<uint64_t, Bone> mBones = std::map<uint64_t, Bone>();
 		VkSemaphore semaphore;
-
-		bool mShowWireframe = false;
 
 		struct PushConstants {
 			glm::vec4 color = glm::vec4(1.0f);
@@ -93,7 +92,7 @@ namespace Plaza {
 		void InitGUI() override;
 		void InitVulkanImGui();
 		void NewFrameGUI() override;
-		void UpdateGUI() override;
+		void UpdateGUI();
 		void UpdateImGuiDisplayTexture(Texture* texture) override;
 		ImTextureID GetFrameImage() override;
 
@@ -119,6 +118,7 @@ namespace Plaza {
 							const std::vector<Bone>& uniqueBonesInfo = vector<Bone>()) override;
 		void UpdateMeshVertices(Mesh& mesh);
 		void DeleteMesh(Mesh& mesh) override;
+		void CopyTexture(Texture* src, Texture* dst, PlImageLayout dstLayout) override;
 		Mesh* RestartMesh(Mesh* mesh);
 		void DrawRenderGroupInstanced(RenderGroup* renderGroup);
 		void DrawRenderGroupShadowDepthMapInstanced(RenderGroup* renderGroup, unsigned int cascade);
@@ -137,7 +137,7 @@ namespace Plaza {
 								   unsigned int layerCount = 1, unsigned int mipCount = 1,
 								   bool forceSynchronization = true, VkCommandBuffer commandBuffer = VK_NULL_HANDLE,
 								   bool createOwnCommandPool = false);
-		void TransitionTextureLayout(VulkanTexture& texture, VkImageLayout newLayout,
+		void TransitionTextureLayout(VulkanTexture& texture, PlImageLayout newLayout,
 									 VkImageAspectFlags aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
 									 unsigned int layerCount = 1, unsigned int mipCount = 1,
 									 bool forceSynchronization = true);
@@ -216,11 +216,6 @@ namespace Plaza {
 		VulkanPlazaPipeline mSwapchainRenderer;
 
 		VulkanPlazaPipeline mGeometryPassRenderer;
-
-		VulkanTexture mDeferredPositionTexture;
-		VulkanTexture mDeferredNormalTexture;
-		VulkanTexture mDeferredDiffuseTexture;
-		VulkanTexture mDeferredOthersTexture;
 
 		VmaAllocator mVmaAllocator;
 

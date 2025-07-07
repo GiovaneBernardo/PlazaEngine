@@ -173,7 +173,7 @@ namespace Plaza::Editor {
 		this->AddOutputPin(renderPassNode, Pin(0, "Pipelines Out", PinType::Object, PinKind::Output))
 			.value.SetType<PlazaRenderPass>();
 		renderPassNode.processFunction = [](Node& node) {
-			PlazaRenderPass pass{};
+			VulkanRenderPass pass{};
 			pass.mName = node.inputs[0].GetValue<std::string>();
 			pass.mStage = node.inputs[1].GetValue<PlRenderStage>();
 			pass.mRenderMethod = node.inputs[2].GetValue<PlRenderPassMode>();
@@ -255,22 +255,22 @@ namespace Plaza::Editor {
 		// if (finalNode.inputs[0].nodes.size() > 1)
 		//	info = finalNode.inputs[0].nodes[1]->outputs[0].GetValue<PlPipelineCreateInfo>();
 
-		VulkanRenderGraph* renderGraph = new VulkanRenderGraph();
+		VulkanRenderGraph* renderGraph = new VulkanRenderGraph(Application::Get()->mRenderer);
 
 		for (auto& [key, node] : mNodesData.mNodes) {
 			Any& value = node.outputs[0].value;
 			if (value.type() == typeid(TextureNodeStruct)) {
 				TextureNodeStruct texture = node.outputs[0].GetValue<TextureNodeStruct>();
-				renderGraph->AddTexture(std::make_shared<VulkanTexture>(
+				renderGraph->AddTexture(
 					texture.descriptorCount, texture.imageUsage, texture.imageType, texture.viewType, texture.format,
-					texture.resolution, texture.mipCount, texture.layersCount, texture.name));
+					texture.resolution, texture.mipCount, texture.layersCount, texture.name);
 			}
 			else if (value.type() == typeid(BufferNodeStruct)) {
 				BufferNodeStruct buffer = node.outputs[0].GetValue<BufferNodeStruct>();
 				buffer.bufferCount = 2;
-				renderGraph->AddBuffer(std::make_shared<PlVkBuffer>(buffer.type, buffer.maxItems, buffer.stride,
+				renderGraph->AddBuffer(buffer.type, buffer.maxItems, buffer.stride,
 																	buffer.bufferCount, buffer.bufferUsage,
-																	buffer.memoryUsage, buffer.name));
+																	buffer.memoryUsage, buffer.name);
 			}
 		}
 
@@ -281,42 +281,42 @@ namespace Plaza::Editor {
 				// renderGraph->CreatePipeline(info);
 			}
 			else if (value.type() == typeid(PlazaRenderPass)) {
-				PlazaRenderPass pass = node.outputs[0].GetValue<PlazaRenderPass>();
+				VulkanRenderPass pass = node.outputs[0].GetValue<VulkanRenderPass>();
 				// std::string name, int stage, PlRenderPassMode renderMethod, glm::vec2 size, bool flipViewPort) :
 				// PlazaRenderPass(name, stage, renderMethod, size, flipViewPort
-				PlazaRenderPass* addedPass = renderGraph->AddRenderPass(std::make_shared<VulkanRenderPass>(
-					pass.mName, pass.mStage, pass.mRenderMethod, pass.mRenderSize, pass.mFlipViewPort));
+				PlazaRenderPass* addedPass = renderGraph->AddRenderPass(
+					pass.mName, pass.mStage, pass.mRenderMethod, pass.mRenderSize, pass.mFlipViewPort);
 
 				std::vector<PlazaTextureBinding> inputTextures =
 					node.outputs[1].GetValue<std::vector<PlazaTextureBinding>>();
 				for (const PlazaTextureBinding& binding : inputTextures) {
-					addedPass->AddInputResource(std::make_shared<VulkanTextureBinding>(
+					addedPass->AddInputTexture(
 						binding.mDescriptorCount, binding.mLocation, binding.mBinding, binding.mBufferType,
 						binding.mStage, binding.mInitialLayout, binding.mBaseMipLevel, binding.mBaseLayerLevel,
-						renderGraph->GetSharedTexture(binding.mResourceName)));
+						renderGraph->GetSharedTexture(binding.mResourceName));
 				}
 				std::vector<PlazaBufferBinding> inputBuffers =
 					node.outputs[2].GetValue<std::vector<PlazaBufferBinding>>();
 				for (const PlazaBufferBinding& binding : inputBuffers) {
-					addedPass->AddInputResource(std::make_shared<VulkanBufferBinding>(
+					addedPass->AddInputBuffer(
 						binding.mDescriptorCount, binding.mBinding, binding.mBufferType, binding.mStage,
-						renderGraph->GetSharedBuffer(binding.mResourceName)));
+						renderGraph->GetSharedBuffer(binding.mResourceName));
 				}
 
 				std::vector<PlazaTextureBinding> outputTextures =
 					node.outputs[2].GetValue<std::vector<PlazaTextureBinding>>();
 				for (const PlazaTextureBinding& binding : outputTextures) {
-					addedPass->AddOutputResource(std::make_shared<VulkanTextureBinding>(
+					addedPass->AddOutputTexture(
 						binding.mDescriptorCount, binding.mLocation, binding.mBinding, binding.mBufferType,
 						binding.mStage, binding.mInitialLayout, binding.mBaseMipLevel, binding.mBaseLayerLevel,
-						renderGraph->GetSharedTexture(binding.mResourceName)));
+						renderGraph->GetSharedTexture(binding.mResourceName));
 				}
 				std::vector<PlazaBufferBinding> outputBuffers =
 					node.outputs[2].GetValue<std::vector<PlazaBufferBinding>>();
 				for (const PlazaBufferBinding& binding : outputBuffers) {
-					addedPass->AddOutputResource(std::make_shared<VulkanBufferBinding>(
+					addedPass->AddOutputBuffer(
 						binding.mDescriptorCount, binding.mBinding, binding.mBufferType, binding.mStage,
-						renderGraph->GetSharedBuffer(binding.mResourceName)));
+						renderGraph->GetSharedBuffer(binding.mResourceName));
 				}
 
 				std::vector<PlPipelineCreateInfo> pipelinesInfo =

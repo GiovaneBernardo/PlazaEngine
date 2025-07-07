@@ -11,7 +11,9 @@
 namespace Plaza {
 
 	enum class RendererAPI {
-		Vulkan
+		Vulkan,
+		DirectX12,
+		WebGPU,
 	};
 
 	struct TrackerSettings {
@@ -83,6 +85,7 @@ namespace Plaza {
 
 	class PLAZA_API Renderer {
 	  public:
+		bool mShowWireframe = false;
 		std::vector<TrackedImage*> mTrackedImages = std::vector<TrackedImage*>();
 		TrackedImage* GetTrackedImage(unsigned int index) { return mTrackedImages[index]; };
 		template <typename T> void AddTrackedImage(const T& trackedImage) {
@@ -111,10 +114,10 @@ namespace Plaza {
 		virtual void InitializeRenderGraph(PlazaRenderGraph* renderGraph) = 0;
 		virtual void UpdateProjectManager() = 0;
 		virtual void Render(Scene* scene) = 0;
-		virtual void RenderImGuiFrame(std::vector<ImDrawData*> drawDatas) = 0;
-		virtual void RecordImGuiFrame(std::vector<ImDrawData*> drawDatas) = 0;
 		virtual void UpdateMainProgressBar(float percentage) = 0;
 		virtual void UpdateImGuiDisplayTexture(Texture* texture) = 0;
+		virtual void RenderImGuiFrame(std::vector<ImDrawData*> drawDatas) = 0;
+		virtual void RecordImGuiFrame(std::vector<ImDrawData*> drawDatas) = 0;
 
 		virtual Mesh* CreateNewMesh(const std::vector<glm::vec3>& vertices, const std::vector<glm::vec3>& normals,
 									const std::vector<glm::vec2>& uvs, const std::vector<glm::vec3>& tangent,
@@ -124,11 +127,10 @@ namespace Plaza {
 									const std::vector<Bone>& uniqueBonesInfo = std::vector<Bone>()) = 0;
 		virtual void DeleteMesh(Mesh& mesh) = 0;
 		virtual Mesh* RestartMesh(Mesh* mesh) = 0;
-		virtual void DrawRenderGroupInstanced(RenderGroup* renderGroup) = 0;
+		virtual void CopyTexture(Texture* src, Texture* dst, PlImageLayout dstLayout) = 0;
 
 		virtual void InitGUI() = 0;
 		virtual void NewFrameGUI() = 0;
-		virtual void UpdateGUI() = 0;
 		virtual ImTextureID GetFrameImage() = 0;
 
 		virtual void Destroy() = 0;

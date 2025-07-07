@@ -83,7 +83,7 @@ namespace Plaza {
 					 Application::Get()->mSettings.mCommonSerializationMode)
 					 .get();
 		this->SetDefaultSettings();
-		Scene::InitializeScenes();
+		Scene::InitializeScenes(Application::Get()->mRenderer);
 		mRenderer->Init();
 		Audio::Init();
 		Physics::Init();
@@ -254,7 +254,6 @@ namespace Plaza {
 
 	void Application::UpdateEngine() {
 		PLAZA_PROFILE_SECTION("Update Engine");
-		Scene* scene0 = Scene::GetActiveScene();
 
 		Application::Get()->mRenderer->mDebugRenderer->Clear();
 
@@ -277,13 +276,11 @@ namespace Plaza {
 		for (auto& [key, value] : Scene::GetActiveScene()->mPlayingAnimations) {
 			value->UpdateTime(Time::deltaTime);
 		}
-		Scene* scene9 = Scene::GetActiveScene();
+
 		/* Update Scripts */
 		if (Scene::GetActiveScene()->mRunning) {
 			Scripting::Update(Scene::GetActiveScene());
 		}
-
-		Scene* scene1 = Scene::GetActiveScene();
 
 		/* Update Physics */
 		if (Scene::GetActiveScene()->mRunning) {
@@ -291,31 +288,28 @@ namespace Plaza {
 			Physics::Advance(Time::deltaTime);
 			Physics::Update(Scene::GetActiveScene());
 		}
-		Scene* scene7 = Scene::GetActiveScene();
+
 		// Update Camera Position and Rotation
 		Application::Get()->activeCamera->Update(Scene::GetActiveScene());
-		Scene* scene6 = Scene::GetActiveScene();
+
 		// Imgui New Frame (only if running editor)
 #ifdef EDITOR_MODE
 		Editor::Gui::NewFrame();
 		Editor::Gui::Update();
 #endif
-		Scene* scene5 = Scene::GetActiveScene();
 		Time::drawCalls = 0;
 		Time::addInstanceCalls = 0;
 		Time::mUniqueTriangles = 0;
 		Time::mTotalTriangles = 0;
-		Scene* scene51 = Scene::GetActiveScene();
+
+		// Render
 		Application::Get()->mRenderer->Render(Scene::GetActiveScene());
-		Scene* scene4 = Scene::GetActiveScene();
 		Application::Get()->mThreadsManager->UpdateFrameEndThread();
-		Scene* scene3 = Scene::GetActiveScene();
 
 		// Update lastSizes
 		Application::Get()->lastAppSizes = Application::Get()->appSizes;
 		Input::isAnyKeyPressed = false;
 		Application::Get()->mThreadsManager->mFrameEndThread->Update();
-		Scene* scene2 = Scene::GetActiveScene();
 	}
 
 	void Application::Terminate() {

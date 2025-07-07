@@ -45,6 +45,7 @@
 #include "Editor/GUI/Console/Console.h"
 #include "VulkanPushConstants.h"
 #include "Editor/GUI/Utils/Filesystem.h"
+#include "Engine/Core/Renderer/ShaderReflection.h"
 
 namespace Plaza {
 #pragma region Vulkan Setup
@@ -1624,33 +1625,18 @@ namespace Plaza {
 				assert("Unsupported layout transition!");
 				break;
 		}
-		// else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL && newLayout ==
-		// VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) { 	barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-		//	barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-		//
-		//	sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-		//	destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-		// }
-		// else {
-		//	std::cout << " UNSUPPORTED LAYOUT TRANSITION \n";
-		//	EndSingleTimeCommands(commandBuffer);
-		//	TransitionImageLayout(image, format, VK_IMAGE_LAYOUT_UNDEFINED, newLayout, aspectMask, layerCount, mipCount,
-		// forceSynchronization); 	return;
-		//		//	assert("unsupported layout transition!");
-		//}
-
 		vkCmdPipelineBarrier(commandBuffer, sourceStage, destinationStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 
 		if (forceSynchronization)
 			EndSingleTimeCommands(commandBuffer, commandPool);
 	}
 
-	void VulkanRenderer::TransitionTextureLayout(VulkanTexture& texture, VkImageLayout newLayout,
+	void VulkanRenderer::TransitionTextureLayout(VulkanTexture& texture, PlImageLayout newLayout,
 												 VkImageAspectFlags aspectMask, unsigned int layerCount,
 												 unsigned int mipCount, bool forceSynchronization) {
-		this->TransitionImageLayout(texture.mImage, texture.GetFormat(), texture.mLayout, newLayout, aspectMask,
+		this->TransitionImageLayout(texture.mImage, texture.GetFormat(), PlImageLayoutToVkImageLayout(texture.mCurrentImageLayout), PlImageLayoutToVkImageLayout(newLayout), aspectMask,
 									layerCount, mipCount, forceSynchronization);
-		texture.mLayout = newLayout;
+		texture.mCurrentImageLayout = newLayout;
 	}
 
 	void VulkanRenderer::CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height,
@@ -1822,10 +1808,10 @@ namespace Plaza {
 	void VulkanRenderer::Init() {
 		SectionProfiler initializationProfiler = SectionProfiler("SectionProfiler");
 		Application::Get()->mRendererAPI = RendererAPI::Vulkan;
-		mEnableValidationLayers = false;
+		mEnableValidationLayers = true;
 		this->mPicking = new VulkanPicking();
 		this->mGuiRenderer = new VulkanGuiRenderer();
-		this->mRenderGraph = new VulkanRenderGraph();
+		this->mRenderGraph = new VulkanRenderGraph(static_cast<Renderer*>(this));
 		this->mDebugRenderer = new DebugRenderer();
 
 		this->mGuiRenderer->Init();
@@ -1856,6 +1842,10 @@ namespace Plaza {
 		InitSwapChain();
 		std::cout << "CreateCommandPool \n";
 		CreateCommandPool();
+
+		std::string hlslPath = FilesManager::sEngineFolder.string() + "/Shaders/ComputeExample.hlsl";
+		std::vector<uint32_t> shaderBinary = ShaderReflection::ReadSpirVBinary(ShaderReflection::CompileHlsl(hlslPath));
+		ShaderReflection::ReflectShaderBindings(shaderBinary);
 
 		// VMA Allocator
 		VmaAllocatorCreateInfo allocatorInfo = {};
@@ -2081,7 +2071,7 @@ namespace Plaza {
 
 		if (mRenderGraph) {
 			mRenderGraph->UpdateCommandBuffer(mCommandBuffers[mCurrentFrame]);
-			VulkanRenderer::GetRenderer()->UpdateInstancesData(scene);
+			this->UpdateInstancesData(scene);
 			mRenderGraph->Execute(scene, mCurrentImage, mCurrentFrame);
 		}
 		else {
@@ -2608,6 +2598,27 @@ namespace Plaza {
 	}
 
 	void VulkanRenderer::DeleteMesh(Mesh& mesh) {}
+
+	void VulkanRenderer::CopyTexture(Texture* src, Texture* dst, PlImageLayout dstLayout) {
+		PlImageLayout srcOldLayout = src->mCurrentImageLayout;
+		this->TransitionImageLayout(
+			static_cast<VulkanTexture*>(src)->mImage, PlImageFormatToVkFormat(src->GetTextureInfo().mFormat),
+			PlImageLayoutToVkImageLayout(src->mCurrentImageLayout),
+			PlImageLayoutToVkImageLayout(PL_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL), 1, 1, 1, false,
+			*mActiveCommandBuffer);
+
+		this->CopyTexture(
+			static_cast<VulkanTexture*>(src),
+			PlImageLayoutToVkImageLayout(PL_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL),
+			static_cast<VulkanTexture*>(dst),
+			PlImageLayoutToVkImageLayout(dstLayout), *mActiveCommandBuffer);
+
+		this->TransitionImageLayout(
+			static_cast<VulkanTexture*>(src)->mImage, PlImageFormatToVkFormat(static_cast<VulkanTexture*>(src)->GetTextureInfo().mFormat),
+			PlImageLayoutToVkImageLayout(PL_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL),
+			PlImageLayoutToVkImageLayout(srcOldLayout), 1, 1, 1, false,
+			*mActiveCommandBuffer);
+	}
 
 	void VulkanRenderer::DrawRenderGroupShadowDepthMapInstanced(RenderGroup* renderGroup, unsigned int cascadeIndex) {
 		if (cascadeIndex >= renderGroup->mCascadeInstances.size() ||
