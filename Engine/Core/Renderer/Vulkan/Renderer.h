@@ -37,7 +37,7 @@ namespace Plaza {
 		VulkanTrackedImage(const std::string& newName, VkImage image, const TextureInfo& textureInfo,
 						   VkSampler textureSampler, VkImageLayout layout)
 			: mImage(image), mSampler(textureSampler), mLayout(layout), TrackedImage(newName, textureInfo) {}
-		VulkanTrackedImage(){};
+		VulkanTrackedImage() {};
 		VkImage mImage = VK_NULL_HANDLE;
 		VkSampler mSampler = VK_NULL_HANDLE;
 		VkImageLayout mLayout = VK_IMAGE_LAYOUT_READ_ONLY_OPTIMAL;
@@ -47,7 +47,7 @@ namespace Plaza {
 	class VulkanRenderGraph;
 	class PLAZA_API VulkanRenderer : public Renderer {
 	  public:
-		VulkanRenderer(){};
+		VulkanRenderer() {};
 		std::array<int, MAX_BONE_INFLUENCE> GetBoneIds(const std::vector<uint64_t>& bones);
 
 		std::map<uint64_t, Bone> mBones = std::map<uint64_t, Bone>();
@@ -175,9 +175,7 @@ namespace Plaza {
 		VkPipelineCache mPipelineCache = VK_NULL_HANDLE;
 		void LoadPipelineCache();
 		void SavePipelineCache();
-		const VkPipelineCache& GetPipelineCache() {
-			return mPipelineCache;
-		}
+		const VkPipelineCache& GetPipelineCache() { return mPipelineCache; }
 
 		VkPhysicalDevice mPhysicalDevice = VK_NULL_HANDLE;
 		VkFramebuffer mFinalSceneFramebuffer;
@@ -196,7 +194,7 @@ namespace Plaza {
 		void CopyTexture(VulkanTexture* srcTexture, VkImageLayout srcLayout, VulkanTexture* dstTexture,
 						 VkImageLayout dstLayout, VkCommandBuffer commandBuffer = VK_NULL_HANDLE);
 		void CopyDifferentSizeTexture(VulkanTexture* srcTexture, VkImageLayout srcLayout, VulkanTexture* dstTexture,
-						 VkImageLayout dstLayout, VkCommandBuffer commandBuffer = VK_NULL_HANDLE);
+									  VkImageLayout dstLayout, VkCommandBuffer commandBuffer = VK_NULL_HANDLE);
 		VkSampler mImGuiTextureSampler;
 		VkSampler mTextureSampler;
 		std::vector<VkFence> mComputeInFlightFences;
@@ -260,6 +258,18 @@ namespace Plaza {
 		std::vector<glm::mat4> mInstanceModelMatrices = std::vector<glm::mat4>();
 
 		void WaitRendererHere();
+
+		VkSampler CreateSampler(VkDevice device, VkFilter magFilter = VK_FILTER_LINEAR,
+						VkFilter minFilter = VK_FILTER_LINEAR,
+						VkSamplerAddressMode addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+						VkSamplerAddressMode addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+						VkSamplerAddressMode addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT,
+						VkBool32 anisotropyEnable = VK_TRUE, float maxAnisotropy = 1.0f,
+						VkBorderColor borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK,
+						VkBool32 unnormalizedCoordinates = VK_FALSE, VkBool32 compareEnable = VK_FALSE,
+						VkCompareOp compareOp = VK_COMPARE_OP_ALWAYS,
+						VkSamplerMipmapMode mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR, float mipLodBias = 0.0f,
+						float minLod = 0.0f, float maxLod = 64.0);
 
 	  private:
 		struct SwapChainPushConstant {
@@ -329,6 +339,7 @@ namespace Plaza {
 
 		void CreateTextureImageView();
 		void CreateTextureSampler();
+
 		VkImage mTextureImage;
 		VkDeviceMemory mTextureImageMemory;
 		VkImageView mTextureImageView;

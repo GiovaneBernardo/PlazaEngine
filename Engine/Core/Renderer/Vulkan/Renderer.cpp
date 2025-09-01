@@ -120,8 +120,11 @@ namespace Plaza {
 	}
 
 	const std::vector<const char*> deviceExtensions = {
-		VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,
+		VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+		VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME,
 		VK_EXT_DEPTH_RANGE_UNRESTRICTED_EXTENSION_NAME,
+		"VK_GOOGLE_hlsl_functionality1",
+		"VK_GOOGLE_user_type",
 		// VK_KHR_MULTIVIEW_EXTENSION_NAME
 	};
 
@@ -1357,15 +1360,15 @@ namespace Plaza {
 	void VulkanRenderer::CreateDescriptorPool() {
 		static const uint32_t maxBindlessTextures = 16536 * 4;
 
-		std::array<VkDescriptorPoolSize, 8> poolSizes{};
+		std::array<VkDescriptorPoolSize, 9> poolSizes{};
 		poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		poolSizes[0].descriptorCount = static_cast<uint32_t>(mMaxFramesInFlight);
+		poolSizes[0].descriptorCount = 256;
 		poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 		poolSizes[1].descriptorCount = static_cast<uint32_t>(mMaxFramesInFlight);
 		poolSizes[2].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 		poolSizes[2].descriptorCount = maxBindlessTextures; // maxBindlessTextures;
-		poolSizes[3].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		poolSizes[3].descriptorCount = static_cast<uint32_t>(9);
+		poolSizes[3].type = VK_DESCRIPTOR_TYPE_SAMPLER;
+		poolSizes[3].descriptorCount = static_cast<uint32_t>(128);
 		poolSizes[4].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 		poolSizes[4].descriptorCount = static_cast<uint32_t>(mMaxFramesInFlight);
 		poolSizes[5].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
@@ -1374,6 +1377,8 @@ namespace Plaza {
 		poolSizes[6].descriptorCount = 128;
 		poolSizes[7].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
 		poolSizes[7].descriptorCount = 128;
+		poolSizes[8].type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+		poolSizes[8].descriptorCount = 256;
 
 		VkDescriptorPoolCreateInfo poolInfo{};
 		poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -1634,8 +1639,9 @@ namespace Plaza {
 	void VulkanRenderer::TransitionTextureLayout(VulkanTexture& texture, PlImageLayout newLayout,
 												 VkImageAspectFlags aspectMask, unsigned int layerCount,
 												 unsigned int mipCount, bool forceSynchronization) {
-		this->TransitionImageLayout(texture.mImage, texture.GetFormat(), PlImageLayoutToVkImageLayout(texture.mCurrentImageLayout), PlImageLayoutToVkImageLayout(newLayout), aspectMask,
-									layerCount, mipCount, forceSynchronization);
+		this->TransitionImageLayout(
+			texture.mImage, texture.GetFormat(), PlImageLayoutToVkImageLayout(texture.mCurrentImageLayout),
+			PlImageLayoutToVkImageLayout(newLayout), aspectMask, layerCount, mipCount, forceSynchronization);
 		texture.mCurrentImageLayout = newLayout;
 	}
 
@@ -1699,31 +1705,9 @@ namespace Plaza {
 		samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 		samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 		samplerInfo.anisotropyEnable = VK_TRUE;
-		samplerInfo.maxAnisotropy = 8;
 
 		VkPhysicalDeviceProperties properties{};
 		vkGetPhysicalDeviceProperties(mPhysicalDevice, &properties);
-
-		samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
-		samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-		samplerInfo.unnormalizedCoordinates = VK_FALSE;
-		samplerInfo.compareEnable = VK_FALSE;
-		samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-		samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-		samplerInfo.mipLodBias = 0.0f;
-		samplerInfo.minLod = 0.0f;
-		samplerInfo.maxLod = 0.0f;
-		if (vkCreateSampler(mDevice, &samplerInfo, nullptr, &mImGuiTextureSampler) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create texture sampler!");
-		}
-
-		samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-		samplerInfo.magFilter = VK_FILTER_LINEAR;
-		samplerInfo.minFilter = VK_FILTER_LINEAR;
-		samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-		samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-		samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-		samplerInfo.anisotropyEnable = VK_TRUE;
 
 		samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
 		samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
@@ -1737,6 +1721,43 @@ namespace Plaza {
 		if (vkCreateSampler(mDevice, &samplerInfo, nullptr, &mTextureSampler) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create texture sampler!");
 		}
+	}
+
+	VkSampler VulkanRenderer::CreateSampler(VkDevice device, VkFilter magFilter, VkFilter minFilter,
+											VkSamplerAddressMode addressModeU, VkSamplerAddressMode addressModeV,
+											VkSamplerAddressMode addressModeW, VkBool32 anisotropyEnable,
+											float maxAnisotropy, VkBorderColor borderColor,
+											VkBool32 unnormalizedCoordinates, VkBool32 compareEnable,
+											VkCompareOp compareOp, VkSamplerMipmapMode mipmapMode, float mipLodBias,
+											float minLod, float maxLod) {
+		VkSampler sampler;
+
+		VkPhysicalDeviceProperties properties{};
+		vkGetPhysicalDeviceProperties(mPhysicalDevice, &properties);
+
+		VkSamplerCreateInfo samplerInfo{};
+		samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+		samplerInfo.magFilter = magFilter;
+		samplerInfo.minFilter = minFilter;
+		samplerInfo.addressModeU = addressModeU;
+		samplerInfo.addressModeV = addressModeV;
+		samplerInfo.addressModeW = addressModeW;
+		samplerInfo.anisotropyEnable = anisotropyEnable;
+		samplerInfo.maxAnisotropy = anisotropyEnable ? properties.limits.maxSamplerAnisotropy : maxAnisotropy;
+		samplerInfo.borderColor = borderColor;
+		samplerInfo.unnormalizedCoordinates = unnormalizedCoordinates;
+		samplerInfo.compareEnable = compareEnable;
+		samplerInfo.compareOp = compareOp;
+		samplerInfo.mipmapMode = mipmapMode;
+		samplerInfo.mipLodBias = mipLodBias;
+		samplerInfo.minLod = minLod;
+		samplerInfo.maxLod = maxLod;
+
+		if (vkCreateSampler(device, &samplerInfo, nullptr, &sampler) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create texture sampler!");
+		}
+
+		return sampler;
 	}
 
 	bool VulkanRenderer::HasStencilComponent(VkFormat format) {
@@ -1777,7 +1798,8 @@ namespace Plaza {
 		// Initialize pipeline cache, so loadings are faster in editor
 		if (Plaza::FilesManager::PathExists(FilesManager::sEngineSettingsFolder / "engineVulkanShadersCache.bin")) {
 			size_t size;
-			char* data =FilesManager::ReadFile(FilesManager::sEngineSettingsFolder / "engineVulkanShadersCache.bin", size, std::ios::binary | std::ios::ate);
+			char* data = FilesManager::ReadFile(FilesManager::sEngineSettingsFolder / "engineVulkanShadersCache.bin",
+												size, std::ios::binary | std::ios::ate);
 
 			VkPipelineCacheCreateInfo cacheCreateInfo{};
 			cacheCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
@@ -1785,7 +1807,8 @@ namespace Plaza {
 			cacheCreateInfo.pInitialData = data;
 
 			vkCreatePipelineCache(mDevice, &cacheCreateInfo, nullptr, &mPipelineCache);
-		} else {
+		}
+		else {
 			VkPipelineCacheCreateInfo cacheCreateInfo{};
 			cacheCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
 			cacheCreateInfo.initialDataSize = 0;
@@ -1802,7 +1825,8 @@ namespace Plaza {
 		std::vector<uint8_t> cacheData(cacheSize);
 		vkGetPipelineCacheData(mDevice, mPipelineCache, &cacheSize, cacheData.data());
 
-		FilesManager::SaveFile(FilesManager::sEngineSettingsFolder / "engineVulkanShadersCache.bin", static_cast<void*>(cacheData.data()), cacheSize);
+		FilesManager::SaveFile(FilesManager::sEngineSettingsFolder / "engineVulkanShadersCache.bin",
+							   static_cast<void*>(cacheData.data()), cacheSize);
 	}
 
 	void VulkanRenderer::Init() {
@@ -1816,7 +1840,8 @@ namespace Plaza {
 
 		this->mGuiRenderer->Init();
 
-		VulkanShadersCompiler::mDefaultOutDirectory = FilesManager::sEngineExecutablePath.string() + "/CompiledShaders/";
+		VulkanShadersCompiler::mDefaultOutDirectory =
+			FilesManager::sEngineExecutablePath.string() + "/CompiledShaders/";
 
 #ifdef _WIN32
 		VulkanShadersCompiler::mGlslcExePath = FilesManager::sEngineFolder.string() + "/../ThirdParty/glslc/glslc.exe";
@@ -1842,10 +1867,6 @@ namespace Plaza {
 		InitSwapChain();
 		std::cout << "CreateCommandPool \n";
 		CreateCommandPool();
-
-		std::string hlslPath = FilesManager::sEngineFolder.string() + "/Shaders/ComputeExample.hlsl";
-		std::vector<uint32_t> shaderBinary = ShaderReflection::ReadSpirVBinary(ShaderReflection::CompileHlsl(hlslPath));
-		ShaderReflection::ReflectShaderBindings(shaderBinary);
 
 		// VMA Allocator
 		VmaAllocatorCreateInfo allocatorInfo = {};
@@ -1925,19 +1946,6 @@ namespace Plaza {
 
 		PL_CORE_INFO("Build Default RenderGraph");
 		this->mRenderGraph->BuildDefaultRenderGraph();
-		// AssetsSerializer::SerializeFile<VulkanRenderGraph>(*this->mRenderGraph,
-		// "C:/Users/Giovane/Desktop/Workspace/PlazaGames/FPS2/Assets/RenderGraphs/MainGraph.plzgrph",
-		// Application::Get()->mSettings.mRenderGraphSerializationMode); this->mRenderGraph = new
-		// VulkanRenderGraph(*AssetsSerializer::DeSerializeFile<VulkanRenderGraph>("C:/Users/Giovane/Desktop/Workspace/PlazaGames/FPS2/Assets/RenderGraphs/MainGraph.plzgrph",
-		// Application::Get()->mSettings.mRenderGraphSerializationMode).get());
-
-		int index = 0;
-		for (const auto& texture : mRenderGraph->mTextures) {
-			texture.second->SetTextureInfo(mRenderGraph->mUsedTexturesInfo[texture.second->mTextureInfoUuid]);
-			// mRenderGraph->mUsedTexturesInfo.emplace(texture.second->GetTextureInfo().mUuid,
-			// texture.second->GetTextureInfo());
-			index++;
-		}
 
 		PL_CORE_INFO("Initialize RenderGraph");
 		this->InitializeRenderGraph(mRenderGraph);
@@ -1952,105 +1960,14 @@ namespace Plaza {
 		//	}
 		// }
 
-		/* Stage FTBI font data to the font texture */
-		const uint32_t fontWidth = STB_FONT_consolas_24_latin1_BITMAP_WIDTH;
-		const uint32_t fontHeight = STB_FONT_consolas_24_latin1_BITMAP_HEIGHT;
-
-		static unsigned char font24pixels[fontHeight][fontWidth];
-		stb_font_consolas_24_latin1(static_cast<VulkanGuiRenderer*>(mGuiRenderer)->stbFontData, font24pixels,
-									fontHeight);
-
-		struct {
-			VkDeviceMemory memory;
-			VkBuffer buffer;
-		} stagingBuffer;
-
-		VkMemoryRequirements memReqs;
-		VkMemoryAllocateInfo allocInfo{};
-		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		vkGetImageMemoryRequirements(mDevice, mRenderGraph->GetTexture<VulkanTexture>("FontTexture")->mImage, &memReqs);
-		allocInfo.allocationSize = memReqs.size;
-		allocInfo.memoryTypeIndex = FindMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-
-		VkBufferCreateInfo bufferCreateInfo{};
-		bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		bufferCreateInfo.size = allocInfo.allocationSize;
-		bufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-		bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-		vkCreateBuffer(mDevice, &bufferCreateInfo, nullptr, &stagingBuffer.buffer);
-
-		// Get memory requirements for the staging buffer (alignment, memory type bits)
-		vkGetBufferMemoryRequirements(mDevice, stagingBuffer.buffer, &memReqs);
-
-		allocInfo.allocationSize = memReqs.size;
-		// Get memory type index for a host visible buffer
-		allocInfo.memoryTypeIndex = FindMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-																			   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-
-		vkAllocateMemory(mDevice, &allocInfo, nullptr, &stagingBuffer.memory);
-		vkBindBufferMemory(mDevice, stagingBuffer.buffer, stagingBuffer.memory, 0);
-
-		uint8_t* data;
-		vkMapMemory(mDevice, stagingBuffer.memory, 0, allocInfo.allocationSize, 0, (void**)&data);
-		// Size of the font texture is WIDTH * HEIGHT * 1 byte (only one channel)
-		memcpy(data, &font24pixels[0][0], fontWidth * fontHeight);
-		vkUnmapMemory(mDevice, stagingBuffer.memory);
-
-		// Copy to image
-
-		VkCommandBuffer copyCmd = CreateCommandBuffer();
-		VkCommandBufferBeginInfo cmdBufferBeginInfo{};
-		cmdBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-		vkBeginCommandBuffer(copyCmd, &cmdBufferBeginInfo);
-
-		// Prepare for transfer
-		//  vks::tools::setImageLayout(
-		//  	copyCmd,
-		//  	image,
-		//  	VK_IMAGE_ASPECT_COLOR_BIT,
-		//  	VK_IMAGE_LAYOUT_UNDEFINED,
-		//  	VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-		TransitionImageLayout(mRenderGraph->GetTexture<VulkanTexture>("FontTexture")->mImage, VK_FORMAT_R8_UNORM,
-							  VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-							  VK_IMAGE_ASPECT_COLOR_BIT);
-
-		VkBufferImageCopy bufferCopyRegion = {};
-		bufferCopyRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		bufferCopyRegion.imageSubresource.mipLevel = 0;
-		bufferCopyRegion.imageSubresource.layerCount = 1;
-		bufferCopyRegion.imageExtent.width = fontWidth;
-		bufferCopyRegion.imageExtent.height = fontHeight;
-		bufferCopyRegion.imageExtent.depth = 1;
-
-		vkCmdCopyBufferToImage(copyCmd, stagingBuffer.buffer,
-							   mRenderGraph->GetTexture<VulkanTexture>("FontTexture")->mImage,
-							   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &bufferCopyRegion);
-
-		// Prepare for shader read
-		//    vks::tools::setImageLayout(
-		//    	copyCmd,
-		//    	image,
-		//    	VK_IMAGE_ASPECT_COLOR_BIT,
-		//    	VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-		//    	VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
-		static_cast<VulkanGuiRenderer*>(mGuiRenderer)->FlushCommandBuffer(copyCmd, mGraphicsQueue, mCommandPool, true);
-
-		TransitionImageLayout(mRenderGraph->GetTexture<VulkanTexture>("FontTexture")->mImage, VK_FORMAT_R8_UNORM,
-							  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-							  VK_IMAGE_ASPECT_COLOR_BIT);
-
-		vkFreeMemory(mDevice, stagingBuffer.memory, nullptr);
-		vkDestroyBuffer(mDevice, stagingBuffer.buffer, nullptr);
-
 		mRenderGraph->RunSkyboxRenderGraph(mRenderGraph->BuildSkyboxRenderGraph());
 #ifdef EDITOR_MODE
 		Editor::Gui::Init(Application::Get()->mWindow->glfwWindow);
 #endif
 
 		initializationProfiler.Stop();
-		PL_CORE_INFO("Finished initializing Vulkan, took: {} milliseconds", std::to_string(initializationProfiler.GetDurationMilliseconds().count()));
+		PL_CORE_INFO("Finished initializing Vulkan, took: {} milliseconds",
+					 std::to_string(initializationProfiler.GetDurationMilliseconds().count()));
 	}
 
 	void VulkanRenderer::InitializeRenderGraph(PlazaRenderGraph* renderGraph) {
@@ -2238,16 +2155,16 @@ namespace Plaza {
 		// vkDestroyBuffer(mDevice, mVertexBuffer, nullptr);
 		// vkFreeMemory(mDevice, mVertexBufferMemory, nullptr);
 
-		//vkDestroyInstance(mVulkanInstance, nullptr);
-		//vkDestroyDevice(mDevice, nullptr);
-		//vkDestroySwapchainKHR(mDevice, mSwapChain, nullptr);
+		// vkDestroyInstance(mVulkanInstance, nullptr);
+		// vkDestroyDevice(mDevice, nullptr);
+		// vkDestroySwapchainKHR(mDevice, mSwapChain, nullptr);
 
 		for (auto framebuffer : mSwapChainFramebuffers) {
-			//vkDestroyFramebuffer(mDevice, framebuffer, nullptr);
+			// vkDestroyFramebuffer(mDevice, framebuffer, nullptr);
 		}
 
 		for (auto imageView : mSwapChainImageViews) {
-			//vkDestroyImageView(mDevice, imageView, nullptr);
+			// vkDestroyImageView(mDevice, imageView, nullptr);
 		}
 	}
 	void VulkanRenderer::CopyLastFramebufferToFinalDrawBuffer() {}
@@ -2261,17 +2178,17 @@ namespace Plaza {
 	}
 
 	void VulkanRenderer::InitGUI() {
-		VkDescriptorPoolSize pool_sizes[] = {{VK_DESCRIPTOR_TYPE_SAMPLER, 100000},
-											 {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 100000},
-											 {VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 100000},
-											 {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 100000},
-											 {VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 100000},
-											 {VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 100000},
-											 {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 100000},
-											 {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 100000},
-											 {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 100000},
-											 {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 100000},
-											 {VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 100000}};
+		VkDescriptorPoolSize pool_sizes[] = {{VK_DESCRIPTOR_TYPE_SAMPLER, 1000},
+											 {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000},
+											 {VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000},
+											 {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000},
+											 {VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000},
+											 {VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000},
+											 {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000},
+											 {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000},
+											 {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000},
+											 {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000},
+											 {VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000}};
 
 		VkDescriptorPoolCreateInfo pool_info = {};
 		pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -2423,12 +2340,14 @@ namespace Plaza {
 		VkDescriptorImageInfo imageInfo{};
 		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		imageInfo.imageView = texture->mImageView;
-		imageInfo.sampler = VulkanRenderer::GetRenderer()->mTextureSampler;
+		imageInfo.sampler = VK_NULL_HANDLE;//VulkanRenderer::GetRenderer()->mTextureSampler;
 		for (size_t i = 0; i < Application::Get()->mRenderer->mMaxFramesInFlight; i++) {
 			VkWriteDescriptorSet descriptorWrite = plvk::writeDescriptorSet(
 				VulkanRenderer::GetRenderer()->GetGeometryPassDescriptorSet(i), 20, texture->mIndexHandle,
-				VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, &imageInfo);
-			vkUpdateDescriptorSets(VulkanRenderer::GetRenderer()->mDevice, 1, &descriptorWrite, 0, nullptr);
+				VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1, &imageInfo);
+
+			// TODO: FIX BINDLESS TEXTURES WITH NEW RENDER GRAPH
+			 vkUpdateDescriptorSets(VulkanRenderer::GetRenderer()->mDevice, 1, &descriptorWrite, 0, nullptr);
 		}
 	}
 
@@ -2604,20 +2523,16 @@ namespace Plaza {
 		this->TransitionImageLayout(
 			static_cast<VulkanTexture*>(src)->mImage, PlImageFormatToVkFormat(src->GetTextureInfo().mFormat),
 			PlImageLayoutToVkImageLayout(src->mCurrentImageLayout),
-			PlImageLayoutToVkImageLayout(PL_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL), 1, 1, 1, false,
-			*mActiveCommandBuffer);
+			PlImageLayoutToVkImageLayout(PL_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL), 1, 1, 1, false, *mActiveCommandBuffer);
 
 		this->CopyTexture(
-			static_cast<VulkanTexture*>(src),
-			PlImageLayoutToVkImageLayout(PL_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL),
-			static_cast<VulkanTexture*>(dst),
-			PlImageLayoutToVkImageLayout(dstLayout), *mActiveCommandBuffer);
+			static_cast<VulkanTexture*>(src), PlImageLayoutToVkImageLayout(PL_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL),
+			static_cast<VulkanTexture*>(dst), PlImageLayoutToVkImageLayout(dstLayout), *mActiveCommandBuffer);
 
-		this->TransitionImageLayout(
-			static_cast<VulkanTexture*>(src)->mImage, PlImageFormatToVkFormat(static_cast<VulkanTexture*>(src)->GetTextureInfo().mFormat),
-			PlImageLayoutToVkImageLayout(PL_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL),
-			PlImageLayoutToVkImageLayout(srcOldLayout), 1, 1, 1, false,
-			*mActiveCommandBuffer);
+		this->TransitionImageLayout(static_cast<VulkanTexture*>(src)->mImage,
+									PlImageFormatToVkFormat(static_cast<VulkanTexture*>(src)->GetTextureInfo().mFormat),
+									PlImageLayoutToVkImageLayout(PL_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL),
+									PlImageLayoutToVkImageLayout(srcOldLayout), 1, 1, 1, false, *mActiveCommandBuffer);
 	}
 
 	void VulkanRenderer::DrawRenderGroupShadowDepthMapInstanced(RenderGroup* renderGroup, unsigned int cascadeIndex) {
@@ -2911,13 +2826,6 @@ namespace Plaza {
 			[image, name, textureSampler, textureInfo, layout]() {
 				VulkanTrackedImage trackedImage = VulkanTrackedImage(name, image, textureInfo, textureSampler, layout);
 				VulkanRenderer::GetRenderer()->AddTrackedImage<VulkanTrackedImage>(trackedImage);
-				// VkDescriptorSet imguiDescriptorSet = ImGui_ImplVulkan_AddTexture(
-				//	textureSampler == VK_NULL_HANDLE ? VulkanRenderer::GetRenderer()->mTextureSampler : textureSampler,
-				//	imageView,
-				//	layout);
-				// VulkanRenderer::GetRenderer()->mTrackedImages.push_back(TrackedImage{
-				//	ImTextureID(imguiDescriptorSet), std::chrono::system_clock::now(), name
-				//	});
 			});
 #endif
 	}
@@ -3025,8 +2933,7 @@ namespace Plaza {
 	}
 
 	VkDescriptorSet VulkanRenderer::GetGeometryPassDescriptorSet(unsigned int frame) {
-		return mRenderGraph->GetRenderPass("Deferred Geometry Pass")->mDescriptorSets[frame];
-		// return this->mGeometryPassRenderer.mShaders->mDescriptorSets[frame];
+		return mRenderGraph->GetRenderPass("DeferredGeometryPass")->mDescriptorSets[frame];
 	}
 
 	std::vector<RendererSettings::LightStruct> GetLights(Scene* scene) {
@@ -3034,7 +2941,8 @@ namespace Plaza {
 		for (const uint64_t& uuid : SceneView<Light>(scene)) {
 			Light& component = *scene->GetComponent<Light>(uuid);
 			const glm::vec3& position = scene->GetComponent<TransformComponent>(uuid)->GetWorldPosition();
-			lights.push_back(RendererSettings::LightStruct{component.color, component.radius, position, component.intensity, component.cutoff});
+			lights.push_back(RendererSettings::LightStruct{component.color, component.radius, position,
+														   component.intensity, component.cutoff});
 		}
 		return lights;
 	}

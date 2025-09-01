@@ -101,7 +101,7 @@ namespace Plaza::Editor {
 			binding.mBaseMipLevel = node.inputs[6].GetValue<int>();
 			binding.mBaseLayerLevel = node.inputs[7].GetValue<int>();
 			binding.mBindingType = PlBindingType::PL_BINDING_TEXTURE;
-			binding.mResourceName = node.inputs[8].GetValue<std::string>();
+			//binding.mResourceName = node.inputs[8].GetValue<std::string>();
 			node.outputs[0].SetValue(binding);
 		};
 		this->AddNodeToCreate(textureBindingNode);
@@ -125,7 +125,7 @@ namespace Plaza::Editor {
 			binding.mBinding = node.inputs[1].GetValue<int>();
 			binding.mStage = node.inputs[2].GetValue<PlRenderStage>();
 			binding.mBindingType = PlBindingType::PL_BINDING_BUFFER;
-			binding.mResourceName = node.inputs[3].GetValue<std::string>();
+			//binding.mResourceName = node.inputs[3].GetValue<std::string>();
 			node.outputs[0].SetValue(binding);
 		};
 		this->AddNodeToCreate(bufferBindingNode);
@@ -290,33 +290,23 @@ namespace Plaza::Editor {
 				std::vector<PlazaTextureBinding> inputTextures =
 					node.outputs[1].GetValue<std::vector<PlazaTextureBinding>>();
 				for (const PlazaTextureBinding& binding : inputTextures) {
-					addedPass->AddInputTexture(
-						binding.mDescriptorCount, binding.mLocation, binding.mBinding, binding.mBufferType,
-						binding.mStage, binding.mInitialLayout, binding.mBaseMipLevel, binding.mBaseLayerLevel,
-						renderGraph->GetSharedTexture(binding.mResourceName));
+
 				}
 				std::vector<PlazaBufferBinding> inputBuffers =
 					node.outputs[2].GetValue<std::vector<PlazaBufferBinding>>();
 				for (const PlazaBufferBinding& binding : inputBuffers) {
-					addedPass->AddInputBuffer(
-						binding.mDescriptorCount, binding.mBinding, binding.mBufferType, binding.mStage,
-						renderGraph->GetSharedBuffer(binding.mResourceName));
+
 				}
 
 				std::vector<PlazaTextureBinding> outputTextures =
 					node.outputs[2].GetValue<std::vector<PlazaTextureBinding>>();
 				for (const PlazaTextureBinding& binding : outputTextures) {
-					addedPass->AddOutputTexture(
-						binding.mDescriptorCount, binding.mLocation, binding.mBinding, binding.mBufferType,
-						binding.mStage, binding.mInitialLayout, binding.mBaseMipLevel, binding.mBaseLayerLevel,
-						renderGraph->GetSharedTexture(binding.mResourceName));
+
 				}
 				std::vector<PlazaBufferBinding> outputBuffers =
 					node.outputs[2].GetValue<std::vector<PlazaBufferBinding>>();
 				for (const PlazaBufferBinding& binding : outputBuffers) {
-					addedPass->AddOutputBuffer(
-						binding.mDescriptorCount, binding.mBinding, binding.mBufferType, binding.mStage,
-						renderGraph->GetSharedBuffer(binding.mResourceName));
+
 				}
 
 				std::vector<PlPipelineCreateInfo> pipelinesInfo =

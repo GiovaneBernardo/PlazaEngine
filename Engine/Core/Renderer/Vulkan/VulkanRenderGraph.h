@@ -1540,6 +1540,59 @@ namespace Plaza {
 		}
 	}
 
+	static VkBorderColor PlBorderColorToVkBorderColor(PlBorderColor borderColor) {
+		switch (borderColor) {
+			case PL_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK:
+				return VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
+			case PL_BORDER_COLOR_INT_TRANSPARENT_BLACK:
+				return VK_BORDER_COLOR_INT_TRANSPARENT_BLACK;
+			case PL_BORDER_COLOR_FLOAT_OPAQUE_BLACK:
+				return VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK;
+			case PL_BORDER_COLOR_INT_OPAQUE_BLACK:
+				return VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+			case PL_BORDER_COLOR_FLOAT_OPAQUE_WHITE:
+				return VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+			case PL_BORDER_COLOR_INT_OPAQUE_WHITE:
+				return VK_BORDER_COLOR_INT_OPAQUE_WHITE;
+			case PL_BORDER_COLOR_FLOAT_CUSTOM_EXT:
+				return VK_BORDER_COLOR_FLOAT_CUSTOM_EXT;
+			case PL_BORDER_COLOR_INT_CUSTOM_EXT:
+				return VK_BORDER_COLOR_INT_CUSTOM_EXT;
+			case PL_BORDER_COLOR_MAX_ENUM:
+				return VK_BORDER_COLOR_MAX_ENUM;
+			default:
+				return VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
+		}
+	}
+
+	static VkFilter PlFilterToVkFilter(PlFilter filter) {
+		switch (filter) {
+			case PL_FILTER_NEAREST:
+				return VK_FILTER_NEAREST;
+			case PL_FILTER_LINEAR:
+				return VK_FILTER_LINEAR;
+			case PL_FILTER_CUBIC_EXT:
+				return VK_FILTER_CUBIC_EXT;
+			case PL_FILTER_MAX_ENUM:
+				return VK_FILTER_MAX_ENUM;
+			default:
+				return VK_FILTER_MAX_ENUM;
+		}
+	}
+
+	static VkSamplerMipmapMode PlSamplerMipmapModeToVkSamplerMipmapMode(PlSamplerMipmapMode mode) {
+		switch (mode) {
+			case PL_SAMPLER_MIPMAP_MODE_NEAREST:
+				return VK_SAMPLER_MIPMAP_MODE_NEAREST;
+			case PL_SAMPLER_MIPMAP_MODE_LINEAR:
+				return VK_SAMPLER_MIPMAP_MODE_LINEAR;
+			case PL_SAMPLER_MIPMAP_MODE_MAX_ENUM:
+				return VK_SAMPLER_MIPMAP_MODE_MAX_ENUM;
+			default:
+				return VK_SAMPLER_MIPMAP_MODE_MAX_ENUM;
+		}
+	}
+
 	static VkImageTiling PlImageTilingToVkImageTiling(PlImageTiling mode) {
 		switch (mode) {
 			case PL_IMAGE_TILING_LINEAR:
@@ -1555,92 +1608,14 @@ namespace Plaza {
 		}
 	}
 
-	class PLAZA_API VulkanBufferBinding : public PlazaBufferBinding {
-	  public:
-		VulkanBufferBinding() {}
-		VulkanBufferBinding(const VulkanBufferBinding& other) = default;
-		VulkanBufferBinding(uint64_t descriptorCount, uint8_t binding, PlBufferType type, PlRenderStage stage,
-							std::shared_ptr<PlBuffer> buffer)
-			: PlazaBufferBinding(descriptorCount, binding, type, stage, buffer) {};
-		virtual void Compile(std::set<std::string>& compiledBindings) override;
-		virtual void Destroy() override;
-
-		VkDescriptorSetLayoutBinding GetDescriptorLayout() {
-			return plvk::descriptorSetLayoutBinding(mBinding, mDescriptorCount,
-													PlBufferTypeToVkDescriptorType(mBuffer->mType), nullptr,
-													PlRenderStageToVkShaderStage(mStage));
-		}
-
-		VkDescriptorBufferInfo GetBufferInfo(unsigned int currentFrame) {
-			return plvk::descriptorBufferInfo(static_cast<PlVkBuffer*>(mBuffer.get())->GetBuffer(currentFrame), 0,
-											  mBuffer->mMaxItems * mBuffer->mStride);
-		}
-
-		VkWriteDescriptorSet GetDescriptorWrite(VkDescriptorSet& descriptorSet, VkDescriptorBufferInfo* bufferInfo) {
-			if (mBuffer->mType == PL_BUFFER_PUSH_CONSTANTS)
-				return {};
-
-			return plvk::writeDescriptorSet(descriptorSet, this->mBinding, 0,
-											PlBufferTypeToVkDescriptorType(mBuffer->mType), mDescriptorCount, nullptr,
-											bufferInfo);
-		}
-
-		template <class Archive> void serialize(Archive& archive) {
-			archive(cereal::base_class<PlazaBufferBinding>(this));
-		}
-
-	  private:
-	};
-
-	class PLAZA_API VulkanTextureBinding : public PlazaTextureBinding {
-	  public:
-		VulkanTextureBinding() {}
-		VulkanTextureBinding(const VulkanTextureBinding& other) = default;
-		VulkanTextureBinding(uint64_t descriptorCount, uint8_t location, uint8_t binding, PlBufferType bufferType,
-							 PlRenderStage renderStage, PlImageLayout initialLayout, uint16_t baseMipLevel,
-							 uint16_t baseLayerLevel, std::shared_ptr<Texture> texture,
-							 PlAttachmentOp attachmentOp = PL_ATTACHMENT_OP_AUTO,
-							 bool useAsDepthStencilAttachment = false)
-			: PlazaTextureBinding(descriptorCount, location, binding, bufferType, renderStage, initialLayout,
-								  baseMipLevel, baseLayerLevel, texture, attachmentOp, useAsDepthStencilAttachment) {
-			mName = texture->mAssetName;
-		};
-		virtual void Compile(std::set<std::string>& compiledBindings) override;
-		virtual void Destroy() override;
-
-		VkDescriptorSetLayoutBinding GetDescriptorLayout() {
-			return plvk::descriptorSetLayoutBinding(mBinding, mDescriptorCount,
-													PlBufferTypeToVkDescriptorType(mBufferType), nullptr,
-													PlRenderStageToVkShaderStage(mStage));
-		}
-
-		VkDescriptorImageInfo GetImageInfo() {
-			if (mTexture == nullptr)
-				return VkDescriptorImageInfo{};
-
-			bool useNonDefaultView = mBaseMipLevel != 0 || mBaseLayerLevel != 0;
-			if (useNonDefaultView)
-				return plvk::descriptorImageInfo(PlImageLayoutToVkImageLayout(GetTexture()->mCurrentImageLayout), mNonDefaultView, GetTexture()->mSampler);
-			else
-				return plvk::descriptorImageInfo(PlImageLayoutToVkImageLayout(GetTexture()->mCurrentImageLayout), GetTexture()->mImageView,
-												 GetTexture()->mSampler);
-		}
-
-		VkWriteDescriptorSet GetDescriptorWrite(VkDescriptorSet& descriptorSet, VkDescriptorImageInfo* imageInfo) {
-			return plvk::writeDescriptorSet(descriptorSet, this->mBinding, 0,
-											PlBufferTypeToVkDescriptorType(mBufferType),
-											mMaxBindlessResources > 0 ? 1 : mDescriptorCount, imageInfo, nullptr);
-		}
-
-		VulkanTexture* GetTexture();
-
-		VkImageView mNonDefaultView = VK_NULL_HANDLE;
-		// std::shared_ptr<VulkanTexture> mTexture = nullptr;
-		template <class Archive> void serialize(Archive& archive) {
-			archive(cereal::base_class<PlazaTextureBinding>(this));
-		}
-
-	  private:
+	struct PLAZA_API VulkanResourceInfo {
+		VkDescriptorType descriptorType;
+		VkShaderStageFlags stageFlags;
+		VkImageUsageFlags imageUsageFlags;
+		VkImageViewType imageViewType;
+		VkImageLayout imageLayout;
+		VkImageTiling imageTiling;
+		bool useBindless;
 	};
 
 	class PLAZA_API VulkanRenderPass : public PlazaRenderPass {
@@ -1652,6 +1627,7 @@ namespace Plaza {
 		// std::vector<std::shared_ptr<VulkanPlazaPipeline>> mPipelines =
 		// std::vector<std::shared_ptr<VulkanPlazaPipeline>>();
 
+		virtual void ReflectPass(PlazaRenderGraph* renderGraph) override;
 		virtual void Compile(PlazaRenderGraph* renderGraph) override;
 		virtual void BindMainBuffers() override;
 		virtual void BindPipelineBuffers(PlazaPipeline* pipeline) override;
@@ -1672,34 +1648,9 @@ namespace Plaza {
 		virtual void CompilePipeline(std::shared_ptr<PlazaPipeline> plazaPipeline) override;
 		virtual void TerminatePipeline(std::shared_ptr<PlazaPipeline> plazaPipeline) override;
 		virtual void ResetPipelineCompiledBool() override;
-		virtual void ReCompileShaders(bool resetCompiledBool) override;
+		virtual void ReCompileShaders(PlazaRenderGraph* graph, bool resetCompiledBool) override;
 
-		virtual std::shared_ptr<PlazaPipeline> AddPipeline(const PlPipelineCreateInfo& createInfo) override {
-			std::shared_ptr<VulkanPlazaPipeline> pipeline = std::make_shared<VulkanPlazaPipeline>();
-			pipeline->mCreateInfo = createInfo;
-			mPipelines.push_back(pipeline);
-			return pipeline;
-		}
-
-		/* Textures */
-		virtual PlazaRenderPass* AddInputTexture(uint64_t descriptorCount, uint8_t location, uint8_t binding, PlBufferType bufferType,
-					 PlRenderStage renderStage, PlImageLayout initialLayout, uint16_t baseMipLevel,
-					 uint16_t baseLayerLevel, std::shared_ptr<Texture> texture,
-					 PlAttachmentOp attachmentOp = PL_ATTACHMENT_OP_AUTO,
-					 bool useAsDepthStencilAttachment = false) override;
-
-		virtual PlazaRenderPass* AddOutputTexture(uint64_t descriptorCount, uint8_t location, uint8_t binding, PlBufferType bufferType,
-							 PlRenderStage renderStage, PlImageLayout initialLayout, uint16_t baseMipLevel,
-							 uint16_t baseLayerLevel, std::shared_ptr<Texture> texture,
-							 PlAttachmentOp attachmentOp = PL_ATTACHMENT_OP_AUTO,
-							 bool useAsDepthStencilAttachment = false) override;
-
-		/* Buffers */
-		virtual PlazaRenderPass* AddInputBuffer(uint64_t descriptorCount, uint8_t binding, PlBufferType type, PlRenderStage stage,
-							std::shared_ptr<PlBuffer> buffer) override;
-
-		virtual PlazaRenderPass* AddOutputBuffer(uint64_t descriptorCount, uint8_t binding, PlBufferType type, PlRenderStage stage,
-							std::shared_ptr<PlBuffer> buffer) override;
+		virtual std::shared_ptr<PlazaPipeline> AddPipeline(const PlPipelineCreateInfo& createInfo) override;
 
 		inline void UpdateCommandBuffer(VkCommandBuffer& commandBuffer) {
 			mCommandBuffer = commandBuffer;
@@ -1718,7 +1669,15 @@ namespace Plaza {
 			archive(cereal::base_class<PlazaRenderPass>(this));
 		}
 
-		virtual PlazaRenderPass* AddChildPass(const std::string& name, int stage, PlRenderPassMode renderMethod, glm::vec2 size, bool flipViewPort);
+		virtual PlazaRenderPass* AddChildPass(const std::string& name, int stage, PlRenderPassMode renderMethod,
+											  glm::vec2 size, bool flipViewPort);
+
+		std::set<std::string> mInputResourcesName;
+		std::unordered_map<std::string, VulkanResourceInfo> mResourcesInfo;
+		PlazaRenderPass* SetTexture(const std::string& slotName, std::shared_ptr<Texture> texture) override;
+		PlazaRenderPass* SetBuffer(const std::string& slotName, std::shared_ptr<PlBuffer> buffer) override;
+		PlazaRenderPass* SetSampler(const std::string& slotName, std::shared_ptr<PlTextureSampler> sampler) override;
+		PlazaRenderPass* AddRenderTarget(std::shared_ptr<Texture> texture) override;
 
 	  private:
 		virtual void CompileGraphics(PlazaRenderGraph* renderGraph) override;
@@ -1732,16 +1691,20 @@ namespace Plaza {
 								 std::vector<VkWriteDescriptorSet>& descriptorWrites,
 								 std::vector<VkDescriptorBufferInfo*>& bufferInfos,
 								 std::vector<VkDescriptorImageInfo*>& imageInfos);
+
+		PlImageLayout GetReflectedBindingOptimalLayout(const ShaderReflection::ReflectedBinding& binding);
 	};
 
 	class PLAZA_API VulkanRenderGraph : public PlazaRenderGraph {
 	  public:
-		VulkanRenderGraph(Renderer* renderer = nullptr)
-			: PlazaRenderGraph(renderer) {}
+		VulkanRenderGraph(Renderer* renderer = nullptr) : PlazaRenderGraph(renderer) {}
 		void Execute(Scene* scene, uint8_t imageIndex, uint8_t currentFrame) override;
 		void OrderPasses() override;
 		bool BindPass(std::string passName) override;
 		// void Compile() override;
+
+		// Info about resources used to build them
+		std::unordered_map<std::string, VulkanResourceInfo> mResourcesInfo;
 
 		void UpdateCommandBuffer(VkCommandBuffer& commandBuffer) { mCommandBuffer = &commandBuffer; }
 
@@ -1755,8 +1718,13 @@ namespace Plaza {
 		void DebugRendererNodes(const PlViewport& viewport, const std::string& textureToDraw);
 		VulkanRenderGraph* BuildSkyboxRenderGraph();
 		void RunSkyboxRenderGraph(VulkanRenderGraph* renderGraph);
-		void AddPipeline() override;
+
 		void CreatePipeline(PlPipelineCreateInfo createInfo) override;
+		void CompileBuffer(std::shared_ptr<PlBuffer> buffer, std::set<std::string>& compiledBindings) override;
+		void CompileTexture(std::shared_ptr<PlazaTextureBinding> texture,
+							std::set<std::string>& compiledBindings) override;
+		void CompileTextureSampler(std::shared_ptr<PlazaTextureSamplerBinding> binding,
+								   std::set<std::string>& compiledBindings) override;
 
 		void CompileNotBoundBuffers() override {
 			for (auto& [key, value] : mBuffers) {
@@ -1765,18 +1733,32 @@ namespace Plaza {
 										PlBufferUsageToVkBufferUsage(value->mBufferUsage),
 										PlMemoryUsageToVmaMemoryUsage(value->mMemoryUsage), 0, value->mBufferCount);
 					value->CreateMemory(0, value->mBufferCount);
+					mCompiledBindings.insert(value->mName);
 				}
 			}
 		}
 
-		void AddTexture(uint64_t descriptorCount, PlImageUsage imageUsage, PlTextureType imageType,
-						PlViewType viewType, PlTextureFormat format, glm::vec3 resolution, uint8_t mipCount,
-						uint16_t layersCount, const std::string& name) override;
+		void AddTexture(uint64_t descriptorCount, PlImageUsage imageUsage, PlTextureType imageType, PlViewType viewType,
+						PlTextureFormat format, glm::vec3 resolution, uint8_t mipCount, uint16_t layersCount,
+						const std::string& name) override;
 
 		void AddBuffer(PlBufferType type, uint64_t maxItems, uint16_t stride, uint8_t bufferCount,
-							   PlBufferUsage bufferUsage, PlMemoryUsage memoryUsage, const std::string& name) override;
+					   PlBufferUsage bufferUsage, PlMemoryUsage memoryUsage, const std::string& name) override;
 
-		virtual PlazaRenderPass* AddRenderPass(const std::string& name, int stage, PlRenderPassMode renderMethod, glm::vec2 size, bool flipViewPort) override;
+		virtual void AddSampler(const std::string& name, PlFilter magFilter = PL_FILTER_LINEAR,
+								PlFilter minFilter = PL_FILTER_LINEAR,
+								PlSamplerAddressMode addressModeU = PL_SAMPLER_ADDRESS_MODE_REPEAT,
+								PlSamplerAddressMode addressModeV = PL_SAMPLER_ADDRESS_MODE_REPEAT,
+								PlSamplerAddressMode addressModeW = PL_SAMPLER_ADDRESS_MODE_REPEAT,
+								bool useAnisotropy = true, float maxAnisotropy = 16.0f,
+								PlBorderColor borderColor = PL_BORDER_COLOR_INT_OPAQUE_BLACK,
+								bool useUnnormalizedCoordinates = false, bool useCompare = false,
+								PlCompareOp compareOp = PL_COMPARE_OP_ALWAYS,
+								PlSamplerMipmapMode mipmapMode = PL_SAMPLER_MIPMAP_MODE_LINEAR, float mipLodBias = 0.0f,
+								float minLod = 0.0f, float maxLod = 0.0f) override;
+
+		virtual PlazaRenderPass* AddRenderPass(const std::string& name, int stage, PlRenderPassMode renderMethod,
+											   glm::vec2 size, bool flipViewPort) override;
 
 		template <class Archive> void serialize(Archive& archive) {
 			archive(cereal::base_class<PlazaRenderGraph>(this));

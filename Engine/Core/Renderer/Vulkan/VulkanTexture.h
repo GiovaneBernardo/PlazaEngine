@@ -11,7 +11,7 @@ namespace Plaza {
 	  public:
 		VkDescriptorSet GetDescriptorSet() override;
 
-		VulkanTexture(){};
+		VulkanTexture() {};
 		VulkanTexture(glm::vec4 rgba, float intensity = 1.0f) {
 			this->rgba = rgba;
 			this->mIntensity = intensity;
@@ -22,7 +22,7 @@ namespace Plaza {
 					  const std::string& name)
 			: Texture(descriptorCount, imageUsage, imageType, viewType, format, resolution, mipCount, layersCount,
 					  name) {}
-		~VulkanTexture(){};
+		~VulkanTexture() {};
 
 		VkDescriptorSet mDescriptorSet = VK_NULL_HANDLE;
 		static inline std::atomic<int> mLastBindingIndex = 1;
@@ -81,5 +81,20 @@ namespace Plaza {
 		ImTextureID GetImGuiTextureID() override;
 
 		friend VulkanRenderer;
+	};
+
+	class PLAZA_API VulkanTextureSampler : public PlTextureSampler {
+	  public:
+		VkSampler mSampler = VK_NULL_HANDLE;
+
+		VulkanTextureSampler(const std::string& name, PlFilter magFilter, PlFilter minFilter,
+							 PlSamplerAddressMode addressModeU, PlSamplerAddressMode addressModeV,
+							 PlSamplerAddressMode addressModeW, bool useAnisotropy, float maxAnisotropy,
+							 PlBorderColor borderColor, bool useUnnormalizedCoordinates, bool useCompare,
+							 PlCompareOp compareOp, PlSamplerMipmapMode mipmapMode, float mipLodBias, float minLod,
+							 float maxLod)
+			: PlTextureSampler(name, magFilter, minFilter, addressModeU, addressModeV, addressModeW, useAnisotropy,
+							   maxAnisotropy, borderColor, useUnnormalizedCoordinates, useCompare, compareOp,
+							   mipmapMode, mipLodBias, minLod, maxLod) {}
 	};
 } // namespace Plaza

@@ -5,7 +5,8 @@
 #include "Engine/Core/Engine.h"
 #include "PlazaPipeline.h"
 #include "Engine/Core/Renderer/RendererTypes.h"
-#include "Engine/Core/Renderer/Mesh.h"
+#include "RenderPass.h"
+#include "ShaderReflection.h"
 
 namespace Plaza {
 	class PLAZA_API PlazaShadersBinding {
@@ -19,6 +20,7 @@ namespace Plaza {
 		uint8_t mBinding = 0;
 		PlBindingType mBindingType = PlBindingType::PL_BINDING_UNDEFINED;
 		uint64_t mMaxBindlessResources = 0;
+		// TODO: REMOVE UNUSED mResourceName
 		std::string mResourceName = "";
 		bool mUseAsDepthStencilAttachment = false;
 
@@ -54,32 +56,6 @@ namespace Plaza {
 
 		virtual void Compile() {};
 		virtual void Destroy() {};
-
-		// template<typename T>
-		// T* SetMemoryProperties(uint32_t newProperties) {
-		//	mMemoryProperties = static_cast<PlMemoryProperty>(newProperties);
-		//	return dynamic_cast<T*>(this);
-		// }
-		// template<typename T>
-		// T* SetBufferUsage(uint32_t newUsage) {
-		//	mBufferUsage = static_cast<PlBufferUsage>(newUsage);
-		//	return dynamic_cast<T*>(this);
-		// }
-		// template<typename T>
-		// T* SetMemoryUsage(uint32_t newUsage) {
-		//	mMemoryUsage = static_cast<PlMemoryUsage>(newUsage);
-		//	return dynamic_cast<T*>(this);
-		// }
-
-		// PlMemoryProperty GetMemoryProperty() {
-		//	return mMemoryProperties;
-		// }
-		// PlBufferUsage GetBufferUsage() {
-		//	return mBufferUsage;
-		// }
-		// PlMemoryUsage GetMemoryUsage() {
-		//	return mMemoryUsage;
-		// }
 
 		template <class Archive> void serialize(Archive& archive) {
 			archive(cereal::base_class<PlazaShadersBinding>(this), PL_SER(mBuffer));
@@ -132,191 +108,26 @@ namespace Plaza {
 	  private:
 	};
 
-	class PlazaRenderGraph;
-	class PLAZA_API PlazaRenderPass {
+	class PLAZA_API PlazaTextureSamplerBinding : public PlazaShadersBinding {
 	  public:
-		PlazaRenderPass() {}
-		PlazaRenderPass(std::string name, int stage, PlRenderPassMode renderMethod, glm::vec2 size, bool flipViewPort)
-			: mName(name), mStage(stage), mRenderMethod(renderMethod), mRenderSize(size), mFlipViewPort(flipViewPort) {}
-		PlazaRenderPass(const PlazaRenderPass& other) = default;
+		PlazaTextureSamplerBinding() {}
+		PlazaTextureSamplerBinding(const PlazaTextureSamplerBinding& other) = default;
 
-		std::string mName = "";
-		int16_t mExecutionIndex = 0;
-		int mStage = 0;
-		PlRenderPassMode mRenderMethod = PL_RENDER_PASS_FULL_SCREEN_QUAD;
-		uint16_t mMultiViewCount = 0;
-		glm::vec2 mRenderSize = glm::vec2(0, 0);
-		glm::vec3 mDispatchSize = glm::vec3(0, 0, 0);
-		bool mFlipViewPort = true;
+		PlBufferType mBufferType = PL_BUFFER_SAMPLER;
 
-		std::vector<std::shared_ptr<PlazaPipeline>> mPipelines = std::vector<std::shared_ptr<PlazaPipeline>>();
+		virtual void Compile() {};
+		virtual void Destroy() {};
 
-		std::map<std::string, std::shared_ptr<PlazaRenderPass>> mDependencies =
-			std::map<std::string, std::shared_ptr<PlazaRenderPass>>();
-		std::map<std::string, std::shared_ptr<PlazaRenderPass>> mDependents =
-			std::map<std::string, std::shared_ptr<PlazaRenderPass>>();
-
-		std::vector<shared_ptr<PlazaShadersBinding>> mInputBindings = std::vector<shared_ptr<PlazaShadersBinding>>();
-		std::map<std::string, shared_ptr<PlazaShadersBinding>> mInputBindingNames =
-			std::map<std::string, shared_ptr<PlazaShadersBinding>>();
-		std::vector<shared_ptr<PlazaShadersBinding>> mOutputBindings = std::vector<shared_ptr<PlazaShadersBinding>>();
-		std::map<std::string, shared_ptr<PlazaShadersBinding>> mOutputBindingNames =
-			std::map<std::string, shared_ptr<PlazaShadersBinding>>();
-
-		std::function<void(PlazaRenderGraph*, PlazaRenderPass*, Scene* scene)> mCallback = [](PlazaRenderGraph*, PlazaRenderPass*, Scene* scene) {};
-
-		virtual void Compile(PlazaRenderGraph* renderGraph) {};
-		virtual void Execute(Scene* scene, PlazaRenderGraph* renderGraph) {
-			mCallback(renderGraph, this, scene);
-			if (mRenderMethod != PL_RENDER_PASS_HOLDER) {
-				if (mRenderMethod != PL_RENDER_PASS_COMPUTE) {
-					this->BindRenderPass();
-					this->BindMainBuffers();
-				}
-				for (auto& pipeline : mPipelines) {
-					this->BindPipelineBuffers(pipeline.get());
-					switch (pipeline->mCreateInfo.renderMethod) {
-						case PL_RENDER_PASS_FULL_SCREEN_QUAD:
-							this->RenderFullScreenQuad(pipeline.get());
-							break;
-						case PL_RENDER_PASS_INDIRECT_BUFFER:
-							this->RenderIndirectBuffer(pipeline.get());
-							break;
-						case PL_RENDER_PASS_INDIRECT_BUFFER_SHADOW_MAP:
-							this->RenderIndirectBufferShadowMap(pipeline.get());
-							break;
-						case PL_RENDER_PASS_INDIRECT_BUFFER_SPECIFIC_ENTITY:
-							this->RenderIndirectBufferSpecificEntity(pipeline.get());
-							break;
-						case PL_RENDER_PASS_INDIRECT_BUFFER_SPECIFIC_MESH:
-							this->RenderIndirectBufferSpecificMesh(pipeline.get());
-							break;
-						case PL_RENDER_PASS_INDIRECT_BUFFER_SKINNED:
-							this->RenderIndirectBufferSkinned(pipeline.get());
-							break;
-						case PL_RENDER_PASS_CUBE:
-							this->RenderCube(pipeline.get());
-							break;
-						case PL_RENDER_PASS_COMPUTE:
-							this->RunCompute(pipeline.get());
-							break;
-						case PL_RENDER_PASS_GUI:
-							this->RenderGui(scene, pipeline.get());
-							break;
-						case PL_RENDER_PASS_GUI_RECTANGLE:
-							this->RenderGuiRectangle(scene, pipeline.get());
-							break;
-						case PL_RENDER_PASS_GUI_BUTTON:
-							this->RenderGuiButton(scene, pipeline.get());
-							break;
-						case PL_RENDER_PASS_GUI_TEXT:
-							this->RenderGuiText(scene, pipeline.get());
-							break;
-					}
-				}
-			}
-
-			for (auto& renderPass : mChildPasses) {
-				renderPass->Execute(scene, renderGraph);
-			}
-
-			if (mRenderMethod != PL_RENDER_PASS_HOLDER && mRenderMethod != PL_RENDER_PASS_COMPUTE)
-				this->EndRenderPass();
-		};
-		virtual void BindMainBuffers() {};
-		virtual void BindPipelineBuffers(PlazaPipeline* pipeline) {};
-		virtual void BindRenderPass() {};
-		virtual void EndRenderPass() {};
-
-		virtual void RenderIndirectBuffer(PlazaPipeline* pipeline) {};
-		virtual void RenderIndirectBufferShadowMap(PlazaPipeline* pipeline) {};
-		virtual void RenderIndirectBufferSpecificEntity(PlazaPipeline* pipeline) {};
-		virtual void RenderIndirectBufferSpecificMesh(PlazaPipeline* pipeline) {};
-		virtual void RenderIndirectBufferSkinned(PlazaPipeline* pipeline) {};
-		virtual void RenderFullScreenQuad(PlazaPipeline* pipeline) {};
-		virtual void RenderCube(PlazaPipeline* pipeline) {};
-		virtual void RunCompute(PlazaPipeline* pipeline) {};
-		virtual void RenderGui(Scene* scene, PlazaPipeline* pipeline) {};
-		virtual void RenderGuiRectangle(Scene* scene, PlazaPipeline* pipeline) {};
-		virtual void RenderGuiButton(Scene* scene, PlazaPipeline* pipeline) {};
-		virtual void RenderGuiText(Scene* scene, PlazaPipeline* pipeline) {};
-		virtual void CompilePipeline(std::shared_ptr<PlazaPipeline> plazaPipeline) {};
-		virtual void TerminatePipeline(std::shared_ptr<PlazaPipeline> plazaPipeline) {};
-		virtual void ResetPipelineCompiledBool() {};
-		virtual void ReCompileShaders(bool resetCompiledBool) {};
-
-		std::shared_ptr<PlazaPipeline> AddPipeline(std::shared_ptr<PlazaPipeline> pipeline) {
-			mPipelines.push_back(pipeline);
-			return pipeline;
-		};
-		virtual std::shared_ptr<PlazaPipeline> AddPipeline(const PlPipelineCreateInfo& createInfo) { return nullptr; };
-
-		void SetRecordingCallback(std::function<void(PlazaRenderGraph*, PlazaRenderPass*, Scene*)> callback) {
-			mCallback = callback;
-		}
-
-		/* Textures */
-		virtual PlazaRenderPass* AddInputTexture(uint64_t descriptorCount, uint8_t location, uint8_t binding, PlBufferType bufferType,
-					 PlRenderStage renderStage, PlImageLayout initialLayout, uint16_t baseMipLevel,
-					 uint16_t baseLayerLevel, std::shared_ptr<Texture> texture,
-					 PlAttachmentOp attachmentOp = PL_ATTACHMENT_OP_AUTO,
-					 bool useAsDepthStencilAttachment = false) = 0;
-
-		virtual PlazaRenderPass* AddOutputTexture(uint64_t descriptorCount, uint8_t location, uint8_t binding, PlBufferType bufferType,
-							 PlRenderStage renderStage, PlImageLayout initialLayout, uint16_t baseMipLevel,
-							 uint16_t baseLayerLevel, std::shared_ptr<Texture> texture,
-							 PlAttachmentOp attachmentOp = PL_ATTACHMENT_OP_AUTO,
-							 bool useAsDepthStencilAttachment = false) = 0;
-
-		/* Buffers */
-		virtual PlazaRenderPass* AddInputBuffer(uint64_t descriptorCount, uint8_t binding, PlBufferType type, PlRenderStage stage,
-							std::shared_ptr<PlBuffer> buffer) = 0;
-
-		virtual PlazaRenderPass* AddOutputBuffer(uint64_t descriptorCount, uint8_t binding, PlBufferType type, PlRenderStage stage,
-							std::shared_ptr<PlBuffer> buffer) = 0;
-
-		template <typename T> T* GetInputResource(const std::string& name) {
-			if (mInputBindingNames.find(name) == mInputBindingNames.end())
-				return nullptr;
-			return dynamic_cast<T*>(mInputBindingNames.at(name).get());
-		}
-
-		template <typename T> T* GetOutputResource(const std::string& name) {
-			if (mOutputBindingNames.find(name) == mOutputBindingNames.end())
-				return nullptr;
-			return dynamic_cast<T*>(mOutputBindingNames.at(name).get());
-		}
-
-		virtual PlazaRenderPass* AddChildPass(const std::string& name, int stage, PlRenderPassMode renderMethod, glm::vec2 size, bool flipViewPort) = 0;
-		PlazaRenderPass* AddChildPass(std::shared_ptr<PlazaRenderPass> pass) {
-			mChildPasses.push_back(pass);
-			return pass.get();
-		}
-		std::vector<std::shared_ptr<PlazaRenderPass>> mChildPasses = std::vector<std::shared_ptr<PlazaRenderPass>>();
+		std::shared_ptr<PlTextureSampler> mSampler = nullptr;
 
 		template <class Archive> void serialize(Archive& archive) {
-			archive(PL_SER(mName), PL_SER(mStage), PL_SER(mRenderMethod), PL_SER(mMultiViewCount), PL_SER(mRenderSize),
-					PL_SER(mDispatchSize), PL_SER(mFlipViewPort), PL_SER(mPipelines), PL_SER(mInputBindings),
-					PL_SER(mInputBindingNames), PL_SER(mOutputBindings), PL_SER(mOutputBindingNames),
-					PL_SER(mChildPasses));
+			archive(cereal::base_class<PlazaShadersBinding>(this), PL_SER(mBufferType), PL_SER(mSampler));
 		}
 
 	  private:
-		virtual void CompileGraphics(PlazaRenderGraph* renderGraph) {};
-
-	protected:
-		PlazaRenderPass* AddInputResource(std::shared_ptr<PlazaShadersBinding> resource) {
-			mInputBindings.push_back(resource);
-			mInputBindingNames.emplace(resource->mName, resource);
-			return this;
-		}
-
-		PlazaRenderPass* AddOutputResource(std::shared_ptr<PlazaShadersBinding> resource) {
-			mOutputBindings.push_back(resource);
-			mOutputBindingNames.emplace(resource->mName, resource);
-			return this;
-		}
 	};
+
+	class PlazaRenderGraph;
 
 	struct BindingModifiers {
 		BindingModifiers() {};
@@ -329,9 +140,7 @@ namespace Plaza {
 	class PLAZA_API PlazaRenderGraph : public Asset {
 	  public:
 		Renderer* mRenderer;
-		PlazaRenderGraph(Renderer* renderer) {
-			mRenderer = renderer;
-		}
+		PlazaRenderGraph(Renderer* renderer) { mRenderer = renderer; }
 		void BuildDefaultRenderGraph();
 
 		virtual void Execute(Scene* scene, uint8_t imageIndex, uint8_t currentFrame) {};
@@ -343,14 +152,24 @@ namespace Plaza {
 		}
 		void Compile() {
 			for (auto& pass : mOrderedPasses) {
+				PL_CORE_INFO("Reflecting Pass: " + pass->mName);
+				pass->ReflectPass(this);
+			}
+			for (auto& pass : mOrderedPasses) {
 				PL_CORE_INFO("Compiling Pass: " + pass->mName);
 				pass->Compile(this);
 			}
 		}
+		virtual void CompileBuffer(std::shared_ptr<PlBuffer> buffer, std::set<std::string>& compiledBindings) = 0;
+		virtual void CompileTexture(std::shared_ptr<PlazaTextureBinding> texture,
+									std::set<std::string>& compiledBindings) = 0;
+		virtual void CompileTextureSampler(std::shared_ptr<PlazaTextureSamplerBinding> binding,
+										   std::set<std::string>& compiledBindings) = 0;
 
 		virtual bool BindPass(std::string passName) { return false; };
 
-		virtual PlazaRenderPass* AddRenderPass(const std::string& name, int stage, PlRenderPassMode renderMethod, glm::vec2 size, bool flipViewPort) = 0;
+		virtual PlazaRenderPass* AddRenderPass(const std::string& name, int stage, PlRenderPassMode renderMethod,
+											   glm::vec2 size, bool flipViewPort) = 0;
 
 		void AddRenderPassCallback(std::string passName,
 								   std::function<void(PlazaRenderGraph*, PlazaRenderPass*, Scene*)> callback) {
@@ -363,13 +182,25 @@ namespace Plaza {
 		void AddBuffer(std::shared_ptr<PlBuffer> buffer) { mBuffers.emplace(buffer->mName, buffer); }
 		/* ---------- */
 
-		// Resources
+		// Resources creation
 		virtual void AddTexture(uint64_t descriptorCount, PlImageUsage imageUsage, PlTextureType imageType,
 								PlViewType viewType, PlTextureFormat format, glm::vec3 resolution, uint8_t mipCount,
 								uint16_t layersCount, const std::string& name) = 0;
 
 		virtual void AddBuffer(PlBufferType type, uint64_t maxItems, uint16_t stride, uint8_t bufferCount,
 							   PlBufferUsage bufferUsage, PlMemoryUsage memoryUsage, const std::string& name) = 0;
+
+		virtual void AddSampler(const std::string& name, PlFilter mMagFilter = PL_FILTER_LINEAR,
+								PlFilter mMinFilter = PL_FILTER_LINEAR,
+								PlSamplerAddressMode mAddressModeU = PL_SAMPLER_ADDRESS_MODE_REPEAT,
+								PlSamplerAddressMode mAddressModeV = PL_SAMPLER_ADDRESS_MODE_REPEAT,
+								PlSamplerAddressMode mAddressModeW = PL_SAMPLER_ADDRESS_MODE_REPEAT,
+								bool mUseAnisotropy = true, float mMaxAnisotropy = 16.0f,
+								PlBorderColor mBorderColor = PL_BORDER_COLOR_INT_OPAQUE_BLACK,
+								bool mUseUnnormalizedCoordinates = false, bool mUseCompare = false,
+								PlCompareOp mCompareOp = PL_COMPARE_OP_ALWAYS,
+								PlSamplerMipmapMode mMipmapMode = PL_SAMPLER_MIPMAP_MODE_LINEAR,
+								float mMipLodBias = 0.0f, float mMinLod = 0.0f, float mMaxLod = 0.0f) = 0;
 
 		PlazaRenderPass* GetRenderPass(const std::string& name) {
 			if (mPasses.find(name) != mPasses.end())
@@ -395,13 +226,17 @@ namespace Plaza {
 			return nullptr;
 		}
 
-		virtual void AddPipeline() {};
 		virtual void CreatePipeline(PlPipelineCreateInfo createInfo) {};
 
 		// template<typename T>
 		std::shared_ptr<Texture> GetSharedTexture(std::string name) {
 			assert(mTextures.find(name) != mTextures.end());
-			return mTextures.at(name); // dynamic_cast<std::shared_ptr<T*>>(mTextures.at(name));
+			return mTextures.at(name);
+		}
+
+		std::shared_ptr<PlTextureSampler> GetSharedTextureSampler(std::string name) {
+			assert(mTextureSamplers.find(name) != mTextureSamplers.end());
+			return mTextureSamplers.at(name);
 		}
 
 		std::shared_ptr<PlBuffer> GetSharedBuffer(std::string name) {
@@ -502,12 +337,14 @@ namespace Plaza {
 			}
 		}
 		std::map<std::string, std::shared_ptr<Texture>> mTextures = std::map<std::string, std::shared_ptr<Texture>>();
+		std::map<std::string, std::shared_ptr<PlTextureSampler>> mTextureSamplers =
+			std::map<std::string, std::shared_ptr<PlTextureSampler>>();
 
 	  private:
 		void BuildResources();
 		void BuildNodes();
 
-	protected:
+	  protected:
 		PlazaRenderPass* AddRenderPass(std::shared_ptr<PlazaRenderPass> newRenderPass) {
 			mOrderedPasses.push_back(newRenderPass);
 			mPasses.emplace(newRenderPass->mName, newRenderPass);

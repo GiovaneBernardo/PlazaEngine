@@ -20,6 +20,20 @@ namespace Plaza {
 		return shaderModule;
 	}
 
+	VkShaderModule VulkanShaders::CreateShaderModule(const std::vector<uint32_t>& code, VkDevice device) {
+		VkShaderModuleCreateInfo createInfo{};
+		createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+		createInfo.codeSize = code.size() * sizeof(uint32_t);
+		createInfo.pCode = code.data();
+
+		VkShaderModule shaderModule;
+		if (vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create shader module!");
+		}
+
+		return shaderModule;
+	}
+
 	std::vector<char> VulkanShaders::ReadFile(const std::string& filename) {
 		std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
@@ -399,23 +413,6 @@ namespace Plaza {
 
 			auto attributeDescriptions = VertexGetAttributeDescriptions();
 
-			std::cout << "Start \n";
-			for (unsigned int i = 0; i < instanceAttributeDescriptions.size(); ++i) {
-				std::cout << "instanceAttributeDescriptions \n";
-				std::cout << instanceAttributeDescriptions[i].binding << "\n";
-				std::cout << instanceAttributeDescriptions[i].location << "\n";
-				std::cout << instanceAttributeDescriptions[i].format << "\n";
-				std::cout << instanceAttributeDescriptions[i].offset << "\n";
-			}
-			for (unsigned int i = 0; i < bindingDescriptions.size(); ++i) {
-				std::cout << "bindingDescriptions \n";
-				std::cout << bindingDescriptions[i].binding << "\n";
-				std::cout << bindingDescriptions[i].stride << "\n";
-				std::cout << bindingDescriptions[i].inputRate << "\n";
-			}
-
-			std::cout << "End \n";
-
 			mVertexInputInfo.vertexBindingDescriptionCount = bindingDescriptions.size();
 			mVertexInputInfo.pVertexBindingDescriptions = bindingDescriptions.data();
 			mVertexInputInfo.vertexAttributeDescriptionCount = attributeDescriptions.size();
@@ -480,8 +477,6 @@ namespace Plaza {
 			VK_SUCCESS) {
 			throw std::runtime_error("failed to create graphics pipeline!");
 		}
-
-		std::cout << "End Pipe \n";
 
 		vkDestroyShaderModule(device, fragShaderModule, nullptr);
 		vkDestroyShaderModule(device, vertShaderModule, nullptr);

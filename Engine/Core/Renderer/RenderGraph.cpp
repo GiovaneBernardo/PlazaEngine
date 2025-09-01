@@ -4,6 +4,7 @@
 #include "Renderer.h"
 #include "stb_font_consolas_24_latin1.inl"
 #include "Engine/Core/Scene.h"
+#include "Engine/Core/Renderer/Mesh.h"
 
 namespace Plaza {
 	void PlazaRenderGraph::BuildDefaultRenderGraph() {
@@ -38,7 +39,7 @@ namespace Plaza {
 			glm::ceil(screenSize.x / deferredTileSize.x + 1) * glm::ceil(screenSize.y / deferredTileSize.y + 1);
 
 		this->AddTexture(mRenderer->mMaxBindlessTextures, inImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D,
-						 PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(1, 1, 1), 1, 0, "TexturesBuffer");
+						 PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(1, 1, 1), 1, 1, "TexturesBuffer");
 
 		this->AddTexture(
 			1, equirectangularImageUsage, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R8_UNORM,
@@ -113,6 +114,8 @@ namespace Plaza {
 
 		this->AddTexture(1, outImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D, PL_FORMAT_R32G32B32A32_SFLOAT,
 						 glm::vec3(8, 8, 1), 1, 1, "SceneDownSampledTexture");
+
+		this->AddSampler("MaterialsSampler");
 
 		std::string skyboxPath;
 #ifdef EDITOR_MODE
@@ -285,48 +288,43 @@ namespace Plaza {
 			float flipY = 1.0f;
 		};
 
-		this->AddRenderPass("Shadow Pass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT,
-							PL_RENDER_PASS_INDIRECT_BUFFER_SHADOW_MAP,
-							glm::vec2(shadowMapResolution, shadowMapResolution), true)
-			->AddInputBuffer(1, 0, PlBufferType::PL_BUFFER_UNIFORM_BUFFER, PL_STAGE_VERTEX,
-							 this->GetSharedBuffer("ShadowPassUBO"))
-			->AddInputBuffer(1, 1, PL_BUFFER_STORAGE_BUFFER, PL_STAGE_VERTEX,
-							 this->GetSharedBuffer("BoneMatricesBuffer"))
-			->AddOutputTexture(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT,
-							   PL_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 0, 0,
-							   this->GetSharedTexture("ShadowsDepthMap"));
-
-		this->GetRenderPass("Shadow Pass")->mMultiViewCount =
-			mRenderer->mRendererSettings.mLightingSettings.mCascadeCount;
-		this->GetRenderPass("Shadow Pass")
-			->AddPipeline(pl::pipelineCreateInfo(
+		PlPipelineCreateInfo shadowPassPipelineCreateInfo = pl::pipelineCreateInfo(
 				"ShadowMapping", PL_RENDER_PASS_INDIRECT_BUFFER_SHADOW_MAP,
 				{pl::pipelineShaderStageCreateInfo(
 					 PL_STAGE_VERTEX,
-					 FilesManager::sEngineFolder.string() + "/Shaders/shadows/cascadedShadowDepthShaders.vert", "main"),
+					 FilesManager::sEngineFolder.string() + "/Shaders/shadows/cascadedShadowDepthShaders.vert", "mainVS"),
 				 pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT,
 												   FilesManager::sEngineFolder.string() +
 													   "/Shaders/shadows/cascadedShadowDepthShaders.frag",
-												   "main")},
+												   "mainPS")},
 				{pl::vertexInputBindingDescription(0, sizeof(Vertex), PL_VERTEX_INPUT_RATE_VERTEX),
 				 pl::vertexInputBindingDescription(1, sizeof(glm::vec4) * 4, PL_VERTEX_INPUT_RATE_INSTANCE)},
 				{pl::vertexInputAttributeDescription(0, 0, PL_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, position)),
-				 pl::vertexInputAttributeDescription(5, 1, PL_FORMAT_R32G32B32A32_SFLOAT, 0),
-				 pl::vertexInputAttributeDescription(6, 1, PL_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 4),
-				 pl::vertexInputAttributeDescription(7, 1, PL_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 8),
-				 pl::vertexInputAttributeDescription(8, 1, PL_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 12)},
+				 pl::vertexInputAttributeDescription(1, 1, PL_FORMAT_R32G32B32A32_SFLOAT, 0),
+				 pl::vertexInputAttributeDescription(2, 1, PL_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 4),
+				 pl::vertexInputAttributeDescription(3, 1, PL_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 8),
+				 pl::vertexInputAttributeDescription(4, 1, PL_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 12)},
 				PL_TOPOLOGY_TRIANGLE_LIST, false,
 				pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f,
 														 0.0f, PL_CULL_MODE_BACK, PL_FRONT_FACE_COUNTER_CLOCKWISE),
 				pl::pipelineColorBlendStateCreateInfo({pl::pipelineColorBlendAttachmentState(true)}),
-				pl::pipelineDepthStencilStateCreateInfo(true, true, PL_COMPARE_OP_LESS),
+				pl::pipelineDepthStencilStateCreateInfo(true, true, PL_COMPARE_OP_GREATER),
 				pl::pipelineViewportStateCreateInfo(1, 1),
 				pl::pipelineMultisampleStateCreateInfo(PL_SAMPLE_COUNT_1_BIT, 0),
-				{PL_DYNAMIC_STATE_VIEWPORT, PL_DYNAMIC_STATE_SCISSOR}, {}));
+				{PL_DYNAMIC_STATE_VIEWPORT, PL_DYNAMIC_STATE_SCISSOR}, {});
+
+		this->AddRenderPass("ShadowPass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT,
+			PL_RENDER_PASS_INDIRECT_BUFFER_SHADOW_MAP,
+			glm::vec2(shadowMapResolution, shadowMapResolution), true)
+		->SetBuffer("ShadowsUBO", this->GetSharedBuffer("ShadowPassUBO"))
+		->SetBuffer("BoneMatrices", this->GetSharedBuffer("BoneMatricesBuffer"))
+		->AddRenderTarget(this->GetSharedTexture("ShadowsDepthMap"))
+		->SetShader("Shadows.hlsl")
+		->AddPipeline(shadowPassPipelineCreateInfo);
 
 		static ShadowPassUBO shadowPassUbo{};
 		this->AddRenderPassCallback(
-			"Shadow Pass", [&](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass, Scene* scene) {
+			"ShadowPass", [&](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass, Scene* scene) {
 				if (mRenderer->mRendererSettings.mLightingSettings.mUpdateCascades)
 					mRenderer->mRendererSettings.mLightingSettings.mShadowCascadeMatrices =
 						GetShadowMatrices(mRenderer->mRendererSettings.mLightingSettings,
@@ -343,787 +341,117 @@ namespace Plaza {
 					->UpdateData<ShadowPassUBO>(Application::Get()->mRenderer->mCurrentFrame, shadowPassUbo);
 			});
 
-		glm::vec2 gPassSize = Application::Get()->appSizes->sceneSize;
-		this->AddRenderPass("Deferred Geometry Pass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT,
-							PL_RENDER_PASS_INDIRECT_BUFFER, glm::vec2(gPassSize.x, gPassSize.y), true)
-			->AddInputBuffer(1, 0, PlBufferType::PL_BUFFER_UNIFORM_BUFFER, PL_STAGE_ALL,
-							 this->GetSharedBuffer("GPassUBO"))
-			->AddInputTexture(mRenderer->mMaxBindlessTextures, 0, 20, PL_BUFFER_COMBINED_IMAGE_SAMPLER,
-							  PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0,
-							  this->GetSharedTexture("TexturesBuffer"))
-			->AddInputBuffer(1, 19, PL_BUFFER_STORAGE_BUFFER, PL_STAGE_VERTEX, this->GetSharedBuffer("MaterialsBuffer"))
-			->AddInputBuffer(1, 1, PL_BUFFER_STORAGE_BUFFER, PL_STAGE_VERTEX,
-							 this->GetSharedBuffer("BoneMatricesBuffer"))
-			->AddInputBuffer(1, 2, PL_BUFFER_STORAGE_BUFFER, PL_STAGE_VERTEX,
-							 this->GetSharedBuffer("RenderGroupOffsetsBuffer"))
-			->AddInputBuffer(1, 3, PL_BUFFER_STORAGE_BUFFER, PL_STAGE_VERTEX,
-							 this->GetSharedBuffer("RenderGroupMaterialsOffsetsBuffer"))
-			->AddInputTexture(1, 0, 7, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT,
-							  PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("CubeMapTexture"))
-			->AddInputTexture(1, 0, 8, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT,
-							  PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0,
-							  this->GetSharedTexture("EquirectangularTexture"))
-			//->AddOutputTexture(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT,
-			// PL_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 0, 0, this->GetSharedTexture("GPosition"))
-			->AddOutputTexture(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-							   0, 0, this->GetSharedTexture("GNormal"))
-			->AddOutputTexture(1, 1, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-							   0, 0, this->GetSharedTexture("GDiffuse"))
-			->AddOutputTexture(1, 2, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-							   0, 0, this->GetSharedTexture("GOthers"))
-			->AddOutputTexture(1, 3, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT,
-							   PL_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 0, 0,
-							   this->GetSharedTexture("SceneDepth"));
 
-		this->GetRenderPass("Deferred Geometry Pass")
-			->AddPipeline(pl::pipelineCreateInfo(
-				"MainShaders", PL_RENDER_PASS_INDIRECT_BUFFER,
-				{pl::pipelineShaderStageCreateInfo(
-					 PL_STAGE_VERTEX,
-					 FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/deferred/geometryPass.vert", "main"),
-				 pl::pipelineShaderStageCreateInfo(
-					 PL_STAGE_FRAGMENT,
-					 FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/deferred/geometryPass.frag", "main")},
-				VertexGetBindingDescription(), VertexGetAttributeDescriptions(), PL_TOPOLOGY_TRIANGLE_LIST, false,
-				pl::pipelineRasterizationStateCreateInfo(
-					false, false, mRenderer->mShowWireframe ? PL_POLYGON_MODE_LINE : PL_POLYGON_MODE_FILL, 1.0f, false,
-					0.0f, 0.0f, 0.0f, PL_CULL_MODE_BACK, PL_FRONT_FACE_COUNTER_CLOCKWISE),
-				pl::pipelineColorBlendStateCreateInfo({pl::pipelineColorBlendAttachmentState(true),
-													   pl::pipelineColorBlendAttachmentState(true),
-													   pl::pipelineColorBlendAttachmentState(true)}),
-				pl::pipelineDepthStencilStateCreateInfo(true, true, PL_COMPARE_OP_LESS_OR_EQUAL),
-				pl::pipelineViewportStateCreateInfo(1, 1),
-				pl::pipelineMultisampleStateCreateInfo(PL_SAMPLE_COUNT_1_BIT, 0),
-				{PL_DYNAMIC_STATE_VIEWPORT, PL_DYNAMIC_STATE_SCISSOR}, {}));
+		// Geometry
+		PlPipelineCreateInfo geometryPassPipelineCreateInfo = pl::pipelineCreateInfo(
+		"GeometryPass", PL_RENDER_PASS_INDIRECT_BUFFER,
+		{},
+		{pl::vertexInputBindingDescription(0, sizeof(Vertex), PL_VERTEX_INPUT_RATE_VERTEX),
+			pl::vertexInputBindingDescription(1, sizeof(glm::vec4) * 4, PL_VERTEX_INPUT_RATE_INSTANCE)},
+		{
+		pl::vertexInputAttributeDescription(0, 0, PL_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, position)),       // inPosition
+		pl::vertexInputAttributeDescription(1, 0, PL_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, normal)),         // inNormal
+		pl::vertexInputAttributeDescription(2, 0, PL_FORMAT_R32G32_SFLOAT, offsetof(Vertex, texCoords)),         // inTexCoord
+		pl::vertexInputAttributeDescription(3, 0, PL_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, tangent)),       // inTangent
+		pl::vertexInputAttributeDescription(4, 1, PL_FORMAT_R32G32B32A32_SFLOAT, 0),                            // instanceMatrix0
+		pl::vertexInputAttributeDescription(5, 1, PL_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 4),          // instanceMatrix1
+		pl::vertexInputAttributeDescription(6, 1, PL_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 8),          // instanceMatrix2
+		pl::vertexInputAttributeDescription(7, 1, PL_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 12),         // instanceMatrix3
+		pl::vertexInputAttributeDescription(8, 1, PL_FORMAT_R32_UINT,  sizeof(unsigned int))},
 
-		this->GetRenderPass("Deferred Geometry Pass")
-			->AddPipeline(pl::pipelineCreateInfo(
-				"Skinned", PL_RENDER_PASS_INDIRECT_BUFFER_SKINNED,
-				{pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX,
-												   FilesManager::sEngineFolder.string() +
-													   "/Shaders/Vulkan/deferred/geometrySkinnedPass.vert",
-												   "main"),
-				 pl::pipelineShaderStageCreateInfo(
-					 PL_STAGE_FRAGMENT,
-					 FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/deferred/geometryPass.frag", "main")},
-				VertexGetBindingDescription(), SkinnedVertexGetAttributeDescriptions(), PL_TOPOLOGY_TRIANGLE_LIST,
-				false,
-				pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f,
-														 0.0f, PL_CULL_MODE_BACK, PL_FRONT_FACE_COUNTER_CLOCKWISE),
-				pl::pipelineColorBlendStateCreateInfo({pl::pipelineColorBlendAttachmentState(true),
-													   pl::pipelineColorBlendAttachmentState(true),
-													   pl::pipelineColorBlendAttachmentState(true)}),
-				pl::pipelineDepthStencilStateCreateInfo(true, true, PL_COMPARE_OP_LESS_OR_EQUAL),
-				pl::pipelineViewportStateCreateInfo(1, 1),
-				pl::pipelineMultisampleStateCreateInfo(PL_SAMPLE_COUNT_1_BIT, 0),
-				{PL_DYNAMIC_STATE_VIEWPORT, PL_DYNAMIC_STATE_SCISSOR}, {}));
+		PL_TOPOLOGY_TRIANGLE_LIST, false,
+		pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f,
+												 0.0f, PL_CULL_MODE_BACK, PL_FRONT_FACE_COUNTER_CLOCKWISE),
+		pl::pipelineColorBlendStateCreateInfo({3, pl::pipelineColorBlendAttachmentState(true)}),
+		pl::pipelineDepthStencilStateCreateInfo(true, true, PL_COMPARE_OP_LESS_OR_EQUAL),
+		pl::pipelineViewportStateCreateInfo(1, 1),
+		pl::pipelineMultisampleStateCreateInfo(PL_SAMPLE_COUNT_1_BIT, 0),
+		{PL_DYNAMIC_STATE_VIEWPORT, PL_DYNAMIC_STATE_SCISSOR}, {});
 
-		struct DeferredGeometrySkyboxPC {
-			glm::mat4 projection;
-			glm::mat4 view;
-			float skyboxIntensity;
-			float gamma;
-			float exposure;
-			float useless;
-		};
+		this->AddRenderPass("DeferredGeometryPass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT,
+			PL_RENDER_PASS_INDIRECT_BUFFER,
+			screenSize, true)
+		->SetBuffer("UBO", this->GetSharedBuffer("GPassUBO"))
+		->SetBuffer("MaterialsSSBO", this->GetSharedBuffer("MaterialsBuffer"))
+		->SetBuffer("RenderGroupMaterialsOffsets", this->GetSharedBuffer("RenderGroupMaterialsOffsetsBuffer"))
+		->SetBuffer("RenderGroupOffsets", this->GetSharedBuffer("RenderGroupOffsetsBuffer"))
+		->SetTexture("textures", this->GetSharedTexture("TexturesBuffer"))
+		->SetSampler("texSampler", this->GetSharedTextureSampler("MaterialsSampler"))
+		->AddRenderTarget(this->GetSharedTexture("GNormal"))
+		->AddRenderTarget(this->GetSharedTexture("GDiffuse"))
+		->AddRenderTarget(this->GetSharedTexture("GOthers"))
+		->AddRenderTarget(this->GetSharedTexture("SceneDepth"))
+		->SetShader("DeferredGeometry.hlsl")
+		->AddPipeline(geometryPassPipelineCreateInfo);
 
-		uint64_t skyboxMeshUuid = 2;
-		this->GetRenderPass("Deferred Geometry Pass")
-			->AddPipeline(pl::pipelineCreateInfo(
-				"Skybox", PL_RENDER_PASS_INDIRECT_BUFFER_SPECIFIC_MESH,
-				{pl::pipelineShaderStageCreateInfo(
-					 PL_STAGE_VERTEX, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/skybox/skybox.vert",
-					 "main"),
-				 pl::pipelineShaderStageCreateInfo(
-					 PL_STAGE_FRAGMENT, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/skybox/skybox.frag",
-					 "main")},
-				VertexGetBindingDescription(), VertexGetAttributeDescriptions(), PL_TOPOLOGY_TRIANGLE_LIST, false,
-				pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f,
-														 0.0f, PL_CULL_MODE_NONE, PL_FRONT_FACE_CLOCKWISE),
-				pl::pipelineColorBlendStateCreateInfo({pl::pipelineColorBlendAttachmentState(true),
-													   pl::pipelineColorBlendAttachmentState(true),
-													   pl::pipelineColorBlendAttachmentState(true)}),
-				pl::pipelineDepthStencilStateCreateInfo(true, false, PL_COMPARE_OP_LESS_OR_EQUAL),
-				pl::pipelineViewportStateCreateInfo(1, 1),
-				pl::pipelineMultisampleStateCreateInfo(PL_SAMPLE_COUNT_1_BIT, 0),
-				{PL_DYNAMIC_STATE_VIEWPORT, PL_DYNAMIC_STATE_SCISSOR},
-				{pl::pushConstantRange(PL_STAGE_ALL, 0, sizeof(DeferredGeometrySkyboxPC))}, {skyboxMeshUuid}));
-
-		this->AddRenderPassCallback("Deferred Geometry Pass", [&](PlazaRenderGraph* plazaRenderGraph,
-																  PlazaRenderPass* plazaRenderPass, Scene* scene) {
-			static UniformBufferObject ubo{};
-			ubo.projection = Application::Get()->activeCamera->GetProjectionMatrix();
-			ubo.view = Application::Get()->activeCamera->GetViewMatrix();
-			ubo.model = glm::mat4(1.0f);
-
-			ubo.cascadeCount = 9;
-			ubo.farPlane = 15000.0f;
-			ubo.nearPlane = 0.01f;
-
-			glm::vec3 lightDir = mRenderer->mRendererSettings.mLightingSettings.mLightDirection;
-			glm::vec3 lightDistance = glm::vec3(100.0f, 400.0f, 0.0f);
-			glm::vec3 lightPos;
-
-			ubo.lightDirection = glm::vec4(lightDir, 1.0f);
-			ubo.viewPos = glm::vec4(Application::Get()->activeCamera->Position, 1.0f);
-
-			ubo.directionalLightColor =
-				glm::vec4(mRenderer->mRendererSettings.mLightingSettings.directionalLightColor *
-						  mRenderer->mRendererSettings.mLightingSettings.directionalLightIntensity);
-			ubo.directionalLightColor.w = mRenderer->mRendererSettings.mLightingSettings.directionalLightIntensity;
-			ubo.ambientLightColor = glm::vec4(mRenderer->mRendererSettings.mLightingSettings.ambientLightColor *
-											  mRenderer->mRendererSettings.mLightingSettings.ambientLightIntensity);
-			ubo.gamma = mRenderer->gamma;
-
-			for (int i = 0; i < mRenderer->mRendererSettings.mLightingSettings.mCascadeCount; ++i) {
-				ubo.lightSpaceMatrices[i] = shadowPassUbo.lightSpaceMatrices[i];
-				ubo.cascadePlaneDistances[i] =
-					glm::vec4(mRenderer->mRendererSettings.mLightingSettings.shadowCascadeLevels[i], 1.0f, 1.0f, 1.0f);
-			}
-
-			ubo.showCascadeLevels = Application::Get()->showCascadeLevels;
-			plazaRenderGraph->GetSharedBuffer("GPassUBO")
-				->UpdateData<UniformBufferObject>(Application::Get()->mRenderer->mCurrentFrame, ubo);
-
-			plazaRenderPass->mPipelines[2]->UpdatePushConstants<DeferredGeometrySkyboxPC>(
-				0, DeferredGeometrySkyboxPC(Application::Get()->activeCamera->GetProjectionMatrix(),
-											Application::Get()->activeCamera->GetViewMatrix(),
-											mRenderer->mSkyboxIntensity, mRenderer->gamma, mRenderer->exposure, 0.0f));
-		});
-
-		this->GetRenderPass("Deferred Geometry Pass")
-			->GetInputResource<PlazaShadersBinding>("TexturesBuffer")
-			->mMaxBindlessResources = mRenderer->mMaxBindlessTextures;
-
-		// Lights sorter
-		struct LightSorterPC {
-			glm::mat4 view;
-			glm::mat4 projection;
-			int lightCount;
-			bool first;
-			glm::vec2 screenSize;
-			glm::vec2 clusterSize;
-		};
-
-		this->AddRenderPass("Light Sorter Pass", PL_STAGE_COMPUTE, PL_RENDER_PASS_COMPUTE, gPassSize, false)
-			->AddInputTexture(1, 0, 3, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_COMPUTE,
-							  PL_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, 0, 0,
-							  this->GetSharedTexture("SceneDepth"))
-			->AddOutputBuffer(1, 0, PL_BUFFER_STORAGE_BUFFER, PL_STAGE_COMPUTE, this->GetSharedBuffer("LightsBuffer"))
-			->AddOutputBuffer(1, 1, PL_BUFFER_STORAGE_BUFFER, PL_STAGE_COMPUTE, this->GetSharedBuffer("ClustersBuffer"))
-			->AddOutputBuffer(1, 8, PL_BUFFER_STORAGE_BUFFER, PL_STAGE_COMPUTE,
-							  this->GetSharedBuffer("TilesDepthBuffer"))
-			->AddPipeline(pl::pipelineCreateInfo(
-				"LightSorter", PL_RENDER_PASS_COMPUTE,
-				{pl::pipelineShaderStageCreateInfo(
-					PL_STAGE_COMPUTE,
-					FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/lighting/lightSorter.comp", "main")},
-				{}, {}, {}, {}, {}, {}, {}, {}, {}, {},
-				{pl::pushConstantRange(PL_STAGE_COMPUTE, 0, sizeof(LightSorterPC))}));
-
+		static UniformBufferObject geometryUbo{};
 		this->AddRenderPassCallback(
-			"Light Sorter Pass",
-			[&, gPassSize](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass, Scene* scene) {
+			"DeferredGeometryPass", [&](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass, Scene* scene) {
+
+				// TODO: MOVE THE THREAD THAT UPDATES THE TERRAIN GENERATED BY THE TERRAIN TOOL TO SOMEWHERE ELSE
 				Application::Get()->mThreadsManager->mFrameRendererAfterGeometry->Update();
-				glm::vec2 clusterSize = glm::vec2(32.0f);
-				glm::vec2 clusterCount = glm::ceil(gPassSize / clusterSize);
 
-				plazaRenderPass->mPipelines[0]->UpdatePushConstants<LightSorterPC>(
-					0, LightSorterPC(Application::Get()->activeCamera->GetViewMatrix(),
-									 Application::Get()->activeCamera->GetProjectionMatrix(),
-									 mRenderer->mRendererSettings.mLightingSettings.mLightsCount, true, gPassSize,
-									 clusterSize));
-				plazaRenderPass->mDispatchSize = glm::vec3(clusterCount.x, clusterCount.y, 1);
-			});
 
-		// Deferred Lighting
-		this->AddRenderPass("Deferred Lighting Pass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT,
-							PL_RENDER_PASS_FULL_SCREEN_QUAD, gPassSize, false)
-			->AddInputBuffer(1, 15, PlBufferType::PL_BUFFER_UNIFORM_BUFFER, PL_STAGE_FRAGMENT,
-							 this->GetSharedBuffer("DeferredPassUBO"))
-			->AddInputTexture(1, 0, 6, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT,
-							  PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("SamplerBRDFLUT"))
-			->AddInputTexture(1, 0, 7, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT,
-							  PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("PreFilterMap"))
-			->AddInputTexture(1, 0, 8, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT,
-							  PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("IrradianceMap"))
-			->AddInputTexture(1, 0, 9, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT,
-							  PL_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, 0, 0,
-							  this->GetSharedTexture("ShadowsDepthMap"))
-			->AddInputTexture(1, 0, 10, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT,
-							  PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0,
-							  this->GetSharedTexture("EquirectangularTexture"))
-			->AddInputTexture(1, 0, 0, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT,
-							  PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("GNormal"))
-			->AddInputTexture(1, 0, 1, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT,
-							  PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("GDiffuse"))
-			->AddInputTexture(1, 0, 2, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT,
-							  PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("GOthers"))
-			->AddInputTexture(1, 0, 3, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT,
-							  PL_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, 0, 0,
-							  this->GetSharedTexture("SceneDepth"))
-			->AddInputBuffer(1, 4, PL_BUFFER_STORAGE_BUFFER, PL_STAGE_FRAGMENT, this->GetSharedBuffer("LightsBuffer"))
-			->AddInputBuffer(1, 5, PL_BUFFER_STORAGE_BUFFER, PL_STAGE_FRAGMENT, this->GetSharedBuffer("ClustersBuffer"))
-			->AddOutputTexture(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-							   0, 0, this->GetSharedTexture("SceneTexture"));
+				geometryUbo.projection = Application::Get()->activeCamera->GetProjectionMatrix();
+				geometryUbo.view = Application::Get()->activeCamera->GetViewMatrix();
+				geometryUbo.model = glm::mat4(1.0f);
 
-		this->GetRenderPass("Deferred Lighting Pass")
-			->AddPipeline(pl::pipelineCreateInfo(
-				"LightingPassShaders", PL_RENDER_PASS_FULL_SCREEN_QUAD,
-				{pl::pipelineShaderStageCreateInfo(
-					 PL_STAGE_VERTEX,
-					 FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/lighting/deferredPass.vert", "main"),
-				 pl::pipelineShaderStageCreateInfo(
-					 PL_STAGE_FRAGMENT,
-					 FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/lighting/deferredPass.frag", "main")},
-				{}, {}, PL_TOPOLOGY_TRIANGLE_LIST, false,
-				pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f,
-														 0.0f, PL_CULL_MODE_NONE, PL_FRONT_FACE_COUNTER_CLOCKWISE),
-				pl::pipelineColorBlendStateCreateInfo({pl::pipelineColorBlendAttachmentState(true)}),
-				pl::pipelineDepthStencilStateCreateInfo(false, false, PL_COMPARE_OP_ALWAYS),
-				pl::pipelineViewportStateCreateInfo(1, 1),
-				pl::pipelineMultisampleStateCreateInfo(PL_SAMPLE_COUNT_1_BIT, 0),
-				{PL_DYNAMIC_STATE_VIEWPORT, PL_DYNAMIC_STATE_SCISSOR}, {}));
+				geometryUbo.cascadeCount = 9;
+				geometryUbo.farPlane = 15000.0f;
+				geometryUbo.nearPlane = 0.01f;
 
-		this->AddRenderPassCallback("Deferred Lighting Pass", [&](PlazaRenderGraph* plazaRenderGraph,
-																  PlazaRenderPass* plazaRenderPass, Scene* scene) {
-			static DeferredLightingPassUbo ubo{};
-			ubo.projection = Application::Get()->activeCamera->GetProjectionMatrix();
-			ubo.view = Application::Get()->activeCamera->GetViewMatrix();
+				glm::vec3 lightDir = mRenderer->mRendererSettings.mLightingSettings.mLightDirection;
+				glm::vec3 lightDistance = glm::vec3(100.0f, 400.0f, 0.0f);
+				glm::vec3 lightPos;
 
-			ubo.cascadeCount = 9;
-			ubo.farPlane = 15000.0f;
-			ubo.nearPlane = 0.01f;
+				geometryUbo.lightDirection = glm::vec4(lightDir, 1.0f);
+				geometryUbo.viewPos = glm::vec4(Application::Get()->activeCamera->Position, 1.0f);
 
-			glm::vec3 lightDir = mRenderer->mRendererSettings.mLightingSettings.mLightDirection;
-			glm::vec3 lightDistance = glm::vec3(100.0f, 400.0f, 0.0f);
-			glm::vec3 lightPos;
+				geometryUbo.directionalLightColor =
+					glm::vec4(mRenderer->mRendererSettings.mLightingSettings.directionalLightColor *
+							  mRenderer->mRendererSettings.mLightingSettings.directionalLightIntensity);
+				geometryUbo.directionalLightColor.w = mRenderer->mRendererSettings.mLightingSettings.directionalLightIntensity;
+				geometryUbo.ambientLightColor = glm::vec4(mRenderer->mRendererSettings.mLightingSettings.ambientLightColor *
+												  mRenderer->mRendererSettings.mLightingSettings.ambientLightIntensity);
+				geometryUbo.gamma = mRenderer->gamma;
 
-			ubo.lightDirection = glm::vec4(lightDir, 1.0f);
-			ubo.viewPos = glm::vec4(Application::Get()->activeCamera->Position, 1.0f);
-
-			ubo.directionalLightColor =
-				glm::vec4(mRenderer->mRendererSettings.mLightingSettings.directionalLightColor *
-						  mRenderer->mRendererSettings.mLightingSettings.directionalLightIntensity);
-			ubo.ambientLightColor = glm::vec4(mRenderer->mRendererSettings.mLightingSettings.ambientLightColor *
-											  mRenderer->mRendererSettings.mLightingSettings.ambientLightIntensity);
-			ubo.gamma = mRenderer->gamma;
-			ubo.exposure = mRenderer->exposure;
-
-			for (int i = 0; i < 16; ++i) {
-				ubo.lightSpaceMatrices[i] = shadowPassUbo.lightSpaceMatrices[i];
-				if (i <= 8)
-					ubo.cascadePlaneDistances[i] = glm::vec4(
-						mRenderer->mRendererSettings.mLightingSettings.shadowCascadeLevels[i], 1.0f, 1.0f, 1.0f);
-				else
-					ubo.cascadePlaneDistances[i] = glm::vec4(
-						mRenderer->mRendererSettings.mLightingSettings.shadowCascadeLevels[8], 1.0f, 1.0f, 1.0f);
-			}
-
-			ubo.showCascadeLevels = Application::Get()->showCascadeLevels;
-
-			ubo.lightCount = mRenderer->mRendererSettings.mLightingSettings.mLightsCount;
-			plazaRenderGraph->GetSharedBuffer("DeferredPassUBO")
-				->UpdateData<DeferredLightingPassUbo>(Application::Get()->mRenderer->mCurrentFrame, ubo);
-		});
-
-		/* Bloom */
-		struct BloomPassPC {
-			glm::vec4 u_threshold;
-			glm::vec2 u_texel_size;
-			int u_mip_level;
-			int u_use_threshold;
-			float u_bloom_intensity;
-		};
-		this->AddRenderPass("Bloom Pass", PL_STAGE_COMPUTE, PL_RENDER_PASS_HOLDER, gPassSize, false)
-			->AddInputTexture(1, 0, 0, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_COMPUTE,
-							  PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("BloomTexture"))
-			->AddInputTexture(1, 0, 1, PL_BUFFER_STORAGE_IMAGE, PL_STAGE_COMPUTE, PL_IMAGE_LAYOUT_GENERAL, 0, 0,
-							  this->GetSharedTexture("BloomTexture"))
-			->AddInputTexture(1, 0, 2, PL_BUFFER_STORAGE_IMAGE, PL_STAGE_COMPUTE, PL_IMAGE_LAYOUT_GENERAL, 0, 0,
-							  this->GetSharedTexture("SceneTexture"))
-			->AddOutputTexture(1, 0, 0, PL_BUFFER_STORAGE_IMAGE, PL_STAGE_COMPUTE, PL_IMAGE_LAYOUT_GENERAL, 0, 0,
-							   this->GetSharedTexture("BloomTexture"))
-			->SetRecordingCallback(
-				[&](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass, Scene* scene) {
-					VulkanTexture* texture = this->GetTexture<VulkanTexture>("SceneTexture");
-					mRenderer->CopyTexture(this->GetTexture<VulkanTexture>("SceneTexture"),
-										   this->GetTexture<VulkanTexture>("BloomTexture"), PL_IMAGE_LAYOUT_GENERAL);
-				});
-
-		uint32_t downScaleLimit = 10;
-		uint32_t width = gPassSize.x / 2;
-		uint32_t height = gPassSize.y / 2;
-		uint8_t bloomMipCount = 1;
-		for (uint8_t i = 0; i < 12; ++i) {
-			width = width / 2;
-			height = height / 2;
-			if (width < downScaleLimit || height < downScaleLimit)
-				break;
-			++bloomMipCount;
-		}
-		bool pingPong = true;
-		PlPipelineShaderStageCreateInfo downScaleShaders = pl::pipelineShaderStageCreateInfo(
-			PL_STAGE_COMPUTE,
-			VulkanShadersCompiler::Compile(FilesManager::sEngineFolder.string() +
-										   "/Shaders/Vulkan/bloom/bloomDownScale.comp"),
-			"main");
-		PlPipelineShaderStageCreateInfo upScaleShaders =
-			pl::pipelineShaderStageCreateInfo(PL_STAGE_COMPUTE,
-											  VulkanShadersCompiler::Compile(FilesManager::sEngineFolder.string() +
-																			 "/Shaders/Vulkan/bloom/bloomUpScale.comp"),
-											  "main");
-		PlPipelineCreateInfo bloomPipelineCreateInfo =
-			pl::pipelineCreateInfo("BloomShaders", PL_RENDER_PASS_COMPUTE, {downScaleShaders}, {}, {}, {}, {}, {}, {},
-								   {}, {}, {}, {}, {pl::pushConstantRange(PL_STAGE_COMPUTE, 0, sizeof(BloomPassPC))});
-		std::shared_ptr<PlazaPipeline> bloomDownScalePipeline =
-			this->GetRenderPass("Bloom Pass")->AddPipeline(bloomPipelineCreateInfo);
-
-		glm::uvec2 mipSize = glm::uvec2(gPassSize.x / 2, gPassSize.y / 2);
-		// DownScale
-		for (unsigned int i = 0; i < bloomMipCount - 1; ++i) {
-			this->GetRenderPass("Bloom Pass")
-				->AddChildPass("Bloom Pass " + std::to_string(i) + " DownScale", PL_STAGE_COMPUTE,
-							   PL_RENDER_PASS_COMPUTE, gPassSize, false)
-				->AddInputTexture(1, 0, 0, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_COMPUTE, PL_IMAGE_LAYOUT_GENERAL,
-								  i, 0, this->GetSharedTexture("BloomTexture"))
-				->AddInputTexture(1, 0, 1, PL_BUFFER_STORAGE_IMAGE, PL_STAGE_COMPUTE, PL_IMAGE_LAYOUT_GENERAL, i + 1, 0,
-								  this->GetSharedTexture("BloomTexture"))
-				->AddPipeline(bloomDownScalePipeline);
-			this->GetRenderPass("Bloom Pass")
-				->mChildPasses.back()
-				->SetRecordingCallback([&, mipSize, i](PlazaRenderGraph* plazaRenderGraph,
-													   PlazaRenderPass* plazaRenderPass, Scene* scene) {
-					float threshold = mRenderer->mRendererSettings.mBloomSettings.mThreshold;
-					float knee = mRenderer->mRendererSettings.mBloomSettings.mKnee;
-					BloomPassPC constant{};
-					constant.u_texel_size = 1.0f / glm::vec2(mipSize);
-					constant.u_mip_level = i;
-					constant.u_threshold = glm::vec4(threshold, threshold - knee, 2.0f * knee, 0.25f * knee);
-					constant.u_use_threshold = i == 0 ? 1 : 0;
-					constant.u_bloom_intensity = mRenderer->mRendererSettings.mBloomSettings.mBloomIntensity;
-					plazaRenderPass->mDispatchSize =
-						glm::vec3(glm::ceil(float(mipSize.x) / 8), glm::ceil(float(mipSize.y) / 8), 1);
-					plazaRenderPass->mPipelines[0]->UpdatePushConstants<BloomPassPC>(
-						0, BloomPassPC(constant.u_threshold, constant.u_texel_size, constant.u_mip_level,
-									   constant.u_use_threshold, constant.u_bloom_intensity));
-				});
-
-			mipSize = mipSize / 2u;
-		}
-		// UpScale
-		bloomPipelineCreateInfo.shaderStages = {upScaleShaders};
-		std::shared_ptr<PlazaPipeline> bloomUpScalePipeline =
-			this->GetRenderPass("Bloom Pass")->AddPipeline(bloomPipelineCreateInfo);
-		for (uint8_t i = bloomMipCount - 1; i >= 1; --i) {
-			mipSize.x =
-				glm::max(1.0, glm::floor(float(Application::Get()->appSizes->sceneSize.x) / glm::pow(2.0, i - 1)));
-			mipSize.y =
-				glm::max(1.0, glm::floor(float(Application::Get()->appSizes->sceneSize.y) / glm::pow(2.0, i - 1)));
-			if (i == 0) {
-				this->GetRenderPass("Bloom Pass")
-					->AddChildPass("Bloom Pass " + std::to_string(i) + " UpScale", PL_STAGE_COMPUTE,
-								   PL_RENDER_PASS_COMPUTE, gPassSize, false)
-					->AddInputTexture(1, 0, 0, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_COMPUTE,
-									  PL_IMAGE_LAYOUT_GENERAL, 1, 0, this->GetSharedTexture("BloomTexture"))
-					->AddInputTexture(1, 0, 1, PL_BUFFER_STORAGE_IMAGE, PL_STAGE_COMPUTE, PL_IMAGE_LAYOUT_GENERAL, i, 0,
-									  this->GetSharedTexture("BloomTexture"))
-					->AddPipeline(bloomUpScalePipeline);
-			}
-			else {
-				this->GetRenderPass("Bloom Pass")
-					->AddChildPass("Bloom Pass " + std::to_string(i) + " UpScale", PL_STAGE_COMPUTE,
-								   PL_RENDER_PASS_COMPUTE, gPassSize, false)
-					->AddInputTexture(1, 0, 0, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_COMPUTE,
-									  PL_IMAGE_LAYOUT_GENERAL, i, 0, this->GetSharedTexture("BloomTexture"))
-					->AddInputTexture(1, 0, 1, PL_BUFFER_STORAGE_IMAGE, PL_STAGE_COMPUTE, PL_IMAGE_LAYOUT_GENERAL,
-									  i - 1, 0, this->GetSharedTexture("BloomTexture"))
-					->AddPipeline(bloomUpScalePipeline);
-			}
-			this->GetRenderPass("Bloom Pass")
-				->mChildPasses.back()
-				->SetRecordingCallback([&, mipSize, i](PlazaRenderGraph* plazaRenderGraph,
-													   PlazaRenderPass* plazaRenderPass, Scene* scene) {
-					float threshold = mRenderer->mRendererSettings.mBloomSettings.mThreshold;
-					float knee = mRenderer->mRendererSettings.mBloomSettings.mKnee;
-					BloomPassPC constant{};
-					constant.u_texel_size = 1.0f / glm::vec2(mipSize);
-					constant.u_mip_level = i;
-					constant.u_threshold = glm::vec4(threshold, threshold - knee, 2.0f * knee, 0.25f * knee);
-					constant.u_use_threshold = i == 0 ? 1 : 0;
-					constant.u_bloom_intensity = mRenderer->mRendererSettings.mBloomSettings.mBloomIntensity;
-					plazaRenderPass->mDispatchSize =
-						glm::vec3(glm::ceil(float(mipSize.x) / 8), glm::ceil(float(mipSize.y) / 8), 1);
-					plazaRenderPass->mPipelines[0]->UpdatePushConstants<BloomPassPC>(
-						0, BloomPassPC(constant.u_threshold, constant.u_texel_size, constant.u_mip_level,
-									   constant.u_use_threshold, constant.u_bloom_intensity));
-				});
-		}
-
-		// Screen Space reflections
-		this->AddRenderPass("Screen Space Reflections Pass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT,
-							PL_RENDER_PASS_FULL_SCREEN_QUAD, gPassSize, false)
-			->AddInputTexture(1, 0, 0, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT,
-							  PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("GNormal"))
-			->AddInputTexture(1, 0, 1, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_GENERAL, 0,
-							  0, this->GetSharedTexture("BloomTexture"))
-			->AddInputTexture(1, 0, 2, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT,
-							  PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("GOthers"))
-			->AddInputTexture(1, 0, 3, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT,
-							  PL_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, 0, 0,
-							  this->GetSharedTexture("SceneDepth"))
-			->AddOutputTexture(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-							   0, 0, this->GetSharedTexture("SSRTexture"));
-
-		struct SSRPushConstants {
-			glm::vec4 screenSize;
-			glm::vec4 cameraPos;
-			glm::mat4 projection;
-			glm::mat4 view;
-			glm::mat4 lensProjection;
-		};
-		this->GetRenderPass("Screen Space Reflections Pass")
-			->AddPipeline(pl::pipelineCreateInfo(
-				"ScreenSpaceReflectionsShaders", PL_RENDER_PASS_FULL_SCREEN_QUAD,
-				{pl::pipelineShaderStageCreateInfo(
-					 PL_STAGE_VERTEX, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/ssr/ssr.vert", "main"),
-				 pl::pipelineShaderStageCreateInfo(
-					 PL_STAGE_FRAGMENT, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/ssr/ssr.frag", "main")},
-				{}, {}, PL_TOPOLOGY_TRIANGLE_LIST, false,
-				pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f,
-														 0.0f, PL_CULL_MODE_NONE, PL_FRONT_FACE_COUNTER_CLOCKWISE),
-				pl::pipelineColorBlendStateCreateInfo({pl::pipelineColorBlendAttachmentState(true)}),
-				pl::pipelineDepthStencilStateCreateInfo(false, false, PL_COMPARE_OP_ALWAYS),
-				pl::pipelineViewportStateCreateInfo(1, 1),
-				pl::pipelineMultisampleStateCreateInfo(PL_SAMPLE_COUNT_1_BIT, 0),
-				{PL_DYNAMIC_STATE_VIEWPORT, PL_DYNAMIC_STATE_SCISSOR},
-				{pl::pushConstantRange(PL_STAGE_FRAGMENT, 0, sizeof(SSRPushConstants))}, {}));
-		this->AddRenderPassCallback(
-			"Screen Space Reflections Pass",
-			[&](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass, Scene* scene) {
-				plazaRenderPass->mPipelines[0]->UpdatePushConstants<SSRPushConstants>(
-					0, SSRPushConstants(glm::vec4(Application::Get()->appSizes->sceneSize, 0.0f, 1.0f),
-										glm::vec4(Application::Get()->activeCamera->Position, 1.0f),
-										Application::Get()->activeCamera->GetProjectionMatrix(),
-										Application::Get()->activeCamera->GetViewMatrix(),
-										Application::Get()->activeCamera->GetProjectionMatrix()));
-			});
-
-		// Get scene luminance
-		this->AddRenderPass("Luminance Pass", PL_STAGE_COMPUTE, PL_RENDER_PASS_COMPUTE, gPassSize, false)
-			->AddInputTexture(1, 0, 0, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_COMPUTE,
-							  PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0,
-							  this->GetSharedTexture("SceneDownSampledTexture"))
-			->AddInputTexture(1, 0, 1, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_COMPUTE,
-							  PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("SSRTexture"))
-			->AddInputTexture(1, 0, 2, PL_BUFFER_STORAGE_IMAGE, PL_STAGE_COMPUTE, PL_IMAGE_LAYOUT_GENERAL, 0, 0,
-							  this->GetSharedTexture("LuminanceTexture"), PL_ATTACHMENT_OP_AUTO)
-			->SetRecordingCallback(
-				[&](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass, Scene* scene) {
-					// VulkanTexture* texture = this->GetTexture<VulkanTexture>("SSRTexture");
-					// VulkanTexture* downSampledTexture = this->GetTexture<VulkanTexture>("SceneDownSampledTexture");
-					//
-					// mRenderer->TransitionImageLayout(
-					//	texture->mImage, PlImageFormatToVkFormat(texture->GetTextureInfo().mFormat),
-					//	PlImageLayoutToVkImageLayout(PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL),
-					//	PlImageLayoutToVkImageLayout(PL_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL), 1, 1, 1, false,
-					//	*mCommandBuffer);
-					//
-					// mRenderer->CopyDifferentSizeTexture(
-					//	texture, PlImageLayoutToVkImageLayout(PL_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL),
-					//	this->GetTexture<VulkanTexture>("SceneDownSampledTexture"),
-					//	PlImageLayoutToVkImageLayout(PL_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL), // FIXED
-					//	*mCommandBuffer);
-					//
-					// mRenderer->TransitionImageLayout(
-					//	texture->mImage, PlImageFormatToVkFormat(texture->GetTextureInfo().mFormat),
-					//	PlImageLayoutToVkImageLayout(PL_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL),
-					//	PlImageLayoutToVkImageLayout(PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL), 1, 1, 1, false,
-					//	*mCommandBuffer);
-					//
-					// mRenderer->TransitionImageLayout(
-					//	downSampledTexture->mImage,
-					//PlImageFormatToVkFormat(downSampledTexture->GetTextureInfo().mFormat),
-					//	PlImageLayoutToVkImageLayout(PL_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL),
-					//	PlImageLayoutToVkImageLayout(PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL), 1, 1, 1, false,
-					//	*mCommandBuffer);
-					//
-					// plazaRenderPass->mDispatchSize = glm::vec3(1, 1, 1);
-				});
-
-		struct LuminancePassPC {};
-		PlPipelineCreateInfo luminancePipelineCreateInfo = pl::pipelineCreateInfo(
-			"LuminanceAveragerShaders", PL_RENDER_PASS_COMPUTE,
-			{pl::pipelineShaderStageCreateInfo(
-				PL_STAGE_COMPUTE,
-				FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/luminance/luminanceAverager.comp", "main")},
-			{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {});
-		this->GetRenderPass("Luminance Pass")->AddPipeline(luminancePipelineCreateInfo);
-
-		// Final Post Processing
-		this->AddRenderPass("Final Post Processing Pass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT,
-							PL_RENDER_PASS_FULL_SCREEN_QUAD, gPassSize, false)
-			->AddInputTexture(1, 0, 0, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT,
-							  PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("SSRTexture"))
-			->AddInputTexture(1, 0, 1, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT,
-							  PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("FontTexture"))
-			->AddInputTexture(1, 0, 2, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT,
-							  PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0,
-							  this->GetSharedTexture("LuminanceTexture"))
-			->AddOutputTexture(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-							   0, 0, this->GetSharedTexture("FinalTexture"), PL_ATTACHMENT_OP_LOAD);
-
-		struct FinalPostProcessingPC {
-			float exposure;
-			float gamma;
-		};
-		this->GetRenderPass("Final Post Processing Pass")
-			->AddPipeline(pl::pipelineCreateInfo(
-				"FinalShaders", PL_RENDER_PASS_FULL_SCREEN_QUAD,
-				{pl::pipelineShaderStageCreateInfo(
-					 PL_STAGE_VERTEX, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/swapchainDraw.vert",
-					 "main"),
-				 pl::pipelineShaderStageCreateInfo(
-					 PL_STAGE_FRAGMENT, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/swapchainDraw.frag",
-					 "main")},
-				{}, {}, PL_TOPOLOGY_TRIANGLE_LIST, false,
-				pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f,
-														 0.0f, PL_CULL_MODE_NONE, PL_FRONT_FACE_COUNTER_CLOCKWISE),
-				pl::pipelineColorBlendStateCreateInfo({pl::pipelineColorBlendAttachmentState(true)}),
-				pl::pipelineDepthStencilStateCreateInfo(false, false, PL_COMPARE_OP_ALWAYS),
-				pl::pipelineViewportStateCreateInfo(1, 1),
-				pl::pipelineMultisampleStateCreateInfo(PL_SAMPLE_COUNT_1_BIT, 0),
-				{PL_DYNAMIC_STATE_VIEWPORT, PL_DYNAMIC_STATE_SCISSOR},
-				{pl::pushConstantRange(PL_STAGE_FRAGMENT, 0, sizeof(FinalPostProcessingPC))}));
-
-		// Gui
-		struct GuiShadersPC {
-			glm::mat4 matrix;
-		};
-		PlPipelineCreateInfo guiPipelineInfo = pl::pipelineCreateInfo(
-			"GuiShaders", PL_RENDER_PASS_GUI_RECTANGLE,
-			{pl::pipelineShaderStageCreateInfo(
-				 PL_STAGE_VERTEX, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/gui/rectangle.vert", "main"),
-			 pl::pipelineShaderStageCreateInfo(
-				 PL_STAGE_FRAGMENT, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/gui/rectangle.frag",
-				 "main")},
-			VertexGetBindingDescription(), VertexGetAttributeDescriptions(), PL_TOPOLOGY_TRIANGLE_LIST, false,
-			pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f, 0.0f,
-													 PL_CULL_MODE_NONE, PL_FRONT_FACE_COUNTER_CLOCKWISE),
-			pl::pipelineColorBlendStateCreateInfo({pl::pipelineColorBlendAttachmentState(
-				false, PL_BLEND_FACTOR_SRC_ALPHA, PL_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, PL_BLEND_OP_ADD,
-				PL_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA, PL_BLEND_FACTOR_ONE)}),
-			pl::pipelineDepthStencilStateCreateInfo(false, false, PL_COMPARE_OP_ALWAYS),
-			pl::pipelineViewportStateCreateInfo(1, 1), pl::pipelineMultisampleStateCreateInfo(PL_SAMPLE_COUNT_1_BIT, 0),
-			{PL_DYNAMIC_STATE_VIEWPORT, PL_DYNAMIC_STATE_SCISSOR},
-			{pl::pushConstantRange(PL_STAGE_ALL, 0, sizeof(GuiShadersPC))}, {1});
-		this->GetRenderPass("Final Post Processing Pass")->AddPipeline(guiPipelineInfo);
-		guiPipelineInfo.renderMethod = PL_RENDER_PASS_GUI_BUTTON;
-		guiPipelineInfo.shaderStages = {
-			pl::pipelineShaderStageCreateInfo(
-				PL_STAGE_VERTEX, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/gui/button.vert", "main"),
-			pl::pipelineShaderStageCreateInfo(
-				PL_STAGE_FRAGMENT, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/gui/button.frag", "main")};
-		this->GetRenderPass("Final Post Processing Pass")->AddPipeline(guiPipelineInfo);
-
-		guiPipelineInfo.depthStencilState = pl::pipelineDepthStencilStateCreateInfo(false, false, PL_COMPARE_OP_ALWAYS);
-		guiPipelineInfo.topology = PL_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
-		guiPipelineInfo.vertexBindingDescriptions = {
-			pl::vertexInputBindingDescription(0, sizeof(glm::vec4), PL_VERTEX_INPUT_RATE_VERTEX),
-			pl::vertexInputBindingDescription(1, sizeof(glm::vec4), PL_VERTEX_INPUT_RATE_VERTEX)};
-		guiPipelineInfo.vertexAttributeDescriptions = {
-			pl::vertexInputAttributeDescription(0, 0, PL_FORMAT_R32G32_SFLOAT, 0),
-			pl::vertexInputAttributeDescription(1, 1, PL_FORMAT_R32G32_SFLOAT, sizeof(glm::vec2))};
-		guiPipelineInfo.renderMethod = PL_RENDER_PASS_GUI_TEXT;
-		guiPipelineInfo.shaderStages = {
-			pl::pipelineShaderStageCreateInfo(
-				PL_STAGE_VERTEX, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/gui/text.vert", "main"),
-			pl::pipelineShaderStageCreateInfo(
-				PL_STAGE_FRAGMENT, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/gui/text.frag", "main")};
-		this->GetRenderPass("Final Post Processing Pass")->AddPipeline(guiPipelineInfo);
-
-		this->AddRenderPassCallback("Final Post Processing Pass", [&](PlazaRenderGraph* plazaRenderGraph,
-																	  PlazaRenderPass* plazaRenderPass, Scene* scene) {
-			plazaRenderPass->mPipelines[0]->UpdatePushConstants<FinalPostProcessingPC>(
-				0, FinalPostProcessingPC(mRenderer->exposure, mRenderer->gamma));
-			plazaRenderPass->mPipelines[1]->UpdatePushConstants<GuiShadersPC>(
-				0, GuiShadersPC(Application::Get()->activeCamera->GetOrthogonalMatrix()));
-			plazaRenderPass->mPipelines[2]->UpdatePushConstants<GuiShadersPC>(
-				0, GuiShadersPC(Application::Get()->activeCamera->GetOrthogonalMatrix()));
-			plazaRenderPass->mPipelines[3]->UpdatePushConstants<GuiShadersPC>(
-				0, GuiShadersPC(Application::Get()->activeCamera->GetOrthogonalMatrix()));
-		});
-
-		// Outline
-		this->AddRenderPass("OutlineDrawPass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT,
-							PL_RENDER_PASS_INDIRECT_BUFFER_SPECIFIC_ENTITY, gPassSize, true)
-			->AddOutputTexture(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-							   0, 0, this->GetSharedTexture("OutlineTexture"))
-			->AddOutputTexture(1, 1, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT,
-							   PL_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 0, 0,
-							   this->GetSharedTexture("OutlineStencil"));
-		struct OutlinePC {
-			glm::mat4 projection;
-			glm::mat4 view;
-		};
-
-		this->AddRenderPassCallback("OutlineDrawPass", [&](PlazaRenderGraph* plazaRenderGraph,
-														   PlazaRenderPass* plazaRenderPass, Scene* scene) {
-			plazaRenderPass->mPipelines[0]->UpdatePushConstants<OutlinePC>(
-				0, OutlinePC(Application::Get()->activeCamera->GetProjectionMatrix(),
-							 Application::Get()->activeCamera->GetViewMatrix()));
-
-			if (!plazaRenderPass->mPipelines[0]->mIndirectBuffer) {
-				std::shared_ptr<PlVkBuffer> buffer = std::make_shared<PlVkBuffer>();
-				buffer->CreateBuffer(sizeof(VkDrawIndexedIndirectCommand) * 1024 * 16,
-									 VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT,
-									 VMA_MEMORY_USAGE_CPU_TO_GPU, 0, Application::Get()->mRenderer->mMaxFramesInFlight);
-				plazaRenderPass->mPipelines[0]->mIndirectBuffer = buffer;
-				plazaRenderPass->mPipelines[0]->mVertexBuffers.push_back(
-					std::make_shared<PlBufferAttachment>(plazaRenderGraph->GetSharedBuffer("OutlineMatrixBuffer"), 1));
-			}
-
-			plazaRenderPass->mPipelines[0]->mCreateInfo.specificUuids.clear();
-			if (Editor::selectedGameObject && scene->GetEntity(Editor::selectedGameObject->uuid)) {
-				GetChildrendUuid(plazaRenderPass->mPipelines[0]->mCreateInfo.specificUuids,
-								scene->GetEntity(Editor::selectedGameObject->uuid), scene);
-				if (plazaRenderPass->mPipelines[0]->mCreateInfo.specificUuids.size() >= maxOutlineMeshes) {
-					PL_CORE_WARN("Trying to draw more than {} meshes outline! only the first {} meshes will be drawn",
-								 maxOutlineMeshes, maxOutlineMeshes);
+				for (int i = 0; i < mRenderer->mRendererSettings.mLightingSettings.mCascadeCount; ++i) {
+					geometryUbo.lightSpaceMatrices[i] = shadowPassUbo.lightSpaceMatrices[i];
+					geometryUbo.cascadePlaneDistances[i] =
+						glm::vec4(mRenderer->mRendererSettings.mLightingSettings.shadowCascadeLevels[i], 1.0f, 1.0f, 1.0f);
 				}
-			}
 
-			std::vector<VkDrawIndexedIndirectCommand> indirectCommands;
-			int totalInstances = 0;
-			std::vector<glm::mat4> matrices = std::vector<glm::mat4>();
-			for (const auto& uuid : plazaRenderPass->mPipelines[0]->mCreateInfo.specificUuids) {
-				auto& value = *scene->GetComponent<MeshRenderer>(uuid)->renderGroup;
-				const size_t& instanceCount = value.instanceModelMatrices.size();
-				matrices.push_back(scene->GetComponent<TransformComponent>(uuid)->GetWorldMatrix());
+				geometryUbo.showCascadeLevels = Application::Get()->showCascadeLevels;
 
-				VkDrawIndexedIndirectCommand indirectCommand{};
-				indirectCommand.firstIndex = value.mesh->indicesOffset;
-				indirectCommand.vertexOffset = value.mesh->verticesOffset;
-				indirectCommand.firstInstance = totalInstances;
-				indirectCommand.indexCount = value.mesh->indicesCount;
-				indirectCommand.instanceCount = 1;
-				indirectCommands.push_back(indirectCommand);
-				totalInstances++;
-			}
+				plazaRenderGraph->GetSharedBuffer("GPassUBO")
+					->UpdateData<UniformBufferObject>(Application::Get()->mRenderer->mCurrentFrame, geometryUbo);
+			});
 
-			plazaRenderPass->mPipelines[0]->mIndirectBuffer->mCurrentItemCount = indirectCommands.size();
-			if (indirectCommands.size() > 0)
-				plazaRenderPass->mPipelines[0]->mIndirectBuffer->UpdateData<VkDrawIndexedIndirectCommand>(
-					Application::Get()->mRenderer->mCurrentFrame, indirectCommands.data(), indirectCommands.size());
+//		this->AddRenderPassCallback(
+//	"DeferredGeometryPass", [&](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass, Scene* scene) {
+//		if (mRenderer->mRendererSettings.mLightingSettings.mUpdateCascades)
+//			mRenderer->mRendererSettings.mLightingSettings.mShadowCascadeMatrices =
+//				GetShadowMatrices(mRenderer->mRendererSettings.mLightingSettings,
+//								  Application::Get()->activeCamera->GetProjectionMatrix(),
+//								  Application::Get()->activeCamera->GetViewMatrix());
+//		std::vector<glm::mat4> mats = mRenderer->mRendererSettings.mLightingSettings.mShadowCascadeMatrices;
+//		for (int i = 0; i < mRenderer->mRendererSettings.mLightingSettings.mCascadeCount; ++i) {
+//			if (shadowPassUbo.lightSpaceMatrices->length() > i && mats.size() > i)
+//				shadowPassUbo.lightSpaceMatrices[i] = mats[i];
+//			else
+//				shadowPassUbo.lightSpaceMatrices[i] = glm::mat4(1.0f);
+//		}
+//		plazaRenderGraph->GetSharedBuffer("ShadowPassUBO")
+//			->UpdateData<ShadowPassUBO>(Application::Get()->mRenderer->mCurrentFrame, shadowPassUbo);
+//	});
 
-			if (matrices.size() > 0)
-				plazaRenderGraph->GetBuffer<PlBuffer>("OutlineMatrixBuffer")
-					->UpdateData<glm::mat4>(Application::Get()->mRenderer->mCurrentFrame, matrices.data(),
-											matrices.size());
-		});
 
-		PlStencilOpState stencilOpState = PlStencilOpState(PL_STENCIL_OP_KEEP, PL_STENCIL_OP_REPLACE,
-														   PL_STENCIL_OP_KEEP, PL_COMPARE_OP_ALWAYS, 0xFF, 0xFF, 1);
-
-		PlPipelineCreateInfo outlinePipelineInfo = pl::pipelineCreateInfo(
-			"Outline", PL_RENDER_PASS_INDIRECT_BUFFER_SPECIFIC_ENTITY,
-			{pl::pipelineShaderStageCreateInfo(
-				 PL_STAGE_VERTEX, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/outline/outline.vert",
-				 "main"),
-			 pl::pipelineShaderStageCreateInfo(
-				 PL_STAGE_FRAGMENT, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/outline/outline.frag",
-				 "main")},
-			{}, {}, PL_TOPOLOGY_TRIANGLE_LIST, false,
-			pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f, 0.0f,
-													 PL_CULL_MODE_NONE, PL_FRONT_FACE_COUNTER_CLOCKWISE),
-			pl::pipelineColorBlendStateCreateInfo({pl::pipelineColorBlendAttachmentState(true)}),
-			pl::pipelineDepthStencilStateCreateInfo(true, true, PL_COMPARE_OP_ALWAYS, false, true, stencilOpState,
-													stencilOpState),
-			pl::pipelineViewportStateCreateInfo(1, 1), pl::pipelineMultisampleStateCreateInfo(PL_SAMPLE_COUNT_1_BIT, 0),
-			{PL_DYNAMIC_STATE_VIEWPORT, PL_DYNAMIC_STATE_SCISSOR},
-			{pl::pushConstantRange(PL_STAGE_VERTEX, 0, sizeof(OutlinePC))}, {});
-
-		std::vector<PlVertexInputBindingDescription> bindingDescriptions{};
-		bindingDescriptions.push_back(
-			pl::vertexInputBindingDescription(0, sizeof(Vertex), PL_VERTEX_INPUT_RATE_VERTEX));
-		bindingDescriptions.push_back(
-			pl::vertexInputBindingDescription(1, sizeof(glm::vec4) * 4, PL_VERTEX_INPUT_RATE_INSTANCE));
-		outlinePipelineInfo.vertexBindingDescriptions = bindingDescriptions;
-		std::vector<PlVertexInputAttributeDescription> attributeDescriptions{};
-		attributeDescriptions.push_back(
-			pl::vertexInputAttributeDescription(0, 0, PL_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, position)));
-		attributeDescriptions.push_back(pl::vertexInputAttributeDescription(1, 1, PL_FORMAT_R32G32B32A32_SFLOAT, 0));
-		attributeDescriptions.push_back(
-			pl::vertexInputAttributeDescription(2, 1, PL_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 4));
-		attributeDescriptions.push_back(
-			pl::vertexInputAttributeDescription(3, 1, PL_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 8));
-		attributeDescriptions.push_back(
-			pl::vertexInputAttributeDescription(4, 1, PL_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 12));
-		outlinePipelineInfo.vertexAttributeDescriptions = attributeDescriptions;
-
-		this->GetRenderPass("OutlineDrawPass")->AddPipeline(outlinePipelineInfo);
-
-		outlinePipelineInfo.vertexAttributeDescriptions = {};
-		outlinePipelineInfo.vertexBindingDescriptions = {};
-		outlinePipelineInfo.pushConstants = {};
-		outlinePipelineInfo.pipelineName = "OutlineBlurPass";
-		outlinePipelineInfo.renderMethod = PL_RENDER_PASS_FULL_SCREEN_QUAD;
-		outlinePipelineInfo.shaderStages = {
-			pl::pipelineShaderStageCreateInfo(
-				PL_STAGE_VERTEX, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/fullScreenQuad.vert", "main"),
-			pl::pipelineShaderStageCreateInfo(
-				PL_STAGE_FRAGMENT, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/outline/outlineBlur.frag",
-				"main")};
-
-		this->AddRenderPass("OutlineBlurPass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_PASS_FULL_SCREEN_QUAD,
-							gPassSize, false)
-			->AddInputTexture(1, 0, 0, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT,
-							  PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("OutlineTexture"))
-			->AddOutputTexture(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-							   0, 0, this->GetSharedTexture("OutlineBlurredTexture"));
-		this->GetRenderPass("OutlineBlurPass")->AddPipeline(outlinePipelineInfo);
-
-		outlinePipelineInfo.depthStencilState =
-			pl::pipelineDepthStencilStateCreateInfo(true, false, PL_COMPARE_OP_LESS_OR_EQUAL, false, false);
-		outlinePipelineInfo.shaderStages = {
-			pl::pipelineShaderStageCreateInfo(
-				PL_STAGE_VERTEX, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/fullScreenQuad.vert", "main"),
-			pl::pipelineShaderStageCreateInfo(
-				PL_STAGE_FRAGMENT,
-				FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/outline/outlineSceneMerge.frag", "main")};
-
-		outlinePipelineInfo.pipelineName = "OutlineSceneMergePass";
-		this->AddRenderPass("OutlineSceneMergePass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT,
-							PL_RENDER_PASS_FULL_SCREEN_QUAD, gPassSize, false)
-			->AddInputTexture(1, 0, 1, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT,
-							  PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0,
-							  this->GetSharedTexture("OutlineBlurredTexture"))
-			->AddInputTexture(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-							  0, 0, this->GetSharedTexture("FinalTexture"), PL_ATTACHMENT_OP_LOAD, true)
-			->AddInputTexture(1, 1, 2, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT,
-							  PL_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 0, 0,
-							  this->GetSharedTexture("OutlineStencil"), PL_ATTACHMENT_OP_LOAD, true);
-		//->AddOutputTexture(1, 1, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT,
-		// PL_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 0, 0, this->GetSharedTexture("OutlineStencil"),
-		// PL_ATTACHMENT_OP_LOAD, true);
-		stencilOpState = PlStencilOpState(PL_STENCIL_OP_KEEP, PL_STENCIL_OP_KEEP, PL_STENCIL_OP_KEEP,
-										  PL_COMPARE_OP_NOT_EQUAL, 0xFF, 0xFF, 0x01);
-		outlinePipelineInfo.depthStencilState = pl::pipelineDepthStencilStateCreateInfo(
-			false, false, PL_COMPARE_OP_ALWAYS, false, true, stencilOpState, stencilOpState);
-
-		this->GetRenderPass("OutlineSceneMergePass")->AddPipeline(outlinePipelineInfo);
-
-		// DebugRendererNodes(Application::Get()->activeCamera->GetViewport(), "FinalTexture");
 
 		this->OrderPasses();
 		this->UpdateUsedTexturesInfo();
 	}
 
 	void VulkanRenderGraph::DebugRendererNodes(const PlViewport& viewport, const std::string& textureToDraw) {
-		this->AddRenderPass("DebugRendererPass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_PASS_FULL_SCREEN_QUAD,
-							glm::vec2(viewport.x, viewport.y), false)
-			->AddInputTexture(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-							  0, 0, this->GetSharedTexture(textureToDraw), PL_ATTACHMENT_OP_LOAD, true);
 
 		struct DebugPC {
 			glm::mat4 viewMatrix;
@@ -1160,88 +488,6 @@ namespace Plaza {
 
 		static EquirectangularToCubeMapPC pushConstants{};
 
-		PlPipelineCreateInfo pipelineCreateInfo = pl::pipelineCreateInfo(
-			"EquirectangularToCubeMapShaders", PL_RENDER_PASS_CUBE,
-			{pl::pipelineShaderStageCreateInfo(
-				 PL_STAGE_VERTEX,
-				 FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/skybox/equirectangularToCubemap.vert", "main"),
-			 pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT,
-											   FilesManager::sEngineFolder.string() +
-												   "/Shaders/Vulkan/skybox/equirectangularToCubemap.frag",
-											   "main")},
-			{}, {}, PL_TOPOLOGY_TRIANGLE_LIST, false,
-			pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f, 0.0f,
-													 PL_CULL_MODE_NONE, PL_FRONT_FACE_COUNTER_CLOCKWISE),
-			pl::pipelineColorBlendStateCreateInfo({pl::pipelineColorBlendAttachmentState(true)}),
-			pl::pipelineDepthStencilStateCreateInfo(false, false, PL_COMPARE_OP_ALWAYS),
-			pl::pipelineViewportStateCreateInfo(1, 1), pl::pipelineMultisampleStateCreateInfo(PL_SAMPLE_COUNT_1_BIT, 0),
-			{PL_DYNAMIC_STATE_VIEWPORT, PL_DYNAMIC_STATE_SCISSOR},
-			{pl::pushConstantRange(PL_STAGE_ALL, 0, sizeof(EquirectangularToCubeMapPC))});
-
-		skyboxRenderGraph
-			->AddRenderPass("EquirectangularToCubeMapPass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_PASS_CUBE,
-							glm::vec2(faceSize, faceSize), true)
-			->AddInputTexture(1, 0, 1, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT,
-							  PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0,
-							  this->GetSharedTexture("EquirectangularTexture"))
-			->AddOutputTexture(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-							   0, 0, this->GetSharedTexture("CubeMapTexture"))
-			->AddPipeline(pipelineCreateInfo);
-
-		pipelineCreateInfo.pipelineName = "BrdfGeneratorShaders";
-		pipelineCreateInfo.renderMethod = PL_RENDER_PASS_FULL_SCREEN_QUAD;
-		pipelineCreateInfo.shaderStages = {
-			pl::pipelineShaderStageCreateInfo(
-				PL_STAGE_VERTEX, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/skybox/brdfGenerator.vert",
-				"main"),
-			pl::pipelineShaderStageCreateInfo(
-				PL_STAGE_FRAGMENT, FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/skybox/brdfGenerator.frag",
-				"main")};
-		pipelineCreateInfo.pushConstants = {};
-		skyboxRenderGraph
-			->AddRenderPass("BrdfGeneratorPass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_PASS_FULL_SCREEN_QUAD,
-							glm::vec2(brdfSize, brdfSize), true)
-			->AddOutputTexture(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-							   0, 0, this->GetSharedTexture("SamplerBRDFLUT"))
-			->AddPipeline(pipelineCreateInfo);
-
-		pipelineCreateInfo.pipelineName = "IrradianceGeneratorShaders";
-		pipelineCreateInfo.renderMethod = PL_RENDER_PASS_CUBE;
-		pipelineCreateInfo.shaderStages = {
-			pl::pipelineShaderStageCreateInfo(
-				PL_STAGE_VERTEX,
-				FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/skybox/equirectangularToCubemap.vert", "main"),
-			pl::pipelineShaderStageCreateInfo(
-				PL_STAGE_FRAGMENT,
-				FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/skybox/irradianceGenerator.frag", "main")};
-		pipelineCreateInfo.pushConstants = {pl::pushConstantRange(PL_STAGE_ALL, 0, sizeof(EquirectangularToCubeMapPC))};
-		skyboxRenderGraph
-			->AddRenderPass("IrradianceGeneratorPass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_PASS_CUBE,
-							glm::vec2(irradianceSize, irradianceSize), false)
-			->AddInputTexture(1, 0, 2, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT,
-							  PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("CubeMapTexture"))
-			->AddOutputTexture(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-							   0, 0, this->GetSharedTexture("IrradianceMap"))
-			->AddPipeline(pipelineCreateInfo);
-
-		pipelineCreateInfo.pipelineName = "PreFilteredGeneratorShaders";
-		pipelineCreateInfo.renderMethod = PL_RENDER_PASS_CUBE;
-		pipelineCreateInfo.shaderStages = {
-			pl::pipelineShaderStageCreateInfo(
-				PL_STAGE_VERTEX,
-				FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/skybox/equirectangularToCubemap.vert", "main"),
-			pl::pipelineShaderStageCreateInfo(
-				PL_STAGE_FRAGMENT,
-				FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/skybox/prefilterEnvGenerator.frag", "main")};
-		pipelineCreateInfo.pushConstants = {pl::pushConstantRange(PL_STAGE_ALL, 0, sizeof(EquirectangularToCubeMapPC))};
-		skyboxRenderGraph
-			->AddRenderPass("PreFilteredGeneratorPass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_PASS_CUBE,
-							glm::vec2(faceSize, faceSize), false)
-			->AddInputTexture(1, 0, 0, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT,
-							  PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("CubeMapTexture"))
-			->AddOutputTexture(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-							   0, 0, this->GetSharedTexture("PreFilterMap"))
-			->AddPipeline(pipelineCreateInfo);
 
 		return skyboxRenderGraph;
 	}
@@ -1256,167 +502,6 @@ namespace Plaza {
 		const unsigned int numMips = this->GetSharedTexture("PreFilterMap")->mMipCount;
 		PlTextureFormat skyboxFormat = PL_FORMAT_R32G32B32A32_SFLOAT;
 
-		const std::vector<glm::mat4> matrices = {
-			glm::rotate(glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)),
-						glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
-			glm::rotate(glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f)),
-						glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
-			glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
-			glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
-			glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
-			glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
-		};
-
-		const std::vector<glm::mat4> equirectangularToCubeMapMatrices = {
-			glm::rotate(glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)),
-						glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
-			glm::rotate(glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f)),
-						glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
-			glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
-			glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
-			glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
-			glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
-		};
-
-		EquirectangularToCubeMapPC converterPushConstants{};
-		converterPushConstants.first = true;
-
-		VkCommandBuffer commandBuffer = VulkanRenderer::GetRenderer()->BeginSingleTimeCommands();
-
-		renderGraph->GetRenderPass("EquirectangularToCubeMapPass")->mPipelines[0]->mPushConstants[0].mData =
-			new EquirectangularToCubeMapPC();
-		;
-		for (uint32_t i = 0; i < 6; i++) {
-			VkImageViewCreateInfo layerImageViewCreateInfo = {};
-			layerImageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-			layerImageViewCreateInfo.image =
-				this->GetTexture<VulkanTexture>("CubeMapTexture")->mImage; // mSkyboxTexture->mImage;
-			layerImageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-			layerImageViewCreateInfo.format = PlImageFormatToVkFormat(skyboxFormat);
-			layerImageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			layerImageViewCreateInfo.subresourceRange.baseMipLevel = 0;
-			layerImageViewCreateInfo.subresourceRange.levelCount = 1;
-			layerImageViewCreateInfo.subresourceRange.baseArrayLayer = i;
-			layerImageViewCreateInfo.subresourceRange.layerCount = 1;
-
-			VkImageView layerImageView;
-			vkCreateImageView(VulkanRenderer::GetRenderer()->mDevice, &layerImageViewCreateInfo, nullptr,
-							  &layerImageView);
-
-			std::vector<VkImageView> frameBufferAttachments{layerImageView};
-
-			VkFramebuffer framebuffer = VulkanRenderer::GetRenderer()->CreateFramebuffer(
-				renderGraph->GetRenderPass("EquirectangularToCubeMapPass")->mRenderPass, glm::vec2(faceSize, faceSize),
-				frameBufferAttachments.data(), frameBufferAttachments.size(), 1);
-
-			converterPushConstants.mvp =
-				glm::perspective((float)(glm::pi<double>() / 2.0), 1.0f, 0.1f, static_cast<float>(faceSize)) *
-				equirectangularToCubeMapMatrices[i];
-			renderGraph->GetRenderPass("EquirectangularToCubeMapPass")->mFrameBuffer = framebuffer;
-			renderGraph->GetRenderPass("EquirectangularToCubeMapPass")->UpdateCommandBuffer(commandBuffer);
-			renderGraph->GetRenderPass("EquirectangularToCubeMapPass")->mPipelines[0]->mPushConstants[0].mData =
-				&converterPushConstants;
-			memcpy(renderGraph->GetRenderPass("EquirectangularToCubeMapPass")->mPipelines[0]->mPushConstants[0].mData,
-				   &converterPushConstants, sizeof(EquirectangularToCubeMapPC));
-			renderGraph->GetRenderPass("EquirectangularToCubeMapPass")->Execute(nullptr, renderGraph);
-		}
-
-		VulkanRenderer::GetRenderer()->EndSingleTimeCommands(commandBuffer);
-
-		commandBuffer = VulkanRenderer::GetRenderer()->BeginSingleTimeCommands();
-		renderGraph->GetRenderPass("BrdfGeneratorPass")->UpdateCommandBuffer(commandBuffer);
-		renderGraph->GetRenderPass("BrdfGeneratorPass")->Execute(nullptr, renderGraph);
-		VulkanRenderer::GetRenderer()->EndSingleTimeCommands(commandBuffer);
-
-		commandBuffer = VulkanRenderer::GetRenderer()->BeginSingleTimeCommands();
-		renderGraph->GetRenderPass("IrradianceGeneratorPass")->mPipelines[0]->mPushConstants[0].mData =
-			new EquirectangularToCubeMapPC();
-		converterPushConstants.first = false;
-		converterPushConstants.deltaPhi = (2.0f * float(3.14159265358979323846)) / 180.0f;
-		converterPushConstants.deltaTheta = (0.5f * float(3.14159265358979323846)) / 64.0f;
-		for (uint32_t i = 0; i < 6; i++) {
-			VkImageViewCreateInfo layerImageViewCreateInfo = {};
-			layerImageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-			layerImageViewCreateInfo.image =
-				this->GetTexture<VulkanTexture>("IrradianceMap")->mImage; // mSkyboxTexture->mImage;
-			layerImageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-			layerImageViewCreateInfo.format = PlImageFormatToVkFormat(skyboxFormat);
-			layerImageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			layerImageViewCreateInfo.subresourceRange.baseMipLevel = 0;
-			layerImageViewCreateInfo.subresourceRange.levelCount = 1;
-			layerImageViewCreateInfo.subresourceRange.baseArrayLayer = i;
-			layerImageViewCreateInfo.subresourceRange.layerCount = 1;
-
-			VkImageView layerImageView;
-			vkCreateImageView(VulkanRenderer::GetRenderer()->mDevice, &layerImageViewCreateInfo, nullptr,
-							  &layerImageView);
-
-			std::vector<VkImageView> frameBufferAttachments{layerImageView};
-
-			VkFramebuffer framebuffer = VulkanRenderer::GetRenderer()->CreateFramebuffer(
-				renderGraph->GetRenderPass("IrradianceGeneratorPass")->mRenderPass,
-				glm::vec2(irradianceSize, irradianceSize), frameBufferAttachments.data(), frameBufferAttachments.size(),
-				1);
-
-			converterPushConstants.mvp =
-				glm::perspective((float)(glm::pi<double>() / 2.0), 1.0f, 0.1f, static_cast<float>(faceSize)) *
-				matrices[i];
-			renderGraph->GetRenderPass("IrradianceGeneratorPass")->mFrameBuffer = framebuffer;
-			renderGraph->GetRenderPass("IrradianceGeneratorPass")->UpdateCommandBuffer(commandBuffer);
-			renderGraph->GetRenderPass("IrradianceGeneratorPass")->mPipelines[0]->mPushConstants[0].mData =
-				&converterPushConstants;
-			memcpy(renderGraph->GetRenderPass("IrradianceGeneratorPass")->mPipelines[0]->mPushConstants[0].mData,
-				   &converterPushConstants, sizeof(EquirectangularToCubeMapPC));
-			renderGraph->GetRenderPass("IrradianceGeneratorPass")->Execute(nullptr, renderGraph);
-		}
-		VulkanRenderer::GetRenderer()->EndSingleTimeCommands(commandBuffer);
-
-		commandBuffer = VulkanRenderer::GetRenderer()->BeginSingleTimeCommands();
-		renderGraph->GetRenderPass("PreFilteredGeneratorPass")->mPipelines[0]->mPushConstants[0].mData =
-			new EquirectangularToCubeMapPC();
-		converterPushConstants.first = false;
-		converterPushConstants.deltaPhi = (2.0f * float(3.14159265358979323846)) / 180.0f;
-		converterPushConstants.deltaTheta = (0.5f * float(3.14159265358979323846)) / 64.0f;
-		for (uint32_t m = 0; m < numMips; m++) {
-			converterPushConstants.roughness = (float)m / (float)(numMips - 1);
-			for (uint32_t i = 0; i < 6; i++) {
-				glm::vec2 currentSize = glm::vec2(faceSize * std::pow(0.5f, m), faceSize * std::pow(0.5f, m));
-				VkImageViewCreateInfo layerImageViewCreateInfo = {};
-				layerImageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-				layerImageViewCreateInfo.image =
-					this->GetTexture<VulkanTexture>("PreFilterMap")->mImage; // mSkyboxTexture->mImage;
-				layerImageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-				layerImageViewCreateInfo.format = PlImageFormatToVkFormat(skyboxFormat);
-				layerImageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-				layerImageViewCreateInfo.subresourceRange.baseMipLevel = m;
-				layerImageViewCreateInfo.subresourceRange.levelCount = 1;
-				layerImageViewCreateInfo.subresourceRange.baseArrayLayer = i;
-				layerImageViewCreateInfo.subresourceRange.layerCount = 1;
-
-				VkImageView layerImageView;
-				vkCreateImageView(VulkanRenderer::GetRenderer()->mDevice, &layerImageViewCreateInfo, nullptr,
-								  &layerImageView);
-
-				std::vector<VkImageView> frameBufferAttachments{layerImageView};
-
-				VkFramebuffer framebuffer = VulkanRenderer::GetRenderer()->CreateFramebuffer(
-					renderGraph->GetRenderPass("PreFilteredGeneratorPass")->mRenderPass, currentSize,
-					frameBufferAttachments.data(), frameBufferAttachments.size(), 1);
-
-				converterPushConstants.mvp =
-					glm::perspective((float)(glm::pi<double>() / 2.0), 1.0f, 0.1f, static_cast<float>(faceSize)) *
-					matrices[i];
-				renderGraph->GetRenderPass("PreFilteredGeneratorPass")->mFrameBuffer = framebuffer;
-				renderGraph->GetRenderPass("PreFilteredGeneratorPass")->UpdateCommandBuffer(commandBuffer);
-				renderGraph->GetRenderPass("PreFilteredGeneratorPass")->mPipelines[0]->mPushConstants[0].mData =
-					&converterPushConstants;
-				memcpy(renderGraph->GetRenderPass("PreFilteredGeneratorPass")->mPipelines[0]->mPushConstants[0].mData,
-					   &converterPushConstants, sizeof(EquirectangularToCubeMapPC));
-				renderGraph->GetRenderPass("PreFilteredGeneratorPass")->mRenderSize = currentSize;
-				renderGraph->GetRenderPass("PreFilteredGeneratorPass")->Execute(nullptr, renderGraph);
-			}
-		}
-		VulkanRenderer::GetRenderer()->EndSingleTimeCommands(commandBuffer);
 	}
 
 #pragma region Shadows frustum

@@ -105,7 +105,9 @@ namespace Plaza::Editor {
 	}
 
 	void ComponentsInspector::SceneInspector(Scene* scene, Entity* entity) {
-		RendererSettings::LightingSettings& shadows = VulkanRenderer::GetRenderer()->mRendererSettings.mLightingSettings; // Application::Get()->mRenderer->mShadows;
+		RendererSettings::LightingSettings& shadows =
+			VulkanRenderer::GetRenderer()
+				->mRendererSettings.mLightingSettings; // Application::Get()->mRenderer->mShadows;
 		/* Draw Gizmo for rotating Sun */
 		shadows.mLightDirection = DrawGizmo(shadows.mLightDirection);
 
@@ -134,38 +136,43 @@ namespace Plaza::Editor {
 			}
 
 			if (ImGui::Checkbox("Visualize Wireframe", &VulkanRenderer::GetRenderer()->mShowWireframe)) {
-				Application::Get()->mThreadsManager->mFrameStartThread->AddToQueue([](){
+				Application::Get()->mThreadsManager->mFrameStartThread->AddToQueue([]() {
 					bool value = VulkanRenderer::GetRenderer()->mShowWireframe;
-					VulkanRenderer::GetRenderer()->mRenderGraph->GetRenderPass("Deferred Geometry Pass")
-						->mPipelines[0]->mCreateInfo = pl::pipelineCreateInfo(
-							"MainShaders", PL_RENDER_PASS_INDIRECT_BUFFER,
-							{pl::pipelineShaderStageCreateInfo(
-								 PL_STAGE_VERTEX,
-								 FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/deferred/geometryPass.vert", "main"),
-							 pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT,
-															   FilesManager::sEngineFolder.string() +
-																   "/Shaders/Vulkan/deferred/geometryPass.frag",
-															   "main")},
-							VulkanRenderer::GetRenderer()->mRenderGraph->VertexGetBindingDescription(), VulkanRenderer::GetRenderer()->mRenderGraph->VertexGetAttributeDescriptions(), PL_TOPOLOGY_TRIANGLE_LIST,
-							false,
-							pl::pipelineRasterizationStateCreateInfo(
-								false, false,
-								VulkanRenderer::GetRenderer()->mShowWireframe ? PL_POLYGON_MODE_LINE
-																			  : PL_POLYGON_MODE_FILL,
-								1.0f, false, 0.0f, 0.0f, 0.0f, PL_CULL_MODE_BACK, PL_FRONT_FACE_COUNTER_CLOCKWISE),
-							pl::pipelineColorBlendStateCreateInfo({pl::pipelineColorBlendAttachmentState(true),
-																   pl::pipelineColorBlendAttachmentState(true),
-																   pl::pipelineColorBlendAttachmentState(true)}),
-							pl::pipelineDepthStencilStateCreateInfo(true, true, PL_COMPARE_OP_LESS_OR_EQUAL),
-							pl::pipelineViewportStateCreateInfo(1, 1),
-							pl::pipelineMultisampleStateCreateInfo(PL_SAMPLE_COUNT_1_BIT, 0),
-							{PL_DYNAMIC_STATE_VIEWPORT, PL_DYNAMIC_STATE_SCISSOR}, {});
-					VulkanRenderer::GetRenderer()->mRenderGraph->GetRenderPass("Deferred Geometry Pass")->ReCompileShaders(true);
-					//VulkanRenderer::GetRenderer()->Destroy();
-					//Application::Get()->mRenderer = new VulkanRenderer();
-					//Application::Get()->mRenderer->api = Application::Get()->mEditor->mSettings.mDefaultRendererAPI;
-					//VulkanRenderer::GetRenderer()->mShowWireframe = value;
-					//Application::Get()->mRenderer->Init();
+					VulkanRenderer::GetRenderer()
+						->mRenderGraph->GetRenderPass("Deferred Geometry Pass")
+						->mPipelines[0]
+						->mCreateInfo = pl::pipelineCreateInfo(
+						"MainShaders", PL_RENDER_PASS_INDIRECT_BUFFER,
+						{pl::pipelineShaderStageCreateInfo(PL_STAGE_VERTEX,
+														   FilesManager::sEngineFolder.string() +
+															   "/Shaders/Vulkan/deferred/geometryPass.vert",
+														   "main"),
+						 pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT,
+														   FilesManager::sEngineFolder.string() +
+															   "/Shaders/Vulkan/deferred/geometryPass.frag",
+														   "main")},
+						VulkanRenderer::GetRenderer()->mRenderGraph->VertexGetBindingDescription(),
+						VulkanRenderer::GetRenderer()->mRenderGraph->VertexGetAttributeDescriptions(),
+						PL_TOPOLOGY_TRIANGLE_LIST, false,
+						pl::pipelineRasterizationStateCreateInfo(
+							false, false,
+							VulkanRenderer::GetRenderer()->mShowWireframe ? PL_POLYGON_MODE_LINE : PL_POLYGON_MODE_FILL,
+							1.0f, false, 0.0f, 0.0f, 0.0f, PL_CULL_MODE_BACK, PL_FRONT_FACE_COUNTER_CLOCKWISE),
+						pl::pipelineColorBlendStateCreateInfo({pl::pipelineColorBlendAttachmentState(true),
+															   pl::pipelineColorBlendAttachmentState(true),
+															   pl::pipelineColorBlendAttachmentState(true)}),
+						pl::pipelineDepthStencilStateCreateInfo(true, true, PL_COMPARE_OP_LESS_OR_EQUAL),
+						pl::pipelineViewportStateCreateInfo(1, 1),
+						pl::pipelineMultisampleStateCreateInfo(PL_SAMPLE_COUNT_1_BIT, 0),
+						{PL_DYNAMIC_STATE_VIEWPORT, PL_DYNAMIC_STATE_SCISSOR}, {});
+					VulkanRenderer::GetRenderer()
+						->mRenderGraph->GetRenderPass("Deferred Geometry Pass")
+						->ReCompileShaders(VulkanRenderer::GetRenderer()->mRenderGraph, true);
+					// VulkanRenderer::GetRenderer()->Destroy();
+					// Application::Get()->mRenderer = new VulkanRenderer();
+					// Application::Get()->mRenderer->api = Application::Get()->mEditor->mSettings.mDefaultRendererAPI;
+					// VulkanRenderer::GetRenderer()->mShowWireframe = value;
+					// Application::Get()->mRenderer->Init();
 				});
 			}
 			ImGui::TreePop();

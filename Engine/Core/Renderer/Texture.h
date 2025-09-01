@@ -78,7 +78,8 @@ namespace Plaza {
 				PlTextureFormat format, glm::vec3 resolution, uint8_t mipCount, uint16_t layersCount,
 				const std::string& name) {
 			this->SetTextureInfo(TextureInfo{descriptorCount, imageType, viewType, format, imageUsage, layersCount,
-											 PL_IMAGE_LAYOUT_UNDEFINED, "", PL_SAMPLER_ADDRESS_MODE_REPEAT, PL_IMAGE_TILING_OPTIMAL, false});
+											 PL_IMAGE_LAYOUT_UNDEFINED, "", PL_SAMPLER_ADDRESS_MODE_REPEAT,
+											 PL_IMAGE_TILING_OPTIMAL, false});
 			mResolution = resolution;
 			mMipCount = mipCount;
 			mAssetName = name;
@@ -97,7 +98,7 @@ namespace Plaza {
 
 		virtual void Destroy() { return; }
 
-		~Texture(){};
+		~Texture() {};
 
 		template <class Archive> void serialize(Archive& archive) {
 			// auto infoHash = TextureInfoHash(TextureInfo{});
@@ -144,5 +145,32 @@ namespace Plaza {
 	  private:
 		static inline std::unordered_set<TextureInfo, TextureInfoHash> sTexturesInfo =
 			std::unordered_set<TextureInfo, TextureInfoHash>();
+	};
+
+	class PLAZA_API PlTextureSampler {
+	public:
+		std::string mName = "";
+		PlFilter mMagFilter = PL_FILTER_LINEAR;
+		PlFilter mMinFilter = PL_FILTER_LINEAR;
+		PlSamplerAddressMode mAddressModeU = PL_SAMPLER_ADDRESS_MODE_REPEAT;
+		PlSamplerAddressMode mAddressModeV = PL_SAMPLER_ADDRESS_MODE_REPEAT;
+		PlSamplerAddressMode mAddressModeW = PL_SAMPLER_ADDRESS_MODE_REPEAT;
+		bool mUseAnisotropy = true;
+		float mMaxAnisotropy = 16.0f;
+		PlBorderColor mBorderColor = PL_BORDER_COLOR_INT_OPAQUE_BLACK;
+		bool mUseUnnormalizedCoordinates = false;
+		bool mUseCompare = false;
+		PlCompareOp mCompareOp = PL_COMPARE_OP_ALWAYS;
+		PlSamplerMipmapMode mMipmapMode = PL_SAMPLER_MIPMAP_MODE_LINEAR;
+		float mMipLodBias = 0.0f;
+		float mMinLod = 0.0f;
+		float mMaxLod = 0.0f;
+
+		template <class Archive> void serialize(Archive& archive) {
+			archive(PL_SER(mName), PL_SER(mMagFilter), PL_SER(mMinFilter), PL_SER(mAddressModeU), PL_SER(mAddressModeV),
+					PL_SER(mAddressModeW), PL_SER(mUseAnisotropy), PL_SER(mMaxAnisotropy), PL_SER(mBorderColor),
+					PL_SER(mUseUnnormalizedCoordinates), PL_SER(mUseCompare), PL_SER(mCompareOp), PL_SER(mMipmapMode),
+					PL_SER(mMipLodBias), PL_SER(mMinLod), PL_SER(mMaxLod));
+		}
 	};
 } // namespace Plaza
