@@ -4,6 +4,7 @@
 #include "Editor/GUI/Utils/DataVisualizer.h"
 #include "Engine/Application/Callbacks/CallbacksHeader.h"
 #include "Engine/Core/Scene.h"
+#include "Engine/ECS/ECSManager.h"
 
 namespace Plaza {
 	namespace Editor {
@@ -70,14 +71,16 @@ namespace Plaza {
 		}
 		void TerrainEditorTool::CreateTerrain(unsigned int x, unsigned int y, unsigned int z) {
 			Scene* scene = Scene::GetActiveScene();
-			Entity* entity = new Entity("Terrain", scene->mainSceneEntity);
+			Entity* entity =
+				scene->NewEntity("Terrain", scene->mainSceneEntity); // new Entity("Terrain", scene->mainSceneEntity);
 			mLastTerrainUuid = entity->uuid;
 
 			Mesh* mesh = this->CreateHeightMapTerrain(x, y, z);
 			AssetsManager::AddMesh(mesh);
 
-			MeshRenderer* meshRenderer = new MeshRenderer(mesh, {AssetsManager::GetDefaultMaterial()}, false);
-			// FIX: entity->AddComponent<MeshRenderer>(meshRenderer);
+			MeshRenderer* meshRenderer = scene->NewComponent<MeshRenderer>(entity->uuid);
+			meshRenderer->ChangeMesh(mesh);
+			meshRenderer->AddMaterial(AssetsManager::GetDefaultMaterial());
 		}
 
 		void TerrainEditorTool::UpdateGui() {
@@ -142,9 +145,6 @@ namespace Plaza {
 				for (int j = -mSettings.radius; j < mSettings.radius; ++j) {
 					uint32_t vertexIndex = nearestVertexIndex + (j * mSettings.x) + i;
 					if (mesh->vertices.size() > vertexIndex) {
-						if (i == 0 && j == 0) {
-							float asd = 50;
-						}
 						glm::vec2 vertexPos = glm::vec2(mesh->vertices[vertexIndex].x, mesh->vertices[vertexIndex].z);
 						float distanceFromCenter = glm::length(vertexPos - centerPos);
 						if (distanceFromCenter == 0.0f) {
@@ -254,8 +254,9 @@ namespace Plaza {
 					float xposGame = Callbacks::lastX - Application::Get()->appSizes->hierarchySize.x;
 					float yposGame = Callbacks::lastY - Application::Get()->appSizes->sceneImageStart.y;
 					// yposGame = Application::Get()->appSizes->sceneSize.y - (yposGame - 35);
-					VulkanRenderer::GetRenderer()->mRenderGraph->GetTexture<VulkanTexture>("SceneDepth")->mCurrentImageLayout =
-						PL_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+					VulkanRenderer::GetRenderer()
+						->mRenderGraph->GetTexture<VulkanTexture>("SceneDepth")
+						->mCurrentImageLayout = PL_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
 					glm::vec4 clickPosition =
 						VulkanRenderer::GetRenderer()
 							->mRenderGraph->GetTexture<VulkanTexture>("SceneDepth")

@@ -54,7 +54,7 @@ namespace Plaza::Editor {
 					bool recompile;
 					Utils::AddTableButtonString(pass->mName, "Recompile Shaders", &recompile, 0, [pass](bool* value) {
 						if (*value) {
-							pass->ReCompileShaders(true);
+							pass->ReCompileShaders(VulkanRenderer::GetRenderer()->mRenderGraph, true);
 						}
 					});
 				}

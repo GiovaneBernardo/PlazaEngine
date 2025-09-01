@@ -23,8 +23,8 @@ namespace Plaza {
 		this->mPipelineLayoutInfo.pushConstantRangeCount = 1;
 		this->mPipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
 
-		this->InitializePicking();
-		this->InitializeOutline();
+		//this->InitializePicking();
+		//this->InitializeOutline();
 
 		// VulkanRenderer::GetRenderer()->AddTrackerToImage(this->mPickingTextureImage, "Picking Texture");
 		// VulkanRenderer::GetRenderer()->AddTrackerToImage(this->mDepthImageView, "Picking Depth Texture", nullptr,

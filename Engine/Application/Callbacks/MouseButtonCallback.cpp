@@ -88,10 +88,10 @@ namespace Plaza {
 				bool pressingLeftClick = button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS;
 				bool drawingButMouseNotOverGizmo = !ImGuizmo::IsOver() && ImGuizmoHelper::IsDrawing;
 				if (pressingLeftClick && (!ImGuizmoHelper::IsDrawing || drawingButMouseNotOverGizmo)) {
-					//	Application::Get()->pickingTexture->GenerateTexture();
-					//    	clickUuid = Application::Get()->pickingTexture->readPixel(xposGame, yposGame);
-					clickUuid =
-						Application::Get()->mRenderer->mPicking->DrawAndRead(scene, glm::vec2(xposGame, yposGame));
+					// TODO: FIX THIS TO WORK WITH THE NEW RENDER GRAPHS
+					//clickUuid =
+					//	Application::Get()->mRenderer->mPicking->DrawAndRead(scene, glm::vec2(xposGame, yposGame));
+					clickUuid = 0;
 
 					Entity* entity = Scene::GetActiveScene()->GetEntity(clickUuid);
 					if (entity) {
