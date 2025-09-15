@@ -54,6 +54,7 @@ namespace Plaza {
 			float directionalLightIntensity = 2.0f;
 			glm::vec4 ambientLightColor = glm::vec4(1.0f);
 			float ambientLightIntensity = 0.23f;
+			glm::vec3 clusterSize = glm::vec3(32, 32, 32);
 		}	mLightingSettings;
 
 		struct LightStruct {

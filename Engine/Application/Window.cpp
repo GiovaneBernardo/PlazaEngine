@@ -72,6 +72,15 @@ namespace Plaza {
 		glfwSetDropCallback(window, Callbacks::dropCallback);
 		glfwSetKeyCallback(window, Callbacks::keyCallback);
 
+		// Resize windows
+		ApplicationSizes& appSizes = *Application::Get()->appSizes;
+		Application::Get()->appSizes->appSize = glm::vec2(width, height);
+		//glm::vec2 scale = Application::Get()->appSizes->appSize / Application::Get()->appSizes->baseAppSize;
+		//float uniformScale = std::min(scale.x, scale.y);
+		//appSizes.sceneSize = appSizes.sceneSize * scale;
+		//appSizes.hierarchySize = { appSizes.hierarchySize.x, appSizes.hierarchySize.y * scale.y };
+		//appSizes.inspectorSize = { appSizes.inspectorSize.x, appSizes.inspectorSize.y * scale.y };
+
 		return window;
 	}
 } // namespace Plaza

@@ -661,8 +661,11 @@ namespace Plaza {
 
 	void VulkanRenderer::InitCommands() {}
 	void VulkanRenderer::InitSyncStructures() {
+		uint32_t swapchainImageCount = 0;
+		vkGetSwapchainImagesKHR(mDevice, mSwapChain, &swapchainImageCount, nullptr);
+
 		mImageAvailableSemaphores.resize(mMaxFramesInFlight);
-		mRenderFinishedSemaphores.resize(mMaxFramesInFlight);
+		mRenderFinishedSemaphores.resize(swapchainImageCount);
 		mComputeFinishedSemaphores.resize(mMaxFramesInFlight);
 		mInFlightFences.resize(mMaxFramesInFlight);
 		mComputeInFlightFences.resize(mMaxFramesInFlight);
@@ -676,7 +679,7 @@ namespace Plaza {
 
 		for (size_t i = 0; i < mMaxFramesInFlight; i++) {
 			if (vkCreateSemaphore(mDevice, &semaphoreInfo, nullptr, &mImageAvailableSemaphores[i]) != VK_SUCCESS ||
-				vkCreateSemaphore(mDevice, &semaphoreInfo, nullptr, &mRenderFinishedSemaphores[i]) != VK_SUCCESS ||
+//				vkCreateSemaphore(mDevice, &semaphoreInfo, nullptr, &mRenderFinishedSemaphores[i]) != VK_SUCCESS ||
 				vkCreateFence(mDevice, &fenceInfo, nullptr, &mInFlightFences[i]) != VK_SUCCESS) {
 				throw std::runtime_error("failed to create synchronization objects for a frame!");
 			}
@@ -684,6 +687,10 @@ namespace Plaza {
 				vkCreateFence(mDevice, &fenceInfo, nullptr, &mComputeInFlightFences[i]) != VK_SUCCESS) {
 				throw std::runtime_error("failed to create compute synchronization objects for a frame!");
 			}
+		}
+
+		for (size_t i = 0; i < swapchainImageCount; i++) {
+			PLVK_CHECK_RESULT(vkCreateSemaphore(mDevice, &semaphoreInfo, nullptr, &mRenderFinishedSemaphores[i]));
 		}
 	}
 
@@ -1875,7 +1882,7 @@ namespace Plaza {
 		allocatorInfo.instance = mVulkanInstance;
 		allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_2;
 		if (mEnableValidationLayers)
-			allocatorInfo.flags = VMA_ALLOCATOR_CREATE_EXTERNALLY_SYNCHRONIZED_BIT;
+			allocatorInfo.flags = VMA_ALLOCATION_CREATE_NEVER_ALLOCATE_BIT;
 		vmaCreateAllocator(&allocatorInfo, &mVmaAllocator);
 
 		/* Initialize buffers */
@@ -1939,11 +1946,6 @@ namespace Plaza {
 		this->mPicking->Init();
 #endif
 
-		std::cout << "Initializing Semaphores \n";
-		VkSemaphoreCreateInfo semaphoreInfo = {};
-		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-		vkCreateSemaphore(mDevice, &semaphoreInfo, nullptr, &semaphore);
-
 		PL_CORE_INFO("Build Default RenderGraph");
 		this->mRenderGraph->BuildDefaultRenderGraph();
 
@@ -1999,13 +2001,28 @@ namespace Plaza {
 	}
 
 	void VulkanRenderer::UpdatePreRecord() {
+		static bool firstFrame = true;
 		Application::Get()->mThreadsManager->mFrameRendererBeforeFenceThread->Update();
+		//if (!firstFrame)/
 		vkWaitForFences(mDevice, 1, &mInFlightFences[mCurrentFrame], VK_TRUE, UINT64_MAX);
-		Application::Get()->mThreadsManager->mFrameRendererAfterFenceThread->Update();
-
 		vkResetFences(mDevice, 1, &mInFlightFences[mCurrentFrame]);
-		VkResult swapchainResult = vkAcquireNextImageKHR(
-			mDevice, mSwapChain, UINT64_MAX, mImageAvailableSemaphores[mCurrentFrame], VK_NULL_HANDLE, &mCurrentImage);
+		Application::Get()->mThreadsManager->mFrameRendererAfterFenceThread->Update();
+		//vkResetFences(mDevice, 1, &mInFlightFences[mCurrentFrame]);
+
+		//unsigned int imageIndex;
+		//VkResult swapchainResult = vkAcquireNextImageKHR(
+		//	mDevice,
+		//	mSwapChain,
+		//	UINT64_MAX,
+		//	mImageAvailableSemaphores[mCurrentFrame], // INCORRECT if mCurrentImage is frame index
+		//	VK_NULL_HANDLE,
+		//	&imageIndex
+		//);
+		//mCurrentImage = imageIndex;
+
+		uint32_t imageIndex;
+		VkResult swapchainResult = vkAcquireNextImageKHR(mDevice, mSwapChain, UINT64_MAX, mImageAvailableSemaphores[mCurrentFrame], VK_NULL_HANDLE, &imageIndex);
+		mCurrentImage = imageIndex;
 
 		if (swapchainResult == VK_ERROR_OUT_OF_DATE_KHR) {
 			RecreateSwapChain();
@@ -2014,38 +2031,36 @@ namespace Plaza {
 		else if (swapchainResult != VK_SUCCESS && swapchainResult != VK_SUBOPTIMAL_KHR) {
 			throw std::runtime_error("failed to acquire swap chain image!");
 		}
+		firstFrame = false;
 
 		PLVK_CHECK_RESULT(vkResetCommandBuffer(mCommandBuffers[mCurrentFrame], 0));
 	}
 
 	void VulkanRenderer::UpdateAfterRecord() {
-		VkSemaphore waitSemaphores[] = {mImageAvailableSemaphores[mCurrentFrame]};
-		VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
-		VkSemaphore signalSemaphores[] = {mRenderFinishedSemaphores[mCurrentFrame]};
+		VkSemaphore waitSemaphores[] = { mImageAvailableSemaphores[mCurrentFrame] };
+		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+		VkSemaphore signalSemaphores[] = { mRenderFinishedSemaphores[mCurrentImage] };
 
-		{
-			VkSubmitInfo submitInfo{};
-			submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-			submitInfo.waitSemaphoreCount = 1;
-			submitInfo.pWaitSemaphores = waitSemaphores;
-			submitInfo.pWaitDstStageMask = waitStages;
-			submitInfo.commandBufferCount = 1;
-			submitInfo.pCommandBuffers = &mCommandBuffers[mCurrentFrame];
-			submitInfo.signalSemaphoreCount = 1;
-			submitInfo.pSignalSemaphores = signalSemaphores;
-			PLAZA_PROFILE_SECTION("Queue");
-			if (vkQueueSubmit(mGraphicsQueue, 1, &submitInfo, mInFlightFences[mCurrentFrame]) != VK_SUCCESS) {
-				throw std::runtime_error("failed to submit draw command buffer!");
-			}
+		VkSubmitInfo submitInfo{};
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		submitInfo.waitSemaphoreCount = 1;
+		submitInfo.pWaitSemaphores = waitSemaphores;
+		submitInfo.pWaitDstStageMask = waitStages;
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers = &mCommandBuffers[mCurrentFrame];
+		submitInfo.signalSemaphoreCount = 1;
+		submitInfo.pSignalSemaphores = signalSemaphores;
+
+		if (vkQueueSubmit(mGraphicsQueue, 1, &submitInfo, mInFlightFences[mCurrentFrame]) != VK_SUCCESS) {
+			throw std::runtime_error("failed to submit draw command buffer!");
 		}
 
 		VkPresentInfoKHR presentInfo{};
 		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-
 		presentInfo.waitSemaphoreCount = 1;
 		presentInfo.pWaitSemaphores = signalSemaphores;
 
-		VkSwapchainKHR swapChains[] = {mSwapChain};
+		VkSwapchainKHR swapChains[] = { mSwapChain };
 		presentInfo.swapchainCount = 1;
 		presentInfo.pSwapchains = swapChains;
 		presentInfo.pImageIndices = &mCurrentImage;
@@ -2178,22 +2193,22 @@ namespace Plaza {
 	}
 
 	void VulkanRenderer::InitGUI() {
-		VkDescriptorPoolSize pool_sizes[] = {{VK_DESCRIPTOR_TYPE_SAMPLER, 1000},
-											 {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000},
-											 {VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000},
-											 {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000},
-											 {VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000},
-											 {VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000},
-											 {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000},
-											 {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000},
-											 {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000},
-											 {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000},
-											 {VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000}};
+		VkDescriptorPoolSize pool_sizes[] = {{VK_DESCRIPTOR_TYPE_SAMPLER, 100},
+											 {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 100},
+											 {VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 100},
+											 {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 100},
+											 {VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 100},
+											 {VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 100},
+											 {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 100},
+											 {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 100},
+											 {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 100},
+											 {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 100},
+											 {VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 100}};
 
 		VkDescriptorPoolCreateInfo pool_info = {};
 		pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 		pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
-		pool_info.maxSets = 1000 * IM_ARRAYSIZE(pool_sizes);
+		pool_info.maxSets = 4 * IM_ARRAYSIZE(pool_sizes);
 		pool_info.poolSizeCount = (uint32_t)IM_ARRAYSIZE(pool_sizes);
 		pool_info.pPoolSizes = pool_sizes;
 
@@ -2207,7 +2222,7 @@ namespace Plaza {
 
 		if (mRenderGraph && mRenderGraph->HasTexture("FinalTexture")) {
 			mFinalSceneDescriptorSet = ImGui_ImplVulkan_AddTexture(
-				mImGuiTextureSampler, mRenderGraph->GetTexture<VulkanTexture>("FinalTexture")->mImageView,
+				mImGuiTextureSampler, mRenderGraph->GetTexture<VulkanTexture>("SceneTexture")->mImageView,
 				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 		}
 
@@ -2256,7 +2271,6 @@ namespace Plaza {
 	}
 
 	ImTextureID VulkanRenderer::GetFrameImage() {
-		// return (ImTextureID)this->mShadows->mDebugDepthDescriptorSet;
 		return (ImTextureID)mFinalSceneDescriptorSet;
 	}
 
@@ -2695,7 +2709,7 @@ namespace Plaza {
 
 		{
 			PLAZA_PROFILE_SECTION("Wait Fences");
-			vkWaitForFences(mDevice, 1, &mInFlightFences[mCurrentFrame], VK_TRUE, UINT64_MAX);
+			vkWaitForFences(mDevice, 1, &mInFlightFences[mCurrentImage], VK_TRUE, UINT64_MAX);
 		}
 
 		uint32_t imageIndex;
@@ -3176,6 +3190,8 @@ namespace Plaza {
 		VkFenceCreateInfo fenceCreateInfo = {};
 		fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 		fenceCreateInfo.flags = 0;
+
+		std::cout << "teste \n";
 
 		vkCreateFence(mDevice, &fenceCreateInfo, nullptr, &mInFlightFences[mCurrentFrame]);
 		vkQueueSubmit(mGraphicsQueue, 0, nullptr, mInFlightFences[mCurrentFrame]);

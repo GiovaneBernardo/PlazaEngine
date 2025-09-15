@@ -184,6 +184,7 @@ namespace Plaza {
 		VkQueue mGraphicsQueue = VK_NULL_HANDLE;
 		VkQueue mComputeQueue = VK_NULL_HANDLE;
 		std::vector<VkFence> mInFlightFences;
+		std::vector<VkFence> mImagesInFlight;
 		VkImageView mDepthImageView;
 
 		void UpdateMaterials();
@@ -282,7 +283,7 @@ namespace Plaza {
 		const std::string MODEL_PATH = "C:/Users/Giovane/Desktop/Workspace/viking_room.obj";
 		const std::string TEXTURE_PATH = "C:/Users/Giovane/Desktop/Workspace/viking_room.png";
 
-		uint32_t mCurrentImage;
+		uint32_t mCurrentImage = 0;
 		const int MAX_FRAMES_IN_FLIGHT = 2;
 
 		bool mEnableValidationLayers = false;
