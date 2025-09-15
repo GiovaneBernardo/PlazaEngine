@@ -15,29 +15,21 @@ namespace Plaza {
 	PLAZA_API float Time::msPerFrame = 0;
 
 	void Time::Update() {
-		// Delta time
-		int& frameCount = Time::frameCount;
-		float& previousTime = Time::previousTime;
-		float& deltaTime = Time::deltaTime;
-		float& lastFrame = Time::lastFrame;
-		// Measure speed
-		double currentTime = glfwGetTime();
-		float timeDifference = currentTime - previousTime;
+		float currentTime = static_cast<float>(glfwGetTime());
+
+		// Delta Time
+		deltaTime = currentTime - lastFrame;
+		lastFrame = currentTime;
+
+		// FPS tracking (updates every 1 second)
 		frameCount++;
-
-		// If a second has passed.
-		if (timeDifference >= 1.0f / 20.0f) {
-			// Display the frame count here any way you want.
-			// std::cout << frameCount << std::endl;
-			fps = (1.0f / timeDifference) * frameCount; // frameCount;
-			msPerFrame = (timeDifference / frameCount) * 1000;
+		float elapsed = currentTime - previousTime;
+		if (elapsed >= 1.0f) {
+			fps = static_cast<float>(frameCount) / elapsed;
+			msPerFrame = 1000.0f / fps;
 			frameCount = 0;
-			previousTime = glfwGetTime();
+			previousTime = currentTime;
 		}
-
-		float currentFrame = static_cast<float>(glfwGetTime());
-		deltaTime = currentFrame - lastFrame;
-		lastFrame = currentFrame;
 	}
 
 	float Time::GetDeltaTime() { return deltaTime; }
