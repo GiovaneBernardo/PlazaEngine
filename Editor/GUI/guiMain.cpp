@@ -67,6 +67,10 @@ namespace Plaza {
 			PLAZA_PROFILE_SECTION("ImGui Update");
 			ImGuiIO& io = ImGui::GetIO();
 
+			int fbWidth, fbHeight;
+			glfwGetFramebufferSize(Application::Get()->mWindow->glfwWindow, &fbWidth, &fbHeight);
+			Application::Get()->appSizes->appSize = glm::vec2(fbWidth, fbHeight);
+
 			io.DeltaTime = Time::deltaTime;
 			io.DisplaySize = ImVec2(Application::Get()->appSizes->appSize.x, Application::Get()->appSizes->appSize.y);
 			Input::SetFocusedMenuCheck("Editor");
@@ -75,6 +79,7 @@ namespace Plaza {
 			// else if (Application::Get()->mRenderer->api == RendererAPI::Vulkan)
 			//	Application::Get()->mRenderer->UpdateGUI();
 			// ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), (VulkanRenderer)(Application::Get()->mRenderer)->);
+
 		}
 
 		void Gui::NewFrame() {
@@ -103,7 +108,7 @@ namespace Plaza {
 			sEditorTools.emplace(EditorTool::ToolType::TERRAIN_EDITOR, std::make_unique<TerrainEditorTool>());
 
 			ImGui::SetCurrentContext(mMainProgressBarContext);
-			CommonGuiInit(window, sEditorStyle, false);
+			//CommonGuiInit(window, sEditorStyle, false);
 			mMainProgressBarContext->IO = mMainContext->IO;
 			mMainProgressBarContext->PlatformIO = mMainContext->PlatformIO;
 
@@ -142,6 +147,11 @@ namespace Plaza {
 			// C:/Users/Giovane/Desktop/Workspace 2023/OpenGL/OpenGLEngine/Engine/Font/Poppins-Regular.ttf
 			io.Fonts->AddFontFromFileTTF((FilesManager::sEngineFolder.string() + "/Font/Poppins-Regular.ttf").c_str(), 18);
 			io.ConfigFlags |= ImGuiConfigFlags_DpiEnableScaleFonts | ImGuiConfigFlags_DpiEnableScaleViewports;
+
+			// Window Sizes
+			glm::vec2 scale = Application::Get()->appSizes->appSize / Application::Get()->appSizes->baseAppSize;
+			float uniformScale = std::min(scale.x, scale.y);
+			//io.FontGlobalScale = uniformScale;
 
 #pragma region ImGui Style
 			auto& colors = ImGui::GetStyle().Colors;
@@ -208,8 +218,6 @@ namespace Plaza {
 			ImGuiIO& io = ImGui::GetIO();
 			ImGuiID dockspace_id = ImGui::GetID("Main DockSpace");
 			ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
-			dockspace_flags &= ~ImGuiDockNodeFlags_PassthruCentralNode;
-			dockspace_flags |= ImGuiDockNodeFlags_NoDockingInCentralNode;
 
 			// Submit the DockSpace
 			ImGui::DockSpace(dockspace_id, ImVec2(0, 0), dockspace_flags);
@@ -294,6 +302,8 @@ namespace Plaza {
 						break;
 					}
 				}
+
+				Application::Get()->appSizes->sceneSize = ImGui::glmVec2(ImGui::GetWindowSize());
 			}
 
 			if (ImGui::IsWindowFocused()) {
@@ -403,6 +413,7 @@ namespace Plaza {
 
 			if (ImGui::Begin("Editor", &Gui::isSceneOpen, windowFlags)) {
 				Application::Get()->activeCamera = Application::Get()->editorCamera;
+				Application::Get()->appSizes->sceneSize = ImGui::glmVec2(ImGui::GetWindowSize());
 			};
 			if (ImGui::IsWindowFocused()) {
 				if (Application::Get()->focusedMenu != "Editor") {
