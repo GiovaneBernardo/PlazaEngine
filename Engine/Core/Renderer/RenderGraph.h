@@ -352,6 +352,8 @@ namespace Plaza {
 		}
 	};
 
+	// Buffers structs
+
 	struct EquirectangularToCubeMapPC {
 		glm::mat4 mvp;
 		bool first;
@@ -359,5 +361,60 @@ namespace Plaza {
 		float deltaTheta = (0.5f * float(3.14159265358979323846)) / 64.0f;
 		float roughness = 1.0f;
 		unsigned int numSamples = 32u;
+	};
+
+	// Buffer types
+	struct UniformBufferObject {
+		glm::mat4 projection;				   // 64 bytes
+		glm::mat4 view;						   // 64 bytes
+		glm::mat4 model;					   // 64 bytes
+		int cascadeCount;					   // 4 bytes
+		float farPlane;						   // 4 bytes
+		float nearPlane;					   // 4 bytes
+		alignas(16) glm::vec4 lightDirection;  // 16 bytes, forced alignment to 16 bytes
+		glm::vec4 viewPos;					   // 16 bytes
+		glm::mat4 lightSpaceMatrices[16];	   // 16 * 64 bytes = 1024 bytes
+		glm::vec4 cascadePlaneDistances[16];   // 16 * 16 bytes = 256 bytes
+		glm::vec4 directionalLightColor;	   // 16 bytes
+		glm::vec4 ambientLightColor;		   // 16 bytes
+		alignas(4) uint32_t showCascadeLevels; // 4 bytes, bool aligns to 4 bytes (use uint32_t)
+		float gamma;						   // 4 bytes
+	};
+	struct alignas(16) DeferredLightingPassUbo {
+		glm::mat4 projection;
+		glm::mat4 view;
+		alignas(4) uint32_t showCascadeLevels;
+		float farPlane;
+		float nearPlane;
+		float gamma;
+		float exposure;
+		int cascadeCount;
+		int lightCount;
+		alignas(16) glm::vec4 viewPos;
+		glm::vec4 lightDirection;
+		glm::vec4 ambientLightColor;
+		glm::vec4 directionalLightColor;
+		alignas(16) glm::vec2 screenSize;
+		alignas(16) glm::vec3 clusterSize;
+		float _padding0;
+		glm::mat4 lightSpaceMatrices[16];
+		glm::vec4 cascadePlaneDistances[16];
+	};
+
+	struct ShadowPassUBO {
+		glm::mat4 lightSpaceMatrices[32];
+	};
+
+	struct alignas(16) MaterialData {
+		glm::vec4 color = glm::vec4(1.0f);
+		float intensity = 1.0f;
+		int diffuseIndex = -1;
+		int normalIndex = -1;
+		int roughnessIndex = -1;
+		int metalnessIndex = -1;
+		float roughnessFloat = 0.5f;
+		float metalnessFloat = 0.5f;
+		float flipX = 1.0f;
+		float flipY = 1.0f;
 	};
 } // namespace Plaza

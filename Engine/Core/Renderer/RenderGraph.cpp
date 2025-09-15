@@ -130,64 +130,12 @@ namespace Plaza {
 		this->GetTexture<Texture>("EquirectangularTexture")->SetTextureInfo(equirectangularInfo);
 
 		/* Buffers */
-		// Buffer types
-		struct UniformBufferObject {
-			glm::mat4 projection;				   // 64 bytes
-			glm::mat4 view;						   // 64 bytes
-			glm::mat4 model;					   // 64 bytes
-			int cascadeCount;					   // 4 bytes
-			float farPlane;						   // 4 bytes
-			float nearPlane;					   // 4 bytes
-			alignas(16) glm::vec4 lightDirection;  // 16 bytes, forced alignment to 16 bytes
-			glm::vec4 viewPos;					   // 16 bytes
-			glm::mat4 lightSpaceMatrices[16];	   // 16 * 64 bytes = 1024 bytes
-			glm::vec4 cascadePlaneDistances[16];   // 16 * 16 bytes = 256 bytes
-			glm::vec4 directionalLightColor;	   // 16 bytes
-			glm::vec4 ambientLightColor;		   // 16 bytes
-			alignas(4) uint32_t showCascadeLevels; // 4 bytes, bool aligns to 4 bytes (use uint32_t)
-			float gamma;						   // 4 bytes
-		};
-		struct DeferredLightingPassUbo {
-			glm::mat4 projection;				   // 64 bytes
-			glm::mat4 view;						   // 64 bytes
-			alignas(4) uint32_t showCascadeLevels; // 4 bytes, must align to 4 bytes
-			float farPlane;						   // 4 bytes
-			float nearPlane;					   // 4 bytes
-			float gamma;						   // 4 bytes
-			float exposure;						   // 4 bytes
-			int cascadeCount;					   // 4 bytes
-			int lightCount;						   // 4 bytes
-			alignas(16) glm::vec4 viewPos;		   // 16 bytes
-			glm::vec4 lightDirection;			   // 16 bytes
-			glm::vec4 ambientLightColor;		   // 16 bytes
-			glm::vec4 directionalLightColor;	   // 16 bytes
-			glm::mat4 lightSpaceMatrices[16];	   // 16 * 64 bytes = 1024 bytes
-			glm::vec4 cascadePlaneDistances[16];   // 16 * 16 bytes = 256 bytes
-		};
-
-		struct ShadowPassUBO {
-			glm::mat4 lightSpaceMatrices[32];
-		};
-
-		struct alignas(16) MaterialData {
-			glm::vec4 color = glm::vec4(1.0f);
-			float intensity = 1.0f;
-			int diffuseIndex = -1;
-			int normalIndex = -1;
-			int roughnessIndex = -1;
-			int metalnessIndex = -1;
-			float roughnessFloat = 0.5f;
-			float metalnessFloat = 0.5f;
-			float flipX = 1.0f;
-			float flipY = 1.0f;
-		};
-
 		this->AddBuffer(PL_BUFFER_UNIFORM_BUFFER, 1, sizeof(ShadowPassUBO), bufferCount, PL_BUFFER_USAGE_UNIFORM_BUFFER,
 						PL_MEMORY_USAGE_CPU_TO_GPU, "ShadowPassUBO");
 		this->AddBuffer(PL_BUFFER_UNIFORM_BUFFER, 1, sizeof(UniformBufferObject), bufferCount,
 						PL_BUFFER_USAGE_UNIFORM_BUFFER, PL_MEMORY_USAGE_CPU_TO_GPU, "GPassUBO");
 		this->AddBuffer(PL_BUFFER_UNIFORM_BUFFER, 1, sizeof(DeferredLightingPassUbo), bufferCount,
-						PL_BUFFER_USAGE_UNIFORM_BUFFER, PL_MEMORY_USAGE_CPU_TO_GPU, "DeferredPassUBO");
+						PL_BUFFER_USAGE_UNIFORM_BUFFER, PL_MEMORY_USAGE_CPU_TO_GPU, "LightingPassUBO");
 		this->AddBuffer(PL_BUFFER_STORAGE_BUFFER, 1024 * 16, sizeof(glm::mat4), bufferCount,
 						PL_BUFFER_USAGE_STORAGE_BUFFER, PL_MEMORY_USAGE_CPU_TO_GPU, "BoneMatricesBuffer");
 		this->AddBuffer(PL_BUFFER_STORAGE_BUFFER, 1024 * 16, sizeof(MaterialData), bufferCount,
@@ -236,91 +184,37 @@ namespace Plaza {
 		const uint32_t clusterCount =
 			glm::ceil(screenSize.x / deferredTileSize.x + 1) * glm::ceil(screenSize.y / deferredTileSize.y + 1);
 
-		// Buffer types
-		struct UniformBufferObject {
-			glm::mat4 projection;				   // 64 bytes
-			glm::mat4 view;						   // 64 bytes
-			glm::mat4 model;					   // 64 bytes
-			int cascadeCount;					   // 4 bytes
-			float farPlane;						   // 4 bytes
-			float nearPlane;					   // 4 bytes
-			alignas(16) glm::vec4 lightDirection;  // 16 bytes, forced alignment to 16 bytes
-			glm::vec4 viewPos;					   // 16 bytes
-			glm::mat4 lightSpaceMatrices[16];	   // 16 * 64 bytes = 1024 bytes
-			glm::vec4 cascadePlaneDistances[16];   // 16 * 16 bytes = 256 bytes
-			glm::vec4 directionalLightColor;	   // 16 bytes
-			glm::vec4 ambientLightColor;		   // 16 bytes
-			alignas(4) uint32_t showCascadeLevels; // 4 bytes, bool aligns to 4 bytes (use uint32_t)
-			float gamma;						   // 4 bytes
-		};
-		struct DeferredLightingPassUbo {
-			glm::mat4 projection;				   // 64 bytes
-			glm::mat4 view;						   // 64 bytes
-			alignas(4) uint32_t showCascadeLevels; // 4 bytes, must align to 4 bytes
-			float farPlane;						   // 4 bytes
-			float nearPlane;					   // 4 bytes
-			float gamma;						   // 4 bytes
-			float exposure;						   // 4 bytes
-			int cascadeCount;					   // 4 bytes
-			int lightCount;						   // 4 bytes
-			alignas(16) glm::vec4 viewPos;		   // 16 bytes
-			glm::vec4 lightDirection;			   // 16 bytes
-			glm::vec4 ambientLightColor;		   // 16 bytes
-			glm::vec4 directionalLightColor;	   // 16 bytes
-			glm::mat4 lightSpaceMatrices[16];	   // 16 * 64 bytes = 1024 bytes
-			glm::vec4 cascadePlaneDistances[16];   // 16 * 16 bytes = 256 bytes
-		};
-
-		struct ShadowPassUBO {
-			glm::mat4 lightSpaceMatrices[32];
-		};
-
-		struct alignas(16) MaterialData {
-			glm::vec4 color = glm::vec4(1.0f);
-			float intensity = 1.0f;
-			int diffuseIndex = -1;
-			int normalIndex = -1;
-			int roughnessIndex = -1;
-			int metalnessIndex = -1;
-			float roughnessFloat = 0.5f;
-			float metalnessFloat = 0.5f;
-			float flipX = 1.0f;
-			float flipY = 1.0f;
-		};
-
 		PlPipelineCreateInfo shadowPassPipelineCreateInfo = pl::pipelineCreateInfo(
-				"ShadowMapping", PL_RENDER_PASS_INDIRECT_BUFFER_SHADOW_MAP,
-				{pl::pipelineShaderStageCreateInfo(
-					 PL_STAGE_VERTEX,
-					 FilesManager::sEngineFolder.string() + "/Shaders/shadows/cascadedShadowDepthShaders.vert", "mainVS"),
-				 pl::pipelineShaderStageCreateInfo(PL_STAGE_FRAGMENT,
-												   FilesManager::sEngineFolder.string() +
-													   "/Shaders/shadows/cascadedShadowDepthShaders.frag",
-												   "mainPS")},
-				{pl::vertexInputBindingDescription(0, sizeof(Vertex), PL_VERTEX_INPUT_RATE_VERTEX),
-				 pl::vertexInputBindingDescription(1, sizeof(glm::vec4) * 4, PL_VERTEX_INPUT_RATE_INSTANCE)},
-				{pl::vertexInputAttributeDescription(0, 0, PL_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, position)),
-				 pl::vertexInputAttributeDescription(1, 1, PL_FORMAT_R32G32B32A32_SFLOAT, 0),
-				 pl::vertexInputAttributeDescription(2, 1, PL_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 4),
-				 pl::vertexInputAttributeDescription(3, 1, PL_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 8),
-				 pl::vertexInputAttributeDescription(4, 1, PL_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 12)},
-				PL_TOPOLOGY_TRIANGLE_LIST, false,
-				pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f,
-														 0.0f, PL_CULL_MODE_BACK, PL_FRONT_FACE_COUNTER_CLOCKWISE),
-				pl::pipelineColorBlendStateCreateInfo({pl::pipelineColorBlendAttachmentState(true)}),
-				pl::pipelineDepthStencilStateCreateInfo(true, true, PL_COMPARE_OP_GREATER),
-				pl::pipelineViewportStateCreateInfo(1, 1),
-				pl::pipelineMultisampleStateCreateInfo(PL_SAMPLE_COUNT_1_BIT, 0),
-				{PL_DYNAMIC_STATE_VIEWPORT, PL_DYNAMIC_STATE_SCISSOR}, {});
+			"ShadowMapping", PL_RENDER_PASS_INDIRECT_BUFFER_SHADOW_MAP,
+			{pl::pipelineShaderStageCreateInfo(
+				 PL_STAGE_VERTEX,
+				 FilesManager::sEngineFolder.string() + "/Shaders/shadows/cascadedShadowDepthShaders.vert", "mainVS"),
+			 pl::pipelineShaderStageCreateInfo(
+				 PL_STAGE_FRAGMENT,
+				 FilesManager::sEngineFolder.string() + "/Shaders/shadows/cascadedShadowDepthShaders.frag", "mainPS")},
+			{pl::vertexInputBindingDescription(0, sizeof(Vertex), PL_VERTEX_INPUT_RATE_VERTEX),
+			 pl::vertexInputBindingDescription(1, sizeof(glm::vec4) * 4, PL_VERTEX_INPUT_RATE_INSTANCE)},
+			{pl::vertexInputAttributeDescription(0, 0, PL_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, position)),
+			 pl::vertexInputAttributeDescription(1, 1, PL_FORMAT_R32G32B32A32_SFLOAT, 0),
+			 pl::vertexInputAttributeDescription(2, 1, PL_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 4),
+			 pl::vertexInputAttributeDescription(3, 1, PL_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 8),
+			 pl::vertexInputAttributeDescription(4, 1, PL_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 12)},
+			PL_TOPOLOGY_TRIANGLE_LIST, false,
+			pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f, 0.0f,
+													 PL_CULL_MODE_BACK, PL_FRONT_FACE_COUNTER_CLOCKWISE),
+			pl::pipelineColorBlendStateCreateInfo({pl::pipelineColorBlendAttachmentState(true)}),
+			pl::pipelineDepthStencilStateCreateInfo(true, true, PL_COMPARE_OP_GREATER),
+			pl::pipelineViewportStateCreateInfo(1, 1), pl::pipelineMultisampleStateCreateInfo(PL_SAMPLE_COUNT_1_BIT, 0),
+			{PL_DYNAMIC_STATE_VIEWPORT, PL_DYNAMIC_STATE_SCISSOR}, {});
 
 		this->AddRenderPass("ShadowPass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT,
-			PL_RENDER_PASS_INDIRECT_BUFFER_SHADOW_MAP,
-			glm::vec2(shadowMapResolution, shadowMapResolution), true)
-		->SetBuffer("ShadowsUBO", this->GetSharedBuffer("ShadowPassUBO"))
-		->SetBuffer("BoneMatrices", this->GetSharedBuffer("BoneMatricesBuffer"))
-		->AddRenderTarget(this->GetSharedTexture("ShadowsDepthMap"))
-		->SetShader("Shadows.hlsl")
-		->AddPipeline(shadowPassPipelineCreateInfo);
+							PL_RENDER_PASS_INDIRECT_BUFFER_SHADOW_MAP,
+							glm::vec2(shadowMapResolution, shadowMapResolution), true)
+			->SetBuffer("ShadowsUBO", this->GetSharedBuffer("ShadowPassUBO"))
+			->SetBuffer("BoneMatrices", this->GetSharedBuffer("BoneMatricesBuffer"))
+			->AddRenderTarget(this->GetSharedTexture("ShadowsDepthMap"))
+			->SetShader("Shadows.hlsl")
+			->AddPipeline(shadowPassPipelineCreateInfo);
 
 		static ShadowPassUBO shadowPassUbo{};
 		this->AddRenderPassCallback(
@@ -341,118 +235,213 @@ namespace Plaza {
 					->UpdateData<ShadowPassUBO>(Application::Get()->mRenderer->mCurrentFrame, shadowPassUbo);
 			});
 
-
 		// Geometry
 		PlPipelineCreateInfo geometryPassPipelineCreateInfo = pl::pipelineCreateInfo(
-		"GeometryPass", PL_RENDER_PASS_INDIRECT_BUFFER,
-		{},
-		{pl::vertexInputBindingDescription(0, sizeof(Vertex), PL_VERTEX_INPUT_RATE_VERTEX),
-			pl::vertexInputBindingDescription(1, sizeof(glm::vec4) * 4, PL_VERTEX_INPUT_RATE_INSTANCE)},
-		{
-		pl::vertexInputAttributeDescription(0, 0, PL_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, position)),       // inPosition
-		pl::vertexInputAttributeDescription(1, 0, PL_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, normal)),         // inNormal
-		pl::vertexInputAttributeDescription(2, 0, PL_FORMAT_R32G32_SFLOAT, offsetof(Vertex, texCoords)),         // inTexCoord
-		pl::vertexInputAttributeDescription(3, 0, PL_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, tangent)),       // inTangent
-		pl::vertexInputAttributeDescription(4, 1, PL_FORMAT_R32G32B32A32_SFLOAT, 0),                            // instanceMatrix0
-		pl::vertexInputAttributeDescription(5, 1, PL_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 4),          // instanceMatrix1
-		pl::vertexInputAttributeDescription(6, 1, PL_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 8),          // instanceMatrix2
-		pl::vertexInputAttributeDescription(7, 1, PL_FORMAT_R32G32B32A32_SFLOAT, sizeof(float) * 12),         // instanceMatrix3
-		pl::vertexInputAttributeDescription(8, 1, PL_FORMAT_R32_UINT,  sizeof(unsigned int))},
+			"GeometryPass", PL_RENDER_PASS_INDIRECT_BUFFER, {},
+			{pl::vertexInputBindingDescription(0, sizeof(Vertex), PL_VERTEX_INPUT_RATE_VERTEX),
+			 pl::vertexInputBindingDescription(1, sizeof(glm::vec4) * 4, PL_VERTEX_INPUT_RATE_INSTANCE)},
+			{pl::vertexInputAttributeDescription(0, 0, PL_FORMAT_R32G32B32_SFLOAT,
+												 offsetof(Vertex, position)), // inPosition
+			 pl::vertexInputAttributeDescription(1, 0, PL_FORMAT_R32G32B32_SFLOAT,
+												 offsetof(Vertex, normal)), // inNormal
+			 pl::vertexInputAttributeDescription(2, 0, PL_FORMAT_R32G32_SFLOAT,
+												 offsetof(Vertex, texCoords)), // inTexCoord
+			 pl::vertexInputAttributeDescription(3, 0, PL_FORMAT_R32G32B32_SFLOAT,
+												 offsetof(Vertex, tangent)),			  // inTangent
+			 pl::vertexInputAttributeDescription(4, 1, PL_FORMAT_R32G32B32A32_SFLOAT, 0), // instanceMatrix0
+			 pl::vertexInputAttributeDescription(5, 1, PL_FORMAT_R32G32B32A32_SFLOAT,
+												 sizeof(float) * 4), // instanceMatrix1
+			 pl::vertexInputAttributeDescription(6, 1, PL_FORMAT_R32G32B32A32_SFLOAT,
+												 sizeof(float) * 8), // instanceMatrix2
+			 pl::vertexInputAttributeDescription(7, 1, PL_FORMAT_R32G32B32A32_SFLOAT,
+												 sizeof(float) * 12), // instanceMatrix3
+			 pl::vertexInputAttributeDescription(8, 1, PL_FORMAT_R32_UINT, sizeof(unsigned int))},
 
-		PL_TOPOLOGY_TRIANGLE_LIST, false,
-		pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f,
-												 0.0f, PL_CULL_MODE_BACK, PL_FRONT_FACE_COUNTER_CLOCKWISE),
-		pl::pipelineColorBlendStateCreateInfo({3, pl::pipelineColorBlendAttachmentState(true)}),
-		pl::pipelineDepthStencilStateCreateInfo(true, true, PL_COMPARE_OP_LESS_OR_EQUAL),
-		pl::pipelineViewportStateCreateInfo(1, 1),
-		pl::pipelineMultisampleStateCreateInfo(PL_SAMPLE_COUNT_1_BIT, 0),
-		{PL_DYNAMIC_STATE_VIEWPORT, PL_DYNAMIC_STATE_SCISSOR}, {});
+			PL_TOPOLOGY_TRIANGLE_LIST, false,
+			pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f, 0.0f,
+													 PL_CULL_MODE_BACK, PL_FRONT_FACE_COUNTER_CLOCKWISE),
+			pl::pipelineColorBlendStateCreateInfo({3, pl::pipelineColorBlendAttachmentState(true)}),
+			pl::pipelineDepthStencilStateCreateInfo(true, true, PL_COMPARE_OP_LESS_OR_EQUAL),
+			pl::pipelineViewportStateCreateInfo(1, 1), pl::pipelineMultisampleStateCreateInfo(PL_SAMPLE_COUNT_1_BIT, 0),
+			{PL_DYNAMIC_STATE_VIEWPORT, PL_DYNAMIC_STATE_SCISSOR}, {});
 
-		this->AddRenderPass("DeferredGeometryPass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT,
-			PL_RENDER_PASS_INDIRECT_BUFFER,
-			screenSize, true)
-		->SetBuffer("UBO", this->GetSharedBuffer("GPassUBO"))
-		->SetBuffer("MaterialsSSBO", this->GetSharedBuffer("MaterialsBuffer"))
-		->SetBuffer("RenderGroupMaterialsOffsets", this->GetSharedBuffer("RenderGroupMaterialsOffsetsBuffer"))
-		->SetBuffer("RenderGroupOffsets", this->GetSharedBuffer("RenderGroupOffsetsBuffer"))
-		->SetTexture("textures", this->GetSharedTexture("TexturesBuffer"))
-		->SetSampler("texSampler", this->GetSharedTextureSampler("MaterialsSampler"))
-		->AddRenderTarget(this->GetSharedTexture("GNormal"))
-		->AddRenderTarget(this->GetSharedTexture("GDiffuse"))
-		->AddRenderTarget(this->GetSharedTexture("GOthers"))
-		->AddRenderTarget(this->GetSharedTexture("SceneDepth"))
-		->SetShader("DeferredGeometry.hlsl")
-		->AddPipeline(geometryPassPipelineCreateInfo);
+		this->AddRenderPass("DeferredGeometryPass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_PASS_INDIRECT_BUFFER,
+							screenSize, true)
+			->SetBuffer("UBO", this->GetSharedBuffer("GPassUBO"))
+			->SetBuffer("MaterialsSSBO", this->GetSharedBuffer("MaterialsBuffer"))
+			->SetBuffer("RenderGroupMaterialsOffsets", this->GetSharedBuffer("RenderGroupMaterialsOffsetsBuffer"))
+			->SetBuffer("RenderGroupOffsets", this->GetSharedBuffer("RenderGroupOffsetsBuffer"))
+			->SetTexture("textures", this->GetSharedTexture("TexturesBuffer"))
+			->SetSampler("texSampler", this->GetSharedTextureSampler("MaterialsSampler"))
+			->AddRenderTarget(this->GetSharedTexture("GNormal"))
+			->AddRenderTarget(this->GetSharedTexture("GDiffuse"))
+			->AddRenderTarget(this->GetSharedTexture("GOthers"))
+			->AddRenderTarget(this->GetSharedTexture("SceneDepth"))
+			->SetShader("DeferredGeometry.hlsl")
+			->AddPipeline(geometryPassPipelineCreateInfo);
 
 		static UniformBufferObject geometryUbo{};
-		this->AddRenderPassCallback(
-			"DeferredGeometryPass", [&](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass, Scene* scene) {
+		this->AddRenderPassCallback("DeferredGeometryPass", [&](PlazaRenderGraph* plazaRenderGraph,
+																PlazaRenderPass* plazaRenderPass, Scene* scene) {
+			// TODO: MOVE THE THREAD THAT UPDATES THE TERRAIN GENERATED BY THE TERRAIN TOOL TO SOMEWHERE ELSE
+			Application::Get()->mThreadsManager->mFrameRendererAfterGeometry->Update();
 
-				// TODO: MOVE THE THREAD THAT UPDATES THE TERRAIN GENERATED BY THE TERRAIN TOOL TO SOMEWHERE ELSE
-				Application::Get()->mThreadsManager->mFrameRendererAfterGeometry->Update();
+			geometryUbo.projection = Application::Get()->activeCamera->GetProjectionMatrix();
+			geometryUbo.view = Application::Get()->activeCamera->GetViewMatrix();
+			geometryUbo.model = glm::mat4(1.0f);
+
+			geometryUbo.cascadeCount = 9;
+			geometryUbo.farPlane = 15000.0f;
+			geometryUbo.nearPlane = 0.01f;
+
+			glm::vec3 lightDir = mRenderer->mRendererSettings.mLightingSettings.mLightDirection;
+			glm::vec3 lightDistance = glm::vec3(100.0f, 400.0f, 0.0f);
+			glm::vec3 lightPos;
+
+			geometryUbo.lightDirection = glm::vec4(lightDir, 1.0f);
+			geometryUbo.viewPos = glm::vec4(Application::Get()->activeCamera->Position, 1.0f);
+
+			geometryUbo.directionalLightColor =
+				glm::vec4(mRenderer->mRendererSettings.mLightingSettings.directionalLightColor *
+						  mRenderer->mRendererSettings.mLightingSettings.directionalLightIntensity);
+			geometryUbo.directionalLightColor.w =
+				mRenderer->mRendererSettings.mLightingSettings.directionalLightIntensity;
+			geometryUbo.ambientLightColor =
+				glm::vec4(mRenderer->mRendererSettings.mLightingSettings.ambientLightColor *
+						  mRenderer->mRendererSettings.mLightingSettings.ambientLightIntensity);
+			geometryUbo.gamma = mRenderer->gamma;
+
+			for (int i = 0; i < mRenderer->mRendererSettings.mLightingSettings.mCascadeCount; ++i) {
+				geometryUbo.lightSpaceMatrices[i] = shadowPassUbo.lightSpaceMatrices[i];
+				geometryUbo.cascadePlaneDistances[i] =
+					glm::vec4(mRenderer->mRendererSettings.mLightingSettings.shadowCascadeLevels[i], 1.0f, 1.0f, 1.0f);
+			}
+
+			geometryUbo.showCascadeLevels = Application::Get()->showCascadeLevels;
+
+			plazaRenderGraph->GetSharedBuffer("GPassUBO")
+				->UpdateData<UniformBufferObject>(Application::Get()->mRenderer->mCurrentFrame, geometryUbo);
+		});
+
+		this->AddRenderPass("DeferredLightingPass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT,
+							PL_RENDER_PASS_FULL_SCREEN_QUAD, screenSize, true)
+			->SetBuffer("UBO", this->GetSharedBuffer("LightingPassUBO"))
+			->SetBuffer("LightsSSBO", this->GetSharedBuffer("LightsBuffer"))
+			->SetBuffer("ClustersSSBO", this->GetSharedBuffer("ClustersBuffer"))
+			->SetTexture("samplerBRDFLUT", this->GetSharedTexture("SamplerBRDFLUT"))
+			->SetTexture("prefilterMap", this->GetSharedTexture("PreFilterMap"))
+			->SetTexture("irradianceMap", this->GetSharedTexture("IrradianceMap"))
+			->SetTexture("shadowsDepthMap", this->GetSharedTexture("ShadowsDepthMap"))
+			->SetTexture("equirectangularMap", this->GetSharedTexture("EquirectangularTexture"))
+			->SetTexture("gNormal", this->GetSharedTexture("GNormal"))
+			->SetTexture("gDiffuse", this->GetSharedTexture("GDiffuse"))
+			->SetTexture("gOthers", this->GetSharedTexture("GOthers"))
+			->SetTexture("gSceneDepth", this->GetSharedTexture("SceneDepth"))
+			->SetSampler("linearSampler", this->GetSharedTextureSampler("MaterialsSampler"))
+			->AddRenderTarget(this->GetSharedTexture("SceneTexture"))
+			->SetShader("DeferredLighting.hlsl");
+			//->AddPipeline(geometryPassPipelineCreateInfo);'
+
+		/*
+						->AddInputBuffer(1, 15, PlBufferType::PL_BUFFER_UNIFORM_BUFFER, PL_STAGE_FRAGMENT,
+							 this->GetSharedBuffer("DeferredPassUBO"))
+			->AddInputTexture(1, 0, 6, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT,
+							  PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("SamplerBRDFLUT"))
+			->AddInputTexture(1, 0, 7, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT,
+							  PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("PreFilterMap"))
+			->AddInputTexture(1, 0, 8, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT,
+							  PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("IrradianceMap"))
+			->AddInputTexture(1, 0, 9, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT,
+							  PL_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, 0, 0,
+							  this->GetSharedTexture("ShadowsDepthMap"))
+			->AddInputTexture(1, 0, 10, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT,
+							  PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0,
+							  this->GetSharedTexture("EquirectangularTexture"))
+			->AddInputTexture(1, 0, 0, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT,
+							  PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("GNormal"))
+			->AddInputTexture(1, 0, 1, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT,
+							  PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("GDiffuse"))
+			->AddInputTexture(1, 0, 2, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT,
+							  PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("GOthers"))
+			->AddInputTexture(1, 0, 3, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT,
+							  PL_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, 0, 0,
+							  this->GetSharedTexture("SceneDepth"))
+			->AddInputBuffer(1, 4, PL_BUFFER_STORAGE_BUFFER, PL_STAGE_FRAGMENT, this->GetSharedBuffer("LightsBuffer"))
+			->AddInputBuffer(1, 5, PL_BUFFER_STORAGE_BUFFER, PL_STAGE_FRAGMENT, this->GetSharedBuffer("ClustersBuffer"))
+			->AddOutputTexture(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+							   0, 0, this->GetSharedTexture("SceneTexture"));
 
 
-				geometryUbo.projection = Application::Get()->activeCamera->GetProjectionMatrix();
-				geometryUbo.view = Application::Get()->activeCamera->GetViewMatrix();
-				geometryUbo.model = glm::mat4(1.0f);
+		 */
 
-				geometryUbo.cascadeCount = 9;
-				geometryUbo.farPlane = 15000.0f;
-				geometryUbo.nearPlane = 0.01f;
+		this->GetRenderPass("DeferredLightingPass")
+	->AddPipeline(pl::pipelineCreateInfo(
+		"LightingPassShaders", PL_RENDER_PASS_FULL_SCREEN_QUAD,
+		{pl::pipelineShaderStageCreateInfo(
+			 PL_STAGE_VERTEX,
+			 FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/lighting/deferredPass.vert", "main"),
+		 pl::pipelineShaderStageCreateInfo(
+			 PL_STAGE_FRAGMENT,
+			 FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/lighting/deferredPass.frag", "main")},
+		{}, {}, PL_TOPOLOGY_TRIANGLE_LIST, false,
+		pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f,
+												 0.0f, PL_CULL_MODE_NONE, PL_FRONT_FACE_COUNTER_CLOCKWISE),
+		pl::pipelineColorBlendStateCreateInfo({pl::pipelineColorBlendAttachmentState(true)}),
+		pl::pipelineDepthStencilStateCreateInfo(false, false, PL_COMPARE_OP_ALWAYS),
+		pl::pipelineViewportStateCreateInfo(1, 1),
+		pl::pipelineMultisampleStateCreateInfo(PL_SAMPLE_COUNT_1_BIT, 0),
+		{PL_DYNAMIC_STATE_VIEWPORT, PL_DYNAMIC_STATE_SCISSOR}, {}));
 
-				glm::vec3 lightDir = mRenderer->mRendererSettings.mLightingSettings.mLightDirection;
-				glm::vec3 lightDistance = glm::vec3(100.0f, 400.0f, 0.0f);
-				glm::vec3 lightPos;
+		this->AddRenderPassCallback("DeferredLightingPass", [&](PlazaRenderGraph* plazaRenderGraph,
+																  PlazaRenderPass* plazaRenderPass, Scene* scene) {
+			static DeferredLightingPassUbo ubo{};
+			ubo.projection = Application::Get()->activeCamera->GetProjectionMatrix();
+			ubo.view = Application::Get()->activeCamera->GetViewMatrix();
 
-				geometryUbo.lightDirection = glm::vec4(lightDir, 1.0f);
-				geometryUbo.viewPos = glm::vec4(Application::Get()->activeCamera->Position, 1.0f);
+			ubo.cascadeCount = 9;
+			ubo.farPlane = 15000.0f;
+			ubo.nearPlane = 0.01f;
 
-				geometryUbo.directionalLightColor =
-					glm::vec4(mRenderer->mRendererSettings.mLightingSettings.directionalLightColor *
-							  mRenderer->mRendererSettings.mLightingSettings.directionalLightIntensity);
-				geometryUbo.directionalLightColor.w = mRenderer->mRendererSettings.mLightingSettings.directionalLightIntensity;
-				geometryUbo.ambientLightColor = glm::vec4(mRenderer->mRendererSettings.mLightingSettings.ambientLightColor *
-												  mRenderer->mRendererSettings.mLightingSettings.ambientLightIntensity);
-				geometryUbo.gamma = mRenderer->gamma;
+			glm::vec3 lightDir = mRenderer->mRendererSettings.mLightingSettings.mLightDirection;
+			glm::vec3 lightDistance = glm::vec3(100.0f, 400.0f, 0.0f);
+			glm::vec3 lightPos;
 
-				for (int i = 0; i < mRenderer->mRendererSettings.mLightingSettings.mCascadeCount; ++i) {
-					geometryUbo.lightSpaceMatrices[i] = shadowPassUbo.lightSpaceMatrices[i];
-					geometryUbo.cascadePlaneDistances[i] =
-						glm::vec4(mRenderer->mRendererSettings.mLightingSettings.shadowCascadeLevels[i], 1.0f, 1.0f, 1.0f);
-				}
+			ubo.lightDirection = glm::vec4(lightDir, 1.0f);
+			ubo.viewPos = glm::vec4(Application::Get()->activeCamera->Position, 1.0f);
 
-				geometryUbo.showCascadeLevels = Application::Get()->showCascadeLevels;
+			ubo.directionalLightColor =
+				glm::vec4(mRenderer->mRendererSettings.mLightingSettings.directionalLightColor *
+						  mRenderer->mRendererSettings.mLightingSettings.directionalLightIntensity);
+			ubo.ambientLightColor = glm::vec4(mRenderer->mRendererSettings.mLightingSettings.ambientLightColor *
+											  mRenderer->mRendererSettings.mLightingSettings.ambientLightIntensity);
 
-				plazaRenderGraph->GetSharedBuffer("GPassUBO")
-					->UpdateData<UniformBufferObject>(Application::Get()->mRenderer->mCurrentFrame, geometryUbo);
-			});
+			ubo.screenSize = Application::Get()->appSizes->sceneSize;
+			ubo.clusterSize = mRenderer->mRendererSettings.mLightingSettings.clusterSize;
+			ubo.gamma = mRenderer->gamma;
+			ubo.exposure = mRenderer->exposure;
 
-//		this->AddRenderPassCallback(
-//	"DeferredGeometryPass", [&](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass, Scene* scene) {
-//		if (mRenderer->mRendererSettings.mLightingSettings.mUpdateCascades)
-//			mRenderer->mRendererSettings.mLightingSettings.mShadowCascadeMatrices =
-//				GetShadowMatrices(mRenderer->mRendererSettings.mLightingSettings,
-//								  Application::Get()->activeCamera->GetProjectionMatrix(),
-//								  Application::Get()->activeCamera->GetViewMatrix());
-//		std::vector<glm::mat4> mats = mRenderer->mRendererSettings.mLightingSettings.mShadowCascadeMatrices;
-//		for (int i = 0; i < mRenderer->mRendererSettings.mLightingSettings.mCascadeCount; ++i) {
-//			if (shadowPassUbo.lightSpaceMatrices->length() > i && mats.size() > i)
-//				shadowPassUbo.lightSpaceMatrices[i] = mats[i];
-//			else
-//				shadowPassUbo.lightSpaceMatrices[i] = glm::mat4(1.0f);
-//		}
-//		plazaRenderGraph->GetSharedBuffer("ShadowPassUBO")
-//			->UpdateData<ShadowPassUBO>(Application::Get()->mRenderer->mCurrentFrame, shadowPassUbo);
-//	});
+			for (int i = 0; i < 16; ++i) {
+				ubo.lightSpaceMatrices[i] = shadowPassUbo.lightSpaceMatrices[i];
+				if (i <= 8)
+					ubo.cascadePlaneDistances[i] = glm::vec4(
+						mRenderer->mRendererSettings.mLightingSettings.shadowCascadeLevels[i], 1.0f, 1.0f, 1.0f);
+				else
+					ubo.cascadePlaneDistances[i] = glm::vec4(
+						mRenderer->mRendererSettings.mLightingSettings.shadowCascadeLevels[8], 1.0f, 1.0f, 1.0f);
+			}
 
+			ubo.showCascadeLevels = Application::Get()->showCascadeLevels;
 
+			ubo.lightCount = mRenderer->mRendererSettings.mLightingSettings.mLightsCount;
+			plazaRenderGraph->GetSharedBuffer("LightingPassUBO")
+				->UpdateData<DeferredLightingPassUbo>(Application::Get()->mRenderer->mCurrentFrame, ubo);
+		});
 
 		this->OrderPasses();
 		this->UpdateUsedTexturesInfo();
 	}
 
 	void VulkanRenderGraph::DebugRendererNodes(const PlViewport& viewport, const std::string& textureToDraw) {
-
 		struct DebugPC {
 			glm::mat4 viewMatrix;
 		};
@@ -488,7 +477,6 @@ namespace Plaza {
 
 		static EquirectangularToCubeMapPC pushConstants{};
 
-
 		return skyboxRenderGraph;
 	}
 
@@ -501,7 +489,6 @@ namespace Plaza {
 		const unsigned int irradianceSize = 64;
 		const unsigned int numMips = this->GetSharedTexture("PreFilterMap")->mMipCount;
 		PlTextureFormat skyboxFormat = PL_FORMAT_R32G32B32A32_SFLOAT;
-
 	}
 
 #pragma region Shadows frustum

@@ -61,6 +61,7 @@ namespace Plaza {
 		std::string cmd = dxcPath.string() + " -T " + shaderVersionString + " -E " + entryName +
 						  " -spirv -fspv-target-env=vulkan1.2 -fspv-reflect "
 						  "-fspv-extension=SPV_GOOGLE_hlsl_functionality1 -fspv-extension=SPV_GOOGLE_user_type";
+		cmd += " -I \"" + (FilesManager::sEngineFolder / "Shaders").string() + "\"";
 
 		for (const auto& ext : extensions)
 			cmd += " -fspv-extension=" + ext;
@@ -207,6 +208,59 @@ namespace Plaza {
 		std::vector<ShaderReflection::Shader> shaders;
 		return shaders;
 	}
+
+	std::string ReadHlslWithIncludes(const std::filesystem::path& filePath, const std::vector<std::filesystem::path>& includeDirs, std::set<std::filesystem::path>& seenFiles)
+	{
+		if (!std::filesystem::exists(filePath))
+			throw std::runtime_error("File not found: " + filePath.string());
+
+		if (seenFiles.find(filePath) != seenFiles.end())
+			return ""; // prevent cyclic includes
+
+		seenFiles.insert(filePath);
+
+		std::ifstream file(filePath);
+		if (!file.is_open())
+			throw std::runtime_error("Failed to open file: " + filePath.string());
+
+		std::string result;
+		std::string line;
+		while (std::getline(file, line))
+		{
+			std::smatch match;
+			static std::regex includeRegex("^\\s*#include\\s+\"(.+?)\"");
+			if (std::regex_search(line, match, includeRegex))
+			{
+				std::filesystem::path includePath = match[1].str();
+				// Try relative to current file
+				std::filesystem::path fullInclude = filePath.parent_path() / includePath;
+				if (!std::filesystem::exists(fullInclude))
+				{
+					// Try include directories
+					bool found = false;
+					for (auto& dir : includeDirs)
+					{
+						fullInclude = dir / includePath;
+						if (std::filesystem::exists(fullInclude))
+						{
+							found = true;
+							break;
+						}
+					}
+					if (!found)
+						throw std::runtime_error("Included file not found: " + includePath.string());
+				}
+				result += ReadHlslWithIncludes(fullInclude, includeDirs, seenFiles);
+			}
+			else
+			{
+				result += line + "\n";
+			}
+		}
+
+		return result;
+	}
+
 	std::vector<ShaderReflection::Shader> ShaderReflection::GetShadersFromHlsl(std::filesystem::path hlslPath) {
 		if (!std::filesystem::exists(hlslPath) && hlslPath.is_relative())
 			hlslPath = FilesManager::sEngineFolder / "Shaders" / hlslPath;
@@ -214,12 +268,13 @@ namespace Plaza {
 		if (!std::filesystem::exists(hlslPath))
 			throw std::runtime_error("Shader file does not exist: " + hlslPath.string());
 
-		std::ifstream file(hlslPath);
-		if (!file.is_open())
-			throw std::runtime_error("Failed to open HLSL file");
+		// Read full shader source with includes
+		std::vector<std::filesystem::path> includeDirs = {
+			FilesManager::sEngineFolder / "Shaders"
+		};
 
-		std::string source((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-		file.close();
+		std::set<std::filesystem::path> seenFiles;
+		std::string source = ReadHlslWithIncludes(hlslPath, includeDirs, seenFiles);
 
 		std::vector<ShaderReflection::Shader> entries;
 
