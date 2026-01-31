@@ -24,8 +24,7 @@
 
 // #include "Embed.h"
 
-int main() {
-	// EmbedResources::Init();
+int main(int argc, char* argv[]) {
 	Plaza::Log::Init();
 	Plaza::Application::Init();
 	return 0;
@@ -33,6 +32,6 @@ int main() {
 
 #ifdef WIN32
 int CALLBACK WinMain(_In_ HINSTANCE hInstance, _In_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nCmdShow) {
-	main();
+	return main(__argc, __argv);
 }
 #endif

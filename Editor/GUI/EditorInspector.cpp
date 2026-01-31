@@ -7,6 +7,7 @@
 #include "Editor/GUI/Utils/DataVisualizer.h"
 #include "Engine/Core/Renderer/Vulkan/Renderer.h"
 #include "Engine/Core/AssetsManager/Serializer/AssetsSerializer.h"
+#include "Engine/Core/Debugging/FrameCapture.h"
 
 namespace Plaza::Editor {
 	void EditorInspector::Update() {
@@ -19,6 +20,10 @@ namespace Plaza::Editor {
 					// Application::Get()->mEditor->mSettings.ReapplyAllSettings();
 				}
 
+				if (ImGui::Button("Capture Frame (RenderDoc)")) {
+					FrameCapture::TriggerCaptureAndOpen();
+				}
+				
 				ImGui::Checkbox("Show Cascade Levels", &Application::Get()->showCascadeLevels);
 
 				ImGui::DragFloat("Bloom Intensity", &VulkanRenderer::GetRenderer()->mRendererSettings.mBloomSettings.mBloomIntensity);

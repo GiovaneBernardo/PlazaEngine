@@ -14,7 +14,8 @@
 				"CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
 				"PX_CMAKE_SUPPRESS_REGENERATION": "True",
 				"PX_GENERATE_STATIC_LIBRARIES": "True",
-				"BUILD_SHARED_LIBS": "False"
+				"BUILD_SHARED_LIBS": "False",
+				"RENDERDOC_VS_DEBUGGING": "ON"
 			},
 			"toolchainFile": "${sourceDir}/cmake/toolchain-${hostSystemName}.cmake"
 		},

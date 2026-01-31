@@ -109,7 +109,7 @@ namespace Plaza::Editor {
 			VulkanRenderer::GetRenderer()
 				->mRendererSettings.mLightingSettings; // Application::Get()->mRenderer->mShadows;
 		/* Draw Gizmo for rotating Sun */
-		shadows.mLightDirection = DrawGizmo(shadows.mLightDirection);
+//		shadows.mLightDirection = DrawGizmo(shadows.mLightDirection);
 
 		/* Shadows */
 		if (ImGui::TreeNodeEx("Shadows", ImGuiTreeNodeFlags_DefaultOpen)) {

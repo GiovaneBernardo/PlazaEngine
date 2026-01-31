@@ -87,10 +87,32 @@ add_subdirectory("ThirdParty/GLFW/" EXCLUDE_FROM_ALL)
 #add_subdirectory("ThirdParty/pfr/" EXCLUDE_FROM_ALL)
 add_subdirectory("ThirdParty/spirv-cross" EXCLUDE_FROM_ALL)
 add_subdirectory("ThirdParty/Tracy/" EXCLUDE_FROM_ALL)
-add_subdirectory("ThirdParty/PhysX/physx/compiler/public/")
+add_subdirectory("ThirdParty/PhysX/physx/compiler/public/" EXCLUDE_FROM_ALL)
+
+set_target_properties(alcommon PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
+set_target_properties(alrecord PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
+set_target_properties(build_version PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
+set_target_properties(openal-info PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
+set_target_properties(spirv-cross PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
+set_target_properties(spirv-cross-c PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
+set_target_properties(spirv-cross-core PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
+set_target_properties(spirv-cross-cpp PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
+set_target_properties(spirv-cross-glsl PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
+set_target_properties(spirv-cross-hlsl PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
+set_target_properties(spirv-cross-msl PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
+set_target_properties(spirv-cross-reflect PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
+set_target_properties(spirv-cross-util PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
+set_target_properties(TracyClient PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
 
 file(GLOB_RECURSE MY_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Editor/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/Editor/*.h" "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/Renderer/stb_font_consolas_24_latin1.inl")
 file(GLOB_RECURSE MY_SOURCES2 CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Engine/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/Engine/*.h")
+file(GLOB_RECURSE HLSL_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Engine/*.hlsl" "${CMAKE_CURRENT_SOURCE_DIR}/Engine/*.glsl")
+foreach(file ${HLSL_SOURCES})
+    file(RELATIVE_PATH file_rel "${CMAKE_CURRENT_SOURCE_DIR}" "${file}")
+    get_filename_component(file_path "${file_rel}" PATH)
+    string(REPLACE "/" "\\" file_group "${file_path}")
+    source_group("${file_group}" FILES "${file}")
+endforeach()
 
 set(IMGUI_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/imgui/imgui.cpp"
@@ -130,7 +152,7 @@ target_link_libraries(PlazaEngineCoreLibs INTERFACE
 )
 
 # PlazaEngineCore
-add_library(PlazaEngineCore SHARED "${IMGUI_SOURCES}" "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Application/EntryPoint.cpp" ${MY_SOURCES} ${MY_SOURCES2})
+add_library(PlazaEngineCore SHARED "${IMGUI_SOURCES}" "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Application/EntryPoint.cpp" ${MY_SOURCES} ${MY_SOURCES2} ${HLSL_SOURCES})
 
 b_embed(PlazaEngineCore Editor/DefaultAssets/NewProject/CMakeLists.txt)
 b_embed(PlazaEngineCore Editor/DefaultAssets/NewProject/CMakePresets.json)
@@ -138,7 +160,16 @@ b_embed(PlazaEngineCore Editor/DefaultAssets/NewProject/.gitignore)
 
 target_compile_definitions(PlazaEngineCore PUBLIC PX_PHYSX_STATIC_LIB)
 target_compile_definitions(PlazaEngineCore PUBLIC EDITOR_MODE)
-#target_compile_options(PlazaEngineCore PUBLIC /WX-)
+target_compile_definitions(PlazaEngineCore PUBLIC ENGINE_EXPORT)
+
+# Enable hot reload for MSVC in Debug mode - MUST come before precompiled headers
+if(MSVC)
+    target_compile_options(PlazaEngineCore PRIVATE /MP)
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        target_compile_options(PlazaEngineCore PRIVATE /ZI)
+        target_link_options(PlazaEngineCore PRIVATE /INCREMENTAL)
+    endif()
+endif()
 
 target_include_directories(PlazaEngineCore PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/> # For builds
@@ -211,19 +242,15 @@ target_include_directories(PlazaEngineCoreLibs INTERFACE
 #    target_link_options(PlazaEngineCore PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/WHOLEARCHIVE:${PHYSX_LIB}>)
 #endforeach()
 
-target_compile_definitions(PlazaEngineCore PUBLIC ENGINE_EXPORT)
-
-if(MSVC)
-    target_compile_options(PlazaEngineCore PRIVATE "/MP")
-endif()
-
-
 set_target_properties(PlazaEngineCore PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin" # For the DLL
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib" # For the .lib (import library)
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib" # For shared libs
 )
 set_property(TARGET PlazaEngineCore PROPERTY CXX_STANDARD 20)
+
+# Precompiled headers MUST be set AFTER compile options to inherit /ZI
+target_precompile_headers(PlazaEngineCore PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/PreCompiledHeaders.h")
 
 # PlazaEngine and PlazaShippingGame
 add_executable(PlazaEngine "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Application/EntryPoint.cpp")
@@ -250,15 +277,18 @@ target_compile_definitions(PlazaShippingGame PUBLIC GAME_MODE)
 target_compile_definitions(PlazaShippingGame PUBLIC PX_PHYSX_STATIC_LIB)
 #target_compile_definitions(PlazaShippingGame PRIVATE ENGINE_EXPORT)
 
-target_precompile_headers(PlazaEngineCore PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/PreCompiledHeaders.h")
-
 if(MSVC)
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-        target_compile_options(PlazaEngine PUBLIC "/ZI")
-        target_link_options(PlazaEngine PUBLIC "/INCREMENTAL")
+        target_compile_options(PlazaEngine PUBLIC /ZI)
+        target_link_options(PlazaEngine PUBLIC /INCREMENTAL)
 
-        target_compile_options(PlazaShippingGame PUBLIC "/ZI")
-        target_link_options(PlazaShippingGame PUBLIC "/INCREMENTAL")
+        target_link_options(PlazaEngineCore INTERFACE /INCREMENTAL)
+        target_link_options(PlazaEngineCore INTERFACE /ZI)
+        target_link_options(PlazaEngineCoreLibs INTERFACE /INCREMENTAL)
+        target_link_options(PlazaEngineCoreLibs INTERFACE /ZI)
+
+        target_compile_options(PlazaShippingGame PUBLIC /ZI)
+        target_link_options(PlazaShippingGame PUBLIC /INCREMENTAL)
     endif()
 elseif(CLANG)
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -277,6 +307,39 @@ target_include_directories(PlazaShippingGame PUBLIC "lib/")
 
 target_link_libraries(PlazaEngine PRIVATE PlazaEngineCore)
 target_link_libraries(PlazaShippingGame PRIVATE PlazaEngineCore)
+
+target_sources(PlazaEngineCore PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/RenderDocLoader.cpp"
+)
+
+# RenderDoc Integration
+# Works automatically with VS debugging - no relaunch needed.
+# Just place renderdoc.dll and renderdoc.json in exe directory (done by CMake).
+# Use "Capture Frame (RenderDoc)" button in Editor Settings to capture.
+option(ENABLE_RENDERDOC "Enable RenderDoc frame capture" ON)
+
+if(ENABLE_RENDERDOC AND WIN32)
+    set(RENDERDOC_DLL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/renderdoc/renderdoc.dll")
+    set(RENDERDOC_JSON_PATH "${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/renderdoc/renderdoc.json")
+
+    if(EXISTS "${RENDERDOC_DLL_PATH}" AND EXISTS "${RENDERDOC_JSON_PATH}")
+        # Copy renderdoc.dll and renderdoc.json to exe directory
+        add_custom_command(TARGET PlazaEngine POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${RENDERDOC_DLL_PATH}"
+                "$<TARGET_FILE_DIR:PlazaEngine>/renderdoc.dll"
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${RENDERDOC_JSON_PATH}"
+                "$<TARGET_FILE_DIR:PlazaEngine>/renderdoc.json"
+            COMMENT "Copying RenderDoc files"
+        )
+
+        target_compile_definitions(PlazaEngineCore PUBLIC RENDERDOC_AVAILABLE=1)
+        message(STATUS "RenderDoc integration enabled")
+    else()
+        message(STATUS "RenderDoc files not found in ThirdParty/renderdoc/ - RenderDoc disabled")
+    endif()
+endif()
 
 # Copy the PlazaEngineCore.lib to game project folder (if found)
 

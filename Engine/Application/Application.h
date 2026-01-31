@@ -13,6 +13,7 @@
 #include "Engine/Threads/ThreadManager.h"
 #include "Editor/Editor.h"
 #include "EngineSettings.h"
+#include "ThirdParty/renderdoc/renderdoc_app.h"
 
 namespace Plaza {
 	enum class RendererAPI;
@@ -71,6 +72,9 @@ namespace Plaza {
 
 		Editor::EditorClass* GetEditor() { return mEditor; }
 		Editor::EditorClass* mEditor = new Editor::EditorClass();
+
+		HMODULE sRenderDocModule = nullptr;
+		RENDERDOC_API_1_4_1* sRenderDocAPI = nullptr;
 
 		static void Init();
 		static Application* Get();

@@ -26,6 +26,13 @@
 #include "Engine/Core/Physics.h"
 #include "Engine/Core/Scripting/Scripting.h"
 #include "Engine/ECS/ECSManager.h"
+#if defined(WIN32) || defined(__WIN32__) || defined(_WIN32) || defined(_MSC_VER)
+#define RENDERDOC_CC __cdecl
+#elif defined(__linux__)
+#define RENDERDOC_CC
+#endif
+#include "ThirdParty/renderdoc/renderdoc_app.h"
+#include "Engine/Core/Debugging/FrameCapture.h"
 
 /// ---------------------------------------------------------------------
 
