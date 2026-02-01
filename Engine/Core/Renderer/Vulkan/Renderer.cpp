@@ -46,6 +46,7 @@
 #include "VulkanPushConstants.h"
 #include "Editor/GUI/Utils/Filesystem.h"
 #include "Engine/Core/Renderer/ShaderReflection.h"
+#include "Engine/Core/Debugging/FrameCapture.h"
 
 namespace Plaza {
 #pragma region Vulkan Setup
@@ -204,21 +205,34 @@ namespace Plaza {
 		mEnableValidationLayers = false;
 #endif
 
+		std::vector<const char*> enabledLayers;
+
 		VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
 		if (mEnableValidationLayers) {
-			createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
-			createInfo.ppEnabledLayerNames = validationLayers.data();
-
+			for (const char* layer : validationLayers) {
+				enabledLayers.push_back(layer);
+			}
 			PopulateDebugMessengerCreateInfo(debugCreateInfo);
 			createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
 		}
 		else {
-			createInfo.enabledLayerCount = 0;
-
 			createInfo.pNext = nullptr;
 		}
+
+		createInfo.enabledLayerCount = static_cast<uint32_t>(enabledLayers.size());
+		createInfo.ppEnabledLayerNames = enabledLayers.empty() ? nullptr : enabledLayers.data();
+
+		if (true) {
+			std::cout << "Enabling " << enabledLayers.size() << " layer(s): ";
+			for (const char* layer : enabledLayers) {
+				std::cout << layer << " ";
+			}
+			std::cout << std::endl;
+		}
 		std::cout << "vkCreateInstance \n";
-		if (vkCreateInstance(&createInfo, nullptr, &mVulkanInstance) != VK_SUCCESS) {
+		VkResult result = vkCreateInstance(&createInfo, nullptr, &mVulkanInstance);
+		if (result != VK_SUCCESS) {
+			std::cerr << "vkCreateInstance failed with error code: " << result << std::endl;
 			throw std::runtime_error("failed to create instance!");
 		}
 	}
@@ -240,6 +254,11 @@ namespace Plaza {
 	}
 
 	bool VulkanRenderer::isDeviceSuitable(VkPhysicalDevice device) {
+		VkPhysicalDeviceProperties props;
+		vkGetPhysicalDeviceProperties(device, &props);
+
+		std::cout << props.deviceName << "\n";
+
 		QueueFamilyIndices indices = findQueueFamilies(device, mSurface);
 
 		bool extensionsSupported = checkDeviceExtensionSupport(device);
@@ -279,114 +298,87 @@ namespace Plaza {
 	}
 
 	void VulkanRenderer::CreateLogicalDevice() {
-		QueueFamilyIndices indices = findQueueFamilies(mPhysicalDevice, mSurface);
+	    QueueFamilyIndices indices = findQueueFamilies(mPhysicalDevice, mSurface);
 
-		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-		std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily.value(), indices.presentFamily.value()};
+	    std::set<uint32_t> uniqueQueueFamilies = { indices.graphicsFamily.value(), indices.presentFamily.value() };
+	    std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
 
-		float queuePriority = 1.0f;
-		for (uint32_t queueFamily : uniqueQueueFamilies) {
-			VkDeviceQueueCreateInfo queueCreateInfo{};
-			queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-			queueCreateInfo.queueFamilyIndex = queueFamily;
-			queueCreateInfo.queueCount = 1;
-			queueCreateInfo.pQueuePriorities = &queuePriority;
-			queueCreateInfos.push_back(queueCreateInfo);
-		}
+	    float queuePriority = 1.0f;
+	    for (uint32_t queueFamily : uniqueQueueFamilies) {
+	        VkDeviceQueueCreateInfo queueInfo{};
+	        queueInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+	        queueInfo.queueFamilyIndex = queueFamily;
+	        queueInfo.queueCount = 1;
+	        queueInfo.pQueuePriorities = &queuePriority;
+	        queueCreateInfos.push_back(queueInfo);
+	    }
 
 		VkPhysicalDeviceFeatures deviceFeatures{};
 		deviceFeatures.samplerAnisotropy = VK_TRUE;
 		deviceFeatures.multiViewport = VK_TRUE;
 		deviceFeatures.multiDrawIndirect = VK_TRUE;
 
-		VkPhysicalDeviceFeatures2 physicalFeatures2 = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2};
-		physicalFeatures2.features.samplerAnisotropy = VK_TRUE;
-		physicalFeatures2.features.multiViewport = VK_TRUE;
-		physicalFeatures2.features.multiDrawIndirect = VK_TRUE;
+		// 1. Scalar block layout (last in chain)
+		VkPhysicalDeviceScalarBlockLayoutFeatures scalarLayout{};
+		scalarLayout.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SCALAR_BLOCK_LAYOUT_FEATURES;
+		scalarLayout.scalarBlockLayout = VK_TRUE;
+		scalarLayout.pNext = nullptr;
 
-		VkPhysicalDeviceVulkan11Features vulkan11features{};
-		vulkan11features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
-		vulkan11features.multiview = VK_TRUE;
-		vulkan11features.pNext = physicalFeatures2.pNext;
-		physicalFeatures2.pNext = &vulkan11features;
-		// VkPhysicalDeviceMultiviewFeaturesKHR multiviewFeatures = {};
-		// multiviewFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES_KHR;
-		////multiviewFeatures.multiview = VK_TRUE;
-		// multiviewFeatures.pNext = physicalFeatures2.pNext; // Chain it with the previous structure
-		// physicalFeatures2.pNext = &multiviewFeatures;
+		// 2. Vulkan 1.1 features
+		VkPhysicalDeviceVulkan11Features vulkan11Features{};
+		vulkan11Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
+		vulkan11Features.multiview = VK_TRUE;
+		vulkan11Features.pNext = &scalarLayout;
 
-		vkGetPhysicalDeviceFeatures2(mPhysicalDevice, &physicalFeatures2);
+		// 3. Descriptor indexing (must be before vulkan11)
+		VkPhysicalDeviceDescriptorIndexingFeatures indexingFeatures{};
+		indexingFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES;
+		indexingFeatures.descriptorBindingPartiallyBound = VK_TRUE;
+		indexingFeatures.runtimeDescriptorArray = VK_TRUE;
+		indexingFeatures.descriptorBindingSampledImageUpdateAfterBind = VK_TRUE;
+		indexingFeatures.descriptorBindingVariableDescriptorCount = VK_TRUE;
+		indexingFeatures.pNext = &vulkan11Features;
 
-		/* Check Bindless textures */
-		VkPhysicalDeviceDescriptorIndexingFeatures indexingFeatures{
-			VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES_EXT, nullptr};
-		VkPhysicalDeviceFeatures2 deviceFeatures2{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, &indexingFeatures};
+		// 4. Root feature struct
+		VkPhysicalDeviceFeatures2 features2{};
+		features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+		features2.features = deviceFeatures;
+		features2.pNext = &indexingFeatures;
 
-		vkGetPhysicalDeviceFeatures2(mPhysicalDevice, &deviceFeatures2);
-		bool bindlessTexturesSupported =
-			indexingFeatures.descriptorBindingPartiallyBound && indexingFeatures.runtimeDescriptorArray;
+	    VkDeviceCreateInfo createInfo{};
+	    createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+	    createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
+	    createInfo.pQueueCreateInfos = queueCreateInfos.data();
+	    createInfo.pEnabledFeatures = nullptr;
+	    createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
+	    createInfo.ppEnabledExtensionNames = deviceExtensions.data();
+	    createInfo.pNext = &features2;
 
-		VkDeviceCreateInfo createInfo{};
-		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-		createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
-		createInfo.pQueueCreateInfos = queueCreateInfos.data();
+	    if (mEnableValidationLayers) {
+	        createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+	        createInfo.ppEnabledLayerNames = validationLayers.data();
+	    }
 
-		// createInfo.pNext = &vulkan11Features;
-		// createInfo.pEnabledFeatures = &deviceFeatures;
-		createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
-		createInfo.ppEnabledExtensionNames = deviceExtensions.data();
+	    if (vkCreateDevice(mPhysicalDevice, &createInfo, nullptr, &mDevice) != VK_SUCCESS) {
+	        throw std::runtime_error("failed to create logical device!");
+	    }
 
-		if (physicalFeatures2.features.multiViewport) {
-			// Multiview is supported
-		}
-		else {
-			// Multiview is not supported, handle accordingly
-		}
+	    vkGetDeviceQueue(mDevice, indices.graphicsFamily.value(), 0, &mGraphicsQueue);
+	    vkGetDeviceQueue(mDevice, indices.presentFamily.value(), 0, &mPresentQueue);
 
-		if (bindlessTexturesSupported) {
-			indexingFeatures.descriptorBindingPartiallyBound = VK_TRUE;
-			indexingFeatures.runtimeDescriptorArray = VK_TRUE;
-			physicalFeatures2.pNext = &indexingFeatures;
-			createInfo.pNext = &physicalFeatures2;
-		}
+	    uint32_t queueFamilyCount = 0;
+	    vkGetPhysicalDeviceQueueFamilyProperties(mPhysicalDevice, &queueFamilyCount, nullptr);
+	    std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+	    vkGetPhysicalDeviceQueueFamilyProperties(mPhysicalDevice, &queueFamilyCount, queueFamilies.data());
 
-		if (mEnableValidationLayers) {
-			createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
-			createInfo.ppEnabledLayerNames = validationLayers.data();
-		}
-		else {
-			createInfo.enabledLayerCount = 0;
-		}
-
-		VkPhysicalDeviceMultiviewFeatures multiviewFeatures = {};
-		multiviewFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES;
-		multiviewFeatures.multiview = VK_TRUE;
-		multiviewFeatures.pNext = &physicalFeatures2;
-		createInfo.pNext = &multiviewFeatures;
-
-		if (vkCreateDevice(mPhysicalDevice, &createInfo, nullptr, &mDevice) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create logical device!");
-		}
-
-		vkGetDeviceQueue(mDevice, indices.graphicsFamily.value(), 0, &mGraphicsQueue);
-		vkGetDeviceQueue(mDevice, indices.presentFamily.value(), 0, &mPresentQueue);
-
-		/* Compute Queue */
-		uint32_t queueFamilyCount = 0;
-		vkGetPhysicalDeviceQueueFamilyProperties(mPhysicalDevice, &queueFamilyCount, nullptr);
-
-		std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-		vkGetPhysicalDeviceQueueFamilyProperties(mPhysicalDevice, &queueFamilyCount, queueFamilies.data());
-
-		int i = 0;
-		for (const auto& queueFamily : queueFamilies) {
-			if ((queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) && (queueFamily.queueFlags & VK_QUEUE_COMPUTE_BIT)) {
-				indices.graphicsAndComputeFamily = i;
-			}
-
-			i++;
-		}
-		vkGetDeviceQueue(mDevice, indices.graphicsAndComputeFamily.value(), 0, &mComputeQueue);
+	    for (uint32_t i = 0; i < queueFamilyCount; i++) {
+	        const auto& q = queueFamilies[i];
+	        if ((q.queueFlags & VK_QUEUE_GRAPHICS_BIT) && (q.queueFlags & VK_QUEUE_COMPUTE_BIT)) {
+	            indices.graphicsAndComputeFamily = i;
+	            break;
+	        }
+	    }
+	    vkGetDeviceQueue(mDevice, indices.graphicsAndComputeFamily.value(), 0, &mComputeQueue);
 	}
 
 	void VulkanRenderer::InitSurface() {
@@ -1385,7 +1377,7 @@ namespace Plaza {
 		poolSizes[7].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC;
 		poolSizes[7].descriptorCount = 128;
 		poolSizes[8].type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-		poolSizes[8].descriptorCount = 256;
+		poolSizes[8].descriptorCount = maxBindlessTextures;
 
 		VkDescriptorPoolCreateInfo poolInfo{};
 		poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -1837,6 +1829,7 @@ namespace Plaza {
 	}
 
 	void VulkanRenderer::Init() {
+		FrameCapture::Init();
 		SectionProfiler initializationProfiler = SectionProfiler("SectionProfiler");
 		Application::Get()->mRendererAPI = RendererAPI::Vulkan;
 		mEnableValidationLayers = true;
@@ -1856,8 +1849,8 @@ namespace Plaza {
 		VulkanShadersCompiler::mGlslcExePath = FilesManager::sEngineFolder.string() + "/../ThirdParty/glslc/glslc";
 #endif
 
-		VulkanShadersCompiler::Compile(FilesManager::sEngineFolder.string() + "/Shaders/vulkanTriangle.vert");
-		VulkanShadersCompiler::Compile(FilesManager::sEngineFolder.string() + "/Shaders/vulkanTriangle.frag");
+		//VulkanShadersCompiler::Compile(FilesManager::sEngineFolder.string() + "/Shaders/vulkanTriangle.vert");
+		//VulkanShadersCompiler::Compile(FilesManager::sEngineFolder.string() + "/Shaders/vulkanTriangle.frag");
 
 		std::string shadersFolder = VulkanShadersCompiler::mDefaultOutDirectory;
 		std::cout << "Initializing vulkan \n";
@@ -1979,6 +1972,7 @@ namespace Plaza {
 	}
 
 	void VulkanRenderer::Render(Scene* scene) {
+		FrameCapture::BeginFrame();
 		PLAZA_PROFILE_SECTION("Render Instances");
 #ifdef EDITOR_MODE
 		ImGui::SetCurrentContext(Editor::Gui::mMainContext);
@@ -1998,6 +1992,7 @@ namespace Plaza {
 		}
 
 		this->UpdateAfterRecord();
+		FrameCapture::EndFrame();
 	}
 
 	void VulkanRenderer::UpdatePreRecord() {
@@ -2865,12 +2860,12 @@ namespace Plaza {
 		VkImageViewCreateInfo viewInfo{};
 		viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 		viewInfo.image = trackedImage->mImage;
-		viewInfo.viewType = PlViewTypeToVkImageViewType(trackedImage->mTextureInfo.mViewType);
+		viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;//PlViewTypeToVkImageViewType(trackedImage->mTextureInfo.mViewType);
 		viewInfo.format = PlImageFormatToVkFormat(trackedImage->mTextureInfo.mFormat);
 		viewInfo.subresourceRange.baseMipLevel = trackedImage->mTrackerSetting.mMipLevel;
 		viewInfo.subresourceRange.levelCount = 1;
-		viewInfo.subresourceRange.baseArrayLayer = trackedImage->mTrackerSetting.mLayerLevel;
-		viewInfo.subresourceRange.layerCount = trackedImage->mTextureInfo.mLayersCount;
+		viewInfo.subresourceRange.baseArrayLayer = glm::clamp((uint32_t)trackedImage->mTrackerSetting.mLayerLevel, (uint32_t)0, (uint32_t)trackedImage->mTextureInfo.mLayersCount - 1);
+		viewInfo.subresourceRange.layerCount = 1;
 		viewInfo.subresourceRange.aspectMask = aspect;
 
 		VkImageView imageView;
