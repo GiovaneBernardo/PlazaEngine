@@ -50,8 +50,10 @@ namespace Plaza {
 
 		int poolIndex = 0;
 		for (auto& pool : srcComponentPools) {
-			if (!pool || !entityToInstantiate->mComponentMask.test(pool->mComponentMask))
+			if (!pool || !entityToInstantiate->mComponentMask.test(pool->mComponentMask)) {
+				poolIndex++;
 				continue;
+			}
 
 			if (dstScene->mComponentPools.size() <= pool->mComponentMask)
 				dstScene->mComponentPools.resize(pool->mComponentMask + 1, nullptr);
