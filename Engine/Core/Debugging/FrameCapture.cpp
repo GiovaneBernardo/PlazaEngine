@@ -61,7 +61,10 @@ namespace Plaza {
 		TryInitAPI();
 	}
 
-	void FrameCapture::Shutdown() { sAPI = nullptr; }
+	void FrameCapture::Shutdown() {
+		sAPI->Shutdown();
+		sAPI = nullptr;
+	}
 
 	void FrameCapture::TriggerCapture() {
 		if (!TryInitAPI()) {
@@ -113,7 +116,7 @@ namespace Plaza {
 				sShouldOpenUI = false;
 			}
 		}
-
+		//PL_CORE_WARN(sAPI->GetCaptureFilePathTemplate());
 		// Check if we should open the UI
 		if (sShouldOpenUI) {
 			uint32_t numCaptures = sAPI->GetNumCaptures();
@@ -123,10 +126,19 @@ namespace Plaza {
 
 				if (sAPI->GetCapture(numCaptures - 1, filename, &pathLength, nullptr)) {
 					PL_CORE_INFO("Opening capture: {}", filename);
-					sAPI->LaunchReplayUI(1, filename);
+					if (!sAPI->IsTargetControlConnected()) {
+						sAPI->LaunchReplayUI(1, filename);
+					}
+					else {
+						if (sAPI->ShowReplayUI() == 0)
+							sAPI->LaunchReplayUI(1, filename);
+					}
 				}
+
 				sShouldOpenUI = false;
 			}
+			else if (sAPI->IsTargetControlConnected())
+				sAPI->ShowReplayUI() == 0;
 		}
 	}
 
