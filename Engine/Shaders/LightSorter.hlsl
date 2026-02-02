@@ -63,7 +63,8 @@ groupshared uint sFarDepthBits; // min (reversed-Z)
 
 float3 ReconstructViewPosition(float2 uv, float depth)
 {
-	float4 clip = float4(uv * 2.0f - 1.0f, depth, 1.0f);
+	float2 uv2 = float2(uv.x, 1.0f - uv.y);
+	float4 clip = float4(uv2 * 2.0f - 1.0f, depth, 1.0f);
 	float4 viewPos = mul(invProjection, clip);
 	return viewPos.xyz / viewPos.w;
 }
@@ -153,7 +154,7 @@ void mainCS(
 		{
 			float3 lightPosView = mul(view, float4(LightsArray[i].position, 1.0f)).xyz;
 			float r = LightsArray[i].radius;
-
+			r *= 2.0f;
 			float3 closest =
                 clamp(lightPosView, minV, maxV);
 

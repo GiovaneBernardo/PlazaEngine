@@ -4,7 +4,7 @@
 #include "FullscreenQuad.hlsl"
 #include "Matrix.hlsl"
 
-#define SHOW_HEATMAP 1
+#define SHOW_HEATMAP 0
 
 // Pixel shader
 struct UniformBufferObject
