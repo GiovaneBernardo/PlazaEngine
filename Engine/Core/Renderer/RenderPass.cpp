@@ -73,6 +73,11 @@ namespace Plaza {
 		return this;
 	}
 
+	PlazaRenderPass* PlazaRenderPass::SetMultiViewCount(int multiViewCount) {
+		mMultiViewCount = multiViewCount;
+		return this;
+	}
+
 	PlazaRenderPass* PlazaRenderPass::AddChildPass(std::shared_ptr<PlazaRenderPass> pass) {
 		mChildPasses.push_back(pass);
 		return pass.get();

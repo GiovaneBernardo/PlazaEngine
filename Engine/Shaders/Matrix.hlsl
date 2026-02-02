@@ -1,3 +1,4 @@
+#pragma pack_matrix(column_major)
 #define IDENTITY_MATRIX float4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)
 
 float4x4 inverse(float4x4 m) {

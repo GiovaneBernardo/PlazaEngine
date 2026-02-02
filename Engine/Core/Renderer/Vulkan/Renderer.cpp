@@ -2951,7 +2951,7 @@ namespace Plaza {
 			Light& component = *scene->GetComponent<Light>(uuid);
 			const glm::vec3& position = scene->GetComponent<TransformComponent>(uuid)->GetWorldPosition();
 			lights.push_back(RendererSettings::LightStruct{component.color, component.radius, position,
-														   component.intensity, component.cutoff});
+														   component.intensity, component.cutoff, component.radius});
 		}
 		return lights;
 	}

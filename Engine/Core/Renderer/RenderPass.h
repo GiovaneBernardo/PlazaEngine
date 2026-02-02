@@ -95,6 +95,7 @@ namespace Plaza {
 		virtual PlazaRenderPass* SetSampler(const std::string& slotName, std::shared_ptr<PlTextureSampler> buffer) = 0;
 		virtual PlazaRenderPass* AddRenderTarget(std::shared_ptr<Texture> texture) = 0;
 		PlazaRenderPass* SetShader(std::filesystem::path shaderPath);
+		PlazaRenderPass* SetMultiViewCount(int multiViewCount);
 
 		template <typename T> T* GetInputResource(const std::string& name) {
 			if (mInputBindingNames.find(name) == mInputBindingNames.end())

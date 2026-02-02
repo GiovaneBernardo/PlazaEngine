@@ -28,6 +28,8 @@ namespace Plaza {
 		std::string name;
 		TrackerSettings mTrackerSetting;
 		TextureInfo mTextureInfo;
+		int mMaxMipLevel = 0;
+		int mMaxLayerLevel = 0;
 		bool mRecalculateView = true;
 	};
 
@@ -68,10 +70,9 @@ namespace Plaza {
 
 		struct Tile {
 			int lightIndices[256];
-			alignas(16) glm::vec3 minBounds;
 			alignas(0) int lightsCount = 0;
+			alignas(16) glm::vec3 minBounds;
 			alignas(16) glm::vec3 maxBounds;
-			alignas(0) int alignment = 0;
 		};
 
 		struct Plane {

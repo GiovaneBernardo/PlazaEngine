@@ -24,13 +24,14 @@ namespace Plaza {
 		// FPS tracking (updates every 1 second)
 		frameCount++;
 		float elapsed = currentTime - previousTime;
-		if (elapsed >= 1.0f) {
+		if (elapsed >= 0.1f) {
 			fps = static_cast<float>(frameCount) / elapsed;
 			msPerFrame = 1000.0f / fps;
 			frameCount = 0;
 			previousTime = currentTime;
 		}
 	}
+
 
 	float Time::GetDeltaTime() { return deltaTime; }
 } // namespace Plaza

@@ -7,6 +7,8 @@ namespace Plaza {
 		static void Init();
 		static void Shutdown();
 
+		~FrameCapture() { Shutdown(); }
+
 		// Call at the start and end of each frame (in Render function)
 		static void BeginFrame();
 		static void EndFrame();

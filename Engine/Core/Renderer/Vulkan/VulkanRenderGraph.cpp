@@ -27,10 +27,12 @@ namespace Plaza {
 			}
 		}
 
-		bool isComputeShaders = createInfo.renderMethod == PL_RENDER_PASS_COMPUTE && createInfo.shaderStages.size() > 0;
+		bool isComputeShaders = createInfo.renderMethod == PL_RENDER_PASS_COMPUTE;
 		if (isComputeShaders) {
 			pipeline->mComputeShaders->mComputeDescriptorSetLayout = mDescriptorSetLayout;
-			pipeline->mComputeShaders->Init(createInfo.shaderStages[0].shadersPath, pushConstants);
+			pipeline->mComputeShaders->mComputeDescriptorSets = mDescriptorSets;
+			//pipeline->mComputeShaders->mComputeDescriptorSetLayout = mDescriptorSetLayout;
+			pipeline->mComputeShaders->Init(mBaseShaderPath.string(), pushConstants);
 			return;
 		}
 
@@ -170,8 +172,8 @@ namespace Plaza {
 				mInputBindingNames.clear();
 				pipeline->mPushConstants.clear();
 				this->ReflectPass(graph);
-
-				this->CompilePipeline(pipeline);
+				this->Compile(graph);
+				//this->CompilePipeline(pipeline);
 			}
 			else {
 				VulkanPlazaPipeline* vkPipeline = static_cast<VulkanPlazaPipeline*>(pipeline.get());
@@ -614,188 +616,261 @@ namespace Plaza {
 		if (mRenderMethod != PL_RENDER_PASS_COMPUTE && mRenderMethod != PL_RENDER_PASS_HOLDER)
 			CompileGraphics(renderGraph);
 
-		// Descriptor sets
-		std::vector<VkDescriptorSetLayoutBinding> descriptorSets{};
-		std::vector<VkDescriptorBindingFlagsEXT> bindingFlags = std::vector<VkDescriptorBindingFlagsEXT>();
+		// Build descriptor set layout
+		std::vector<VkDescriptorSetLayoutBinding> descriptorSetBindings;
+		std::vector<VkDescriptorBindingFlagsEXT> bindingFlags;
+
+		descriptorSetBindings.reserve(mTextures.size() + mSamplers.size() + mBuffers.size());
+		bindingFlags.reserve(mTextures.size() + mSamplers.size() + mBuffers.size());
+
+		// Track if we have any variable descriptor count bindings
+		bool hasVariableBinding = false;
+		uint32_t maxVariableDescriptorCount = 0;
+		uint32_t variableBindingIndex = 0;
+
+		// Process texture bindings
 		for (const auto& [key, texture] : mTextures) {
 			if (mResourcesInfo.find(texture->mName) == mResourcesInfo.end())
 				continue;
+
 			VkDescriptorSetLayoutBinding layoutBinding = {};
-			layoutBinding.binding = texture->mLocation;
+			layoutBinding.binding = texture->mBinding;
 			layoutBinding.descriptorType = mResourcesInfo[texture->mName].descriptorType;
-			layoutBinding.descriptorCount = FRAMES_IN_FLIGHT;
 			layoutBinding.stageFlags = mResourcesInfo[texture->mName].stageFlags;
 			layoutBinding.pImmutableSamplers = nullptr;
-			if (mResourcesInfo[texture->mName].useBindless)
-				bindingFlags.push_back(VulkanRenderer::GetRenderer()->mMaxBindlessTextures);
-			else
-				bindingFlags.push_back(0);
-			descriptorSets.push_back(layoutBinding);
+
+			VkDescriptorBindingFlagsEXT flags = 0;
+
+			if (texture->mDescriptorCount > 1) {
+				layoutBinding.descriptorCount = texture->mDescriptorCount;
+				flags = VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT_EXT |
+						VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT_EXT;
+				hasVariableBinding = true;
+				maxVariableDescriptorCount =
+					std::max(maxVariableDescriptorCount, static_cast<uint32_t>(texture->mDescriptorCount));
+				variableBindingIndex = static_cast<uint32_t>(descriptorSetBindings.size());
+			}
+			else {
+				layoutBinding.descriptorCount = FRAMES_IN_FLIGHT;
+			}
+
+			descriptorSetBindings.push_back(layoutBinding);
+			bindingFlags.push_back(flags);
 		}
 
+		// Process sampler bindings
 		for (const auto& [key, sampler] : mSamplers) {
 			if (mResourcesInfo.find(sampler->mName) == mResourcesInfo.end())
 				continue;
+
 			VkDescriptorSetLayoutBinding layoutBinding = {};
-			layoutBinding.binding = sampler->mLocation;
+			layoutBinding.binding = sampler->mBinding;
 			layoutBinding.descriptorType = mResourcesInfo[sampler->mName].descriptorType;
 			layoutBinding.descriptorCount = FRAMES_IN_FLIGHT;
 			layoutBinding.stageFlags = mResourcesInfo[sampler->mName].stageFlags;
 			layoutBinding.pImmutableSamplers = nullptr;
+
+			descriptorSetBindings.push_back(layoutBinding);
 			bindingFlags.push_back(0);
-			descriptorSets.push_back(layoutBinding);
 		}
 
+		// Process buffer bindings
 		for (const auto& [key, buffer] : mBuffers) {
 			if (mResourcesInfo.find(buffer->mName) == mResourcesInfo.end())
 				continue;
+
 			VkDescriptorSetLayoutBinding layoutBinding = {};
-			layoutBinding.binding = buffer->mLocation;
+			layoutBinding.binding = buffer->mBinding;
 			layoutBinding.descriptorType = mResourcesInfo[buffer->mName].descriptorType;
-			layoutBinding.descriptorCount = FRAMES_IN_FLIGHT;
 			layoutBinding.stageFlags = mResourcesInfo[buffer->mName].stageFlags;
 			layoutBinding.pImmutableSamplers = nullptr;
-			if (mResourcesInfo[buffer->mName].useBindless)
-				bindingFlags.push_back(VulkanRenderer::GetRenderer()->mMaxBindlessTextures);
-			else
-				bindingFlags.push_back(0);
-			descriptorSets.push_back(layoutBinding);
+
+			VkDescriptorBindingFlagsEXT flags = 0;
+
+			if (buffer->mDescriptorCount > 1) {
+				layoutBinding.descriptorCount = buffer->mDescriptorCount;
+				flags = VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT_EXT |
+						VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT_EXT;
+				hasVariableBinding = true;
+				maxVariableDescriptorCount =
+					std::max(maxVariableDescriptorCount, static_cast<uint32_t>(buffer->mDescriptorCount));
+				variableBindingIndex = static_cast<uint32_t>(descriptorSetBindings.size());
+			}
+			else {
+				layoutBinding.descriptorCount = FRAMES_IN_FLIGHT;
+			}
+
+			descriptorSetBindings.push_back(layoutBinding);
+			bindingFlags.push_back(flags);
 		}
 
-		// Vulkan code (not related to reflection)
-		VkDescriptorSetLayoutBindingFlagsCreateInfoEXT extendedInfo{
-			VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO_EXT, nullptr};
+		// Create descriptor set layout
+		VkDescriptorSetLayoutBindingFlagsCreateInfoEXT extendedInfo = {};
+		extendedInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO_EXT;
+		extendedInfo.pNext = nullptr;
 		extendedInfo.pBindingFlags = bindingFlags.data();
-		extendedInfo.bindingCount = static_cast<uint32_t>(descriptorSets.size());
+		extendedInfo.bindingCount = static_cast<uint32_t>(bindingFlags.size());
 
 		VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = plvk::descriptorSetLayoutCreateInfo(
-			descriptorSets, VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT_EXT, &extendedInfo);
+			descriptorSetBindings, VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT_EXT, &extendedInfo);
 
-		if (mDescriptorSetLayout == VK_NULL_HANDLE)
+		if (mDescriptorSetLayout == VK_NULL_HANDLE) {
 			vkCreateDescriptorSetLayout(VulkanRenderer::GetRenderer()->mDevice, &descriptorSetLayoutCreateInfo, nullptr,
 										&mDescriptorSetLayout);
+		}
 
-		std::vector<VkDescriptorSetLayout> layouts(Application::Get()->mRenderer->mMaxFramesInFlight,
-												   mDescriptorSetLayout);
-		VkDescriptorSetAllocateInfo allocInfo{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO};
+		// Allocate descriptor sets
+		const uint32_t maxFramesInFlight = Application::Get()->mRenderer->mMaxFramesInFlight;
+		std::vector<VkDescriptorSetLayout> layouts(maxFramesInFlight, mDescriptorSetLayout);
+
+		VkDescriptorSetAllocateInfo allocInfo = {};
+		allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 		allocInfo.descriptorPool = VulkanRenderer::GetRenderer()->mDescriptorPool;
-		allocInfo.descriptorSetCount = layouts.size();
+		allocInfo.descriptorSetCount = static_cast<uint32_t>(layouts.size());
 		allocInfo.pSetLayouts = layouts.data();
 
-		VkDescriptorSetVariableDescriptorCountAllocateInfoEXT countInfo{
-			VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO_EXT};
-		static const uint32_t maxBindlessResources = 16536;
-		std::vector<uint32_t> maxBinding(Application::Get()->mRenderer->mMaxFramesInFlight,
-										 Application::Get()->mRenderer->mMaxBindlessTextures - 1);
-		countInfo.descriptorSetCount = Application::Get()->mRenderer->mMaxFramesInFlight;
-		countInfo.pDescriptorCounts = maxBinding.data();
-		// allocInfo.pNext = &countInfo;
-		mDescriptorSets.resize(Application::Get()->mRenderer->mMaxFramesInFlight);
+		// Only set variable descriptor count if we have variable bindings
+		VkDescriptorSetVariableDescriptorCountAllocateInfoEXT countInfo = {};
+		std::vector<uint32_t> variableDescriptorCounts;
+
+		if (hasVariableBinding) {
+			variableDescriptorCounts.resize(maxFramesInFlight, maxVariableDescriptorCount);
+
+			countInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO_EXT;
+			countInfo.pNext = nullptr;
+			countInfo.descriptorSetCount = maxFramesInFlight;
+			countInfo.pDescriptorCounts = variableDescriptorCounts.data();
+
+			allocInfo.pNext = &countInfo;
+		}
+
+		mDescriptorSets.resize(maxFramesInFlight);
 		VkResult res =
 			vkAllocateDescriptorSets(VulkanRenderer::GetRenderer()->mDevice, &allocInfo, mDescriptorSets.data());
 		if (res != VK_SUCCESS) {
-			throw std::runtime_error("failed to allocate descriptor sets!");
+			throw std::runtime_error("Failed to allocate descriptor sets!");
 		}
 
-		// Get write info using reflection
-		for (unsigned int i = 0; i < Application::Get()->mRenderer->mMaxFramesInFlight; ++i) {
-			std::vector<VkWriteDescriptorSet> descriptorWrites{};
-
-			std::vector<VkDescriptorBufferInfo*> bufferInfos{};
-			std::vector<VkDescriptorImageInfo*> imageInfos{};
+		// Update descriptor sets
+		for (uint32_t frameIndex = 0; frameIndex < maxFramesInFlight; ++frameIndex) {
+			const size_t expectedBindings = mTextures.size() + mSamplers.size() + mBuffers.size();
 
 			std::vector<std::vector<VkDescriptorImageInfo>> tempImageInfos;
+			std::vector<std::vector<VkDescriptorBufferInfo>> tempBufferInfos;
+			std::vector<VkWriteDescriptorSet> descriptorWrites;
+
+			tempImageInfos.reserve(expectedBindings);
+			tempBufferInfos.reserve(expectedBindings);
+			descriptorWrites.reserve(expectedBindings);
+
+			// Update texture descriptors
 			for (const auto& [key, texture] : mTextures) {
 				if (mResourcesInfo.find(texture->mName) == mResourcesInfo.end())
 					continue;
 
-				std::vector<VkDescriptorImageInfo> imageInfosForThisBinding;
-				imageInfosForThisBinding.reserve(Application::Get()->mRenderer->mMaxFramesInFlight);
+				std::vector<VkDescriptorImageInfo> imageInfosForBinding;
+				const uint32_t descriptorCount =
+					texture->mDescriptorCount > 1 ? texture->mDescriptorCount : FRAMES_IN_FLIGHT;
+				imageInfosForBinding.reserve(descriptorCount);
 
-				for (int j = 0; j < Application::Get()->mRenderer->mMaxFramesInFlight; ++j) {
-					VkDescriptorImageInfo imageInfo = VkDescriptorImageInfo(); // imageInfos.emplace_back();
+				for (uint32_t j = 0; j < descriptorCount; ++j) {
+					VkDescriptorImageInfo imageInfo = {};
 					imageInfo.imageView = static_cast<VulkanTexture*>(texture->mTexture.get())->mImageView;
 					imageInfo.sampler = static_cast<VulkanTexture*>(texture->mTexture.get())->mSampler;
 					imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-
-					imageInfosForThisBinding.push_back(imageInfo);
+					imageInfosForBinding.push_back(imageInfo);
 				}
+
+				if (imageInfosForBinding.empty() || imageInfosForBinding[0].imageView == VK_NULL_HANDLE) {
+					PL_CORE_WARN("Invalid image view for texture binding: {}", texture->mName);
+					continue;
+				}
+
+				tempImageInfos.push_back(std::move(imageInfosForBinding));
 
 				VkWriteDescriptorSet descriptorWrite = {};
 				descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+				descriptorWrite.dstSet = mDescriptorSets[frameIndex];
 				descriptorWrite.dstBinding = texture->mBinding;
-				descriptorWrite.descriptorCount = FRAMES_IN_FLIGHT;
-				descriptorWrite.dstSet = mDescriptorSets[i];
-				descriptorWrite.pImageInfo = imageInfosForThisBinding.data();
+				descriptorWrite.dstArrayElement = 0;
 				descriptorWrite.descriptorType = mResourcesInfo[texture->mName].descriptorType;
-				descriptorWrites.push_back(descriptorWrite);
+				descriptorWrite.descriptorCount = static_cast<uint32_t>(tempImageInfos.back().size());
+				descriptorWrite.pImageInfo = tempImageInfos.back().data();
 
-				tempImageInfos.push_back(std::move(imageInfosForThisBinding));
+				descriptorWrites.push_back(descriptorWrite);
 			}
 
+			// Update sampler descriptors
 			for (const auto& [key, sampler] : mSamplers) {
-				// if (mResourcesInfo.find(sampler->mName) == mResourcesInfo.end())
-				//	continue;
+				if (mResourcesInfo.find(sampler->mName) == mResourcesInfo.end())
+					continue;
 
-				std::vector<VkDescriptorImageInfo> imageInfosForThisBinding;
-				imageInfosForThisBinding.reserve(Application::Get()->mRenderer->mMaxFramesInFlight);
+				std::vector<VkDescriptorImageInfo> imageInfosForBinding;
+				imageInfosForBinding.reserve(Application::Get()->mRenderer->mMaxFramesInFlight);
 
-				for (int j = 0; j < Application::Get()->mRenderer->mMaxFramesInFlight; ++j) {
-					VkDescriptorImageInfo imageInfo = VkDescriptorImageInfo();
+				for (uint32_t j = 0; j < Application::Get()->mRenderer->mMaxFramesInFlight; ++j) {
+					VkDescriptorImageInfo imageInfo = {};
 					imageInfo.imageView = VK_NULL_HANDLE;
 					imageInfo.sampler = static_cast<VulkanTextureSampler*>(sampler->mSampler.get())->mSampler;
 					imageInfo.imageLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-
-					imageInfosForThisBinding.push_back(imageInfo);
+					imageInfosForBinding.push_back(imageInfo);
 				}
+
+				tempImageInfos.push_back(std::move(imageInfosForBinding));
 
 				VkWriteDescriptorSet descriptorWrite = {};
 				descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+				descriptorWrite.dstSet = mDescriptorSets[frameIndex];
 				descriptorWrite.dstBinding = sampler->mBinding;
-				descriptorWrite.descriptorCount = FRAMES_IN_FLIGHT;
-				descriptorWrite.dstSet = mDescriptorSets[i];
-				descriptorWrite.pImageInfo = imageInfosForThisBinding.data();
+				descriptorWrite.dstArrayElement = 0;
 				descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
-				descriptorWrites.push_back(descriptorWrite);
+				descriptorWrite.descriptorCount = static_cast<uint32_t>(tempImageInfos.back().size());
+				descriptorWrite.pImageInfo = tempImageInfos.back().data();
 
-				tempImageInfos.push_back(std::move(imageInfosForThisBinding));
+				descriptorWrites.push_back(descriptorWrite);
 			}
 
-			std::vector<std::vector<VkDescriptorBufferInfo>> tempBufferInfos;
+			// Update buffer descriptors
 			for (const auto& [key, buffer] : mBuffers) {
 				if (mResourcesInfo.find(buffer->mName) == mResourcesInfo.end())
 					continue;
 
-				std::vector<VkDescriptorBufferInfo> bufferInfosForThisBinding;
-				bufferInfosForThisBinding.reserve(Application::Get()->mRenderer->mMaxFramesInFlight);
+				std::vector<VkDescriptorBufferInfo> bufferInfosForBinding;
+				const uint32_t descriptorCount =
+					buffer->mDescriptorCount > 1 ? buffer->mDescriptorCount : FRAMES_IN_FLIGHT;
+				bufferInfosForBinding.reserve(descriptorCount);
 
-				for (int j = 0; j < Application::Get()->mRenderer->mMaxFramesInFlight; ++j) {
-					VkDescriptorBufferInfo bufferInfo{};
-					bufferInfo.buffer = static_cast<PlVkBuffer*>(buffer->mBuffer.get())->GetBuffer(j);
+				for (uint32_t j = 0; j < descriptorCount; ++j) {
+					VkDescriptorBufferInfo bufferInfo = {};
+					bufferInfo.buffer = static_cast<PlVkBuffer*>(buffer->mBuffer.get())
+											->GetBuffer(buffer->mDescriptorCount > 1 ? j : frameIndex);
 					bufferInfo.offset = 0;
 					bufferInfo.range = (buffer->mBufferType == PL_BUFFER_UNIFORM_BUFFER) ? 64 : VK_WHOLE_SIZE;
-
-					bufferInfosForThisBinding.push_back(bufferInfo);
+					bufferInfosForBinding.push_back(bufferInfo);
 				}
 
-				VkWriteDescriptorSet descriptorWrite{};
+				tempBufferInfos.push_back(std::move(bufferInfosForBinding));
+
+				VkWriteDescriptorSet descriptorWrite = {};
 				descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+				descriptorWrite.dstSet = mDescriptorSets[frameIndex];
 				descriptorWrite.dstBinding = buffer->mBinding;
-				descriptorWrite.descriptorCount = static_cast<uint32_t>(bufferInfosForThisBinding.size());
-				descriptorWrite.dstSet = mDescriptorSets[i];
-				descriptorWrite.pBufferInfo = bufferInfosForThisBinding.data();
+				descriptorWrite.dstArrayElement = 0;
 				descriptorWrite.descriptorType = mResourcesInfo[buffer->mName].descriptorType;
+				descriptorWrite.descriptorCount = static_cast<uint32_t>(tempBufferInfos.back().size());
+				descriptorWrite.pBufferInfo = tempBufferInfos.back().data();
 
 				descriptorWrites.push_back(descriptorWrite);
-
-				// Keep bufferInfosForThisBinding alive until vkUpdateDescriptorSets is called!
-				tempBufferInfos.push_back(std::move(bufferInfosForThisBinding));
 			}
 
-			vkUpdateDescriptorSets(VulkanRenderer::GetRenderer()->mDevice,
-								   static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+			if (!descriptorWrites.empty()) {
+				vkUpdateDescriptorSets(VulkanRenderer::GetRenderer()->mDevice,
+									   static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0,
+									   nullptr);
+			}
 		}
 
+		// Compile pipelines
 		for (auto& pipeline : mPipelines) {
 			if (!pipeline->mCompiled) {
 				this->CompilePipeline(pipeline);
@@ -808,6 +883,7 @@ namespace Plaza {
 			}
 		}
 
+		// Compile child passes
 		for (auto& pass : mChildPasses) {
 			static_cast<VulkanRenderPass*>(pass.get())->mDescriptorSetLayout = mDescriptorSetLayout;
 			pass->Compile(renderGraph);
@@ -837,17 +913,20 @@ namespace Plaza {
 					reflectedBinding.texture = mTextures.at(reflectedBinding.name)->mTexture;
 					mTextures[reflectedBinding.name]->mBinding = reflectedBinding.binding;
 					mTextures[reflectedBinding.name]->mLocation = reflectedBinding.binding;
+					mTextures[reflectedBinding.name]->mDescriptorCount = reflectedBinding.texture->GetTextureInfo().mDescriptorCount;
 					// mTextures[reflectedBinding.texture->mAssetName]->mLocation = reflectedBinding.loca;
 				}
 				if (this->mBuffers.find(reflectedBinding.name) != this->mBuffers.end()) {
 					reflectedBinding.buffer = mBuffers.at(reflectedBinding.name)->mBuffer;
 					mBuffers[reflectedBinding.name]->mBinding = reflectedBinding.binding;
 					mBuffers[reflectedBinding.name]->mLocation = reflectedBinding.binding;
+					mBuffers[reflectedBinding.name]->mDescriptorCount = reflectedBinding.descriptorCount;
 				}
 				if (this->mSamplers.find(reflectedBinding.name) != this->mSamplers.end()) {
 					reflectedBinding.sampler = mSamplers.at(reflectedBinding.name)->mSampler;
 					mSamplers[reflectedBinding.name]->mBinding = reflectedBinding.binding;
 					mSamplers[reflectedBinding.name]->mLocation = reflectedBinding.binding;
+					mSamplers[reflectedBinding.name]->mDescriptorCount = reflectedBinding.descriptorCount;
 				}
 
 				// Get the framebuffer texture
@@ -887,7 +966,7 @@ namespace Plaza {
 						ShaderReflection::ShaderTypeToPlRenderStageFlags(shader.mShaderType));
 				}
 				else if (reflectedBinding.reflectedType == ShaderReflection::PL_REFLECTED_TYPE_SEPARATE_IMAGE) {
-					resourceInfo.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+					resourceInfo.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
 					resourceInfo.stageFlags = PlRenderStageToVkShaderStage(
 						ShaderReflection::ShaderTypeToPlRenderStageFlags(shader.mShaderType));
 				}
@@ -1266,23 +1345,25 @@ namespace Plaza {
 		// TODO: FIX RUN COMPUTE TO WORK WITH NEW RENDER GRAPH
 		//  TODO: WHY THIS MANUALLY GETS THE BLOOM TEXTURE???
 
-		// VulkanPlazaPipeline* vulkanPipeline = static_cast<VulkanPlazaPipeline*>(pipeline);
-		// VkPipelineLayout pipelineLayout = vulkanPipeline->mComputeShaders->mComputePipelineLayout;
-		//
-		//// VkCommandBuffer commandBuffer = VulkanRenderer::GetRenderer()->BeginSingleTimeCommands();
-		// vkCmdBindPipeline(mCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
-		//				  vulkanPipeline->mComputeShaders->mComputePipeline);
-		// vkCmdBindDescriptorSets(mCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
-		//						vulkanPipeline->mComputeShaders->mComputePipelineLayout, 0, 1,
-		//						&mDescriptorSets[VulkanRenderer::GetRenderer()->mCurrentFrame], 0, nullptr);
-		// for (const PlPushConstants& pushConstant : vulkanPipeline->mPushConstants) {
-		//	vkCmdPushConstants(mCommandBuffer, vulkanPipeline->mComputeShaders->mComputePipelineLayout,
-		//					   VK_SHADER_STAGE_COMPUTE_BIT, pushConstant.mOffset, pushConstant.mStride,
-		//					   pushConstant.mData);
-		// }
-		// vkCmdDispatch(mCommandBuffer, mDispatchSize.x, mDispatchSize.y, mDispatchSize.z);
-		//
-		// if (this->GetInputResource<VulkanTextureBinding>("BloomTexture")) {
+		 VulkanPlazaPipeline* vulkanPipeline = static_cast<VulkanPlazaPipeline*>(pipeline);
+		 VkPipelineLayout pipelineLayout = vulkanPipeline->mComputeShaders->mComputePipelineLayout;
+		
+		// VkCommandBuffer commandBuffer = VulkanRenderer::GetRenderer()->BeginSingleTimeCommands();
+		 vkCmdBindPipeline(mCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
+						  vulkanPipeline->mComputeShaders->mComputePipeline);
+
+		 vkCmdBindDescriptorSets(mCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
+								 vulkanPipeline->mComputeShaders->mComputePipelineLayout, 0, 1,
+								 &mDescriptorSets[VulkanRenderer::GetRenderer()->mCurrentFrame], 0, nullptr);
+
+		 for (const PlPushConstants& pushConstant : vulkanPipeline->mPushConstants) {
+			vkCmdPushConstants(mCommandBuffer, vulkanPipeline->mComputeShaders->mComputePipelineLayout,
+							   VK_SHADER_STAGE_COMPUTE_BIT, pushConstant.mOffset, pushConstant.mStride,
+							   pushConstant.mData);
+		 }
+		 vkCmdDispatch(mCommandBuffer, mDispatchSize.x, mDispatchSize.y, mDispatchSize.z);
+		
+		//if (this->GetInputResource<PlazaTextureBinding>("BloomTexture")) {
 		//	VkImageMemoryBarrier imageMemoryBarrier = {};
 		//	imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 		//	imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
@@ -1303,8 +1384,8 @@ namespace Plaza {
 		//
 		//	vkCmdPipelineBarrier(mCommandBuffer, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 		//						 VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier);
-		//}
-		//// VulkanRenderer::GetRenderer()->EndSingleTimeCommands(commandBuffer);
+		//
+		// VulkanRenderer::GetRenderer()->EndSingleTimeCommands(commandBuffer);
 	}
 
 	void VulkanRenderPass::RenderGui(Scene* scene, PlazaPipeline* pipeline) {

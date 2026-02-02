@@ -23,7 +23,7 @@ struct VSOutput {
 [[vk::binding(0, 0)]]
 cbuffer ShadowsUBO
 {
-    row_major float4x4 lightSpaceMatrices[32];
+    column_major float4x4 lightSpaceMatrices[32];
 };
 
 // StructuredBuffer for bone matrices
@@ -33,45 +33,28 @@ StructuredBuffer<float4x4> BoneMatrices;
 // Main VS
 VSOutput mainVS(VSInput input, uint viewID : SV_ViewID)
 {
-    VSOutput output;
-
-    row_major float4x4 model;
-    model[0] = input.instanceMatrix0;
-    model[1] = input.instanceMatrix1;
-    model[2] = input.instanceMatrix2;
-    model[3] = input.instanceMatrix3;
-
-    float4 totalPosition = float4(0.0f, 0.0f, 0.0f, 0.0f);
-    bool allNegative = true;
-
-    // Commented out version of skinning loop
-    /*
-    for (int i = 0; i < MAX_BONE_INFLUENCE; ++i)
-    {
-        if (input.boneIds[i] < 0 || input.boneIds[i] > 1000)
-            continue;
-        else
-            allNegative = false;
-
-        if (input.boneIds[i] >= MAX_BONES)
-        {
-            totalPosition = float4(input.aPos, 1.0f);
-            break;
-        }
-
-        float4 localPos = mul(boneMatrices[input.boneIds[i]], float4(input.aPos, 1.0f));
-        totalPosition += localPos * input.weights[i];
-    }
-    */
-
-    if (allNegative)
-        totalPosition = float4(input.aPos, 1.0f);
-
-    float4 worldPos = mul(model, totalPosition);
-    output.pos = mul(lightSpaceMatrices[1], worldPos);
-    //output.viewID = viewID;
-    output.uv = input.aPos.xy; // Dummy UV since original GLSL didn't have UV
-    return output;
+	VSOutput output;
+	float4x4 model = float4x4(
+		float4(input.instanceMatrix0.x, input.instanceMatrix1.x, input.instanceMatrix2.x, input.instanceMatrix3.x),
+		float4(input.instanceMatrix0.y, input.instanceMatrix1.y, input.instanceMatrix2.y, input.instanceMatrix3.y),
+		float4(input.instanceMatrix0.z, input.instanceMatrix1.z, input.instanceMatrix2.z, input.instanceMatrix3.z),
+		float4(input.instanceMatrix0.w, input.instanceMatrix1.w, input.instanceMatrix2.w, input.instanceMatrix3.w)
+	);
+    
+	float4 totalPosition = float4(0.0f, 0.0f, 0.0f, 0.0f);
+	bool allNegative = true;
+    
+	if (allNegative)
+		totalPosition = float4(input.aPos, 1.0f);
+    
+	float4 worldPos = mul(model, totalPosition);
+	output.pos = mul(lightSpaceMatrices[viewID], worldPos); // Fixed: use viewID!
+    
+    // Manually flip Y for Vulkan
+	//output.pos.y = -output.pos.y;
+    
+	output.uv = input.aPos.xy;
+	return output;
 }
 
 struct PSInput {

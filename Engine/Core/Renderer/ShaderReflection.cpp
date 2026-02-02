@@ -59,13 +59,26 @@ namespace Plaza {
 		// TODO: Add other shader types
 
 		std::string cmd = dxcPath.string() + " -T " + shaderVersionString + " -E " + entryName +
-						  " -spirv -fspv-target-env=vulkan1.2 -fspv-reflect "
-						  "-fspv-extension=SPV_GOOGLE_hlsl_functionality1 -fspv-extension=SPV_GOOGLE_user_type";
+		" -spirv "
+		"-fspv-target-env=vulkan1.2 "
+		"-fspv-reflect "
+		"-Zpc " // Use column major
+		//"-fvk-use-scalar-layout "
+		//"-fvk-use-dx-layout "
+		"-fvk-b-shift 0 0 "
+		"-all_resources_bound "
+		"-auto-binding-space 0 "
+		"-fspv-extension=SPV_GOOGLE_hlsl_functionality1 "
+		"-fspv-extension=SPV_GOOGLE_user_type ";
+
+		// Add include folder
 		cmd += " -I \"" + (FilesManager::sEngineFolder / "Shaders").string() + "\"";
 
+		// Add extensions
 		for (const auto& ext : extensions)
 			cmd += " -fspv-extension=" + ext;
 
+		// Set output path
 		cmd += " -Fo " + outputPath.string() + " " + path.string();
 		std::string result = ExecCommand(cmd.c_str());
 
@@ -77,6 +90,7 @@ namespace Plaza {
 	}
 
 	std::vector<uint32_t> ShaderReflection::ReadSpirVBinary(const std::filesystem::path& path) {
+		assert(std::filesystem::exists(path) && "Path does not exists");
 		std::ifstream file(path.string(), std::ios::binary | std::ios::ate);
 		if (!file.is_open())
 			throw std::runtime_error("Failed to open file");
@@ -190,7 +204,7 @@ namespace Plaza {
 
 	std::set<std::string> ShaderReflection::ParsePragmaExtensions(const std::string& hlslSource) {
 		std::set<std::string> extensions;
-		std::regex pragmaRegex(R"(^\s*#pragma\s+extension\s+([A-Za-z0-9_]+))", std::regex::icase);
+		std::regex pragmaRegex(R"((?:^|\r?\n)\s*#pragma\s+extension\s+([A-Za-z0-9_]+))", std::regex::icase);
 		std::smatch match;
 
 		auto begin = std::sregex_iterator(hlslSource.begin(), hlslSource.end(), pragmaRegex);
@@ -279,7 +293,7 @@ namespace Plaza {
 		std::vector<ShaderReflection::Shader> entries;
 
 		// Look for lines like: float4 mainVS(...) : SV_Target
-		std::regex functionRegex(R"(\b(\w+)\s+(\w+)\s*\(.*?\))"); // returnType name(args)
+		std::regex functionRegex(R"(\b(\w+)\s+(\w+)\s*\([\s\S]*?\))");
 		std::smatch match;
 
 		auto it = std::sregex_iterator(source.begin(), source.end(), functionRegex);

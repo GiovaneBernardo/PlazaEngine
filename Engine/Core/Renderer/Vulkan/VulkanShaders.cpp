@@ -365,6 +365,8 @@ namespace Plaza {
 		mColorBlending.attachmentCount = 1;
 		mColorBlending.pAttachments = &colorBlendAttachment;
 
+		std::cout << "This is a syncing debug, yes, this is needed for the code to work properly, there is something very strange occurring 1 \n";
+
 		std::vector<VkDynamicState> dynamicStates = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
 
 		mDynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
@@ -472,6 +474,8 @@ namespace Plaza {
 		pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 		pipelineInfo.basePipelineIndex = -1;
 		pipelineInfo.pDepthStencilState = &depthStencil;
+
+		std::cout << "Syncing debug \n";
 
 		if (vkCreateGraphicsPipelines(device, VulkanRenderer::GetRenderer()->GetPipelineCache(), 1, &pipelineInfo, nullptr, &this->mPipeline) !=
 			VK_SUCCESS) {

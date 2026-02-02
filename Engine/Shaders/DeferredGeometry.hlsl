@@ -21,7 +21,7 @@ struct UniformBufferObject
 	bool showCascadeLevels;
 	float gamma;
 };
-[[vk::binding(0, 0)]]
+
 cbuffer UBO : register(b0)
 {
 	UniformBufferObject ubo;
@@ -40,11 +40,11 @@ struct MaterialData
 	float flipX;
 	float flipY;
 };
-[[vk::binding(19, 0)]]
+[[vk::binding(18, 0)]]
 StructuredBuffer<MaterialData> MaterialsSSBO;
 
 [[vk::binding(1, 0)]]
-StructuredBuffer<column_major float4x4> BoneMatrices;
+StructuredBuffer<float4x4> BoneMatrices;
 
 [[vk::binding(2, 0)]]
 StructuredBuffer<uint> RenderGroupOffsets;
@@ -87,7 +87,7 @@ VSOutput mainVS(VSInput input, uint instanceID : SV_InstanceID)
 {
     VSOutput output;
 
-	column_major float4x4 modelMat = float4x4(
+	float4x4 modelMat = float4x4(
 		float4(input.instanceMatrix0.x, input.instanceMatrix1.x, input.instanceMatrix2.x, input.instanceMatrix3.x),
 		float4(input.instanceMatrix0.y, input.instanceMatrix1.y, input.instanceMatrix2.y, input.instanceMatrix3.y),
 		float4(input.instanceMatrix0.z, input.instanceMatrix1.z, input.instanceMatrix2.z, input.instanceMatrix3.z),
@@ -137,7 +137,7 @@ VSOutput mainVS(VSInput input, uint instanceID : SV_InstanceID)
 [[vk::binding(20, 0)]]
 Texture2D<float4> textures[];
 
-[[vk::binding(21, 0)]]
+[[vk::binding(19, 0)]]
 SamplerState texSampler;
 
 struct PSInput
@@ -218,7 +218,7 @@ PSOutput mainPS(PSInput input)
 	output.gOthers  = float4(0.0f, metallic, roughness, 1.0f);
 	output.gDiffuse = float4(albedo, 1.0f);
 	output.gNormal  = float4(N, 1.0f);
-	output.gDepth = input.pos.z / input.pos.w;
+	//output.gDepth = input.pos.z / input.pos.w;
 
 	return output;
 }

@@ -401,6 +401,8 @@ namespace Plaza {
 		glm::vec4 cascadePlaneDistances[16];
 	};
 
+
+
 	struct ShadowPassUBO {
 		glm::mat4 lightSpaceMatrices[32];
 	};
@@ -416,5 +418,16 @@ namespace Plaza {
 		float metalnessFloat = 0.5f;
 		float flipX = 1.0f;
 		float flipY = 1.0f;
+	};
+
+	struct LightSorterPC {
+		glm::mat4 view;
+		glm::mat4 projection;
+		glm::mat4 invProjection;
+		glm::mat4 invView;
+		int32_t lightCount;
+		glm::vec3 numGroups;
+		glm::vec2 screenSize;
+		glm::vec2 clusterSize;
 	};
 } // namespace Plaza

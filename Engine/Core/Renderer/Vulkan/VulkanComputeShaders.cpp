@@ -40,14 +40,15 @@ namespace Plaza {
 
 		bool pathEndsWithSpv = shadersPath.ends_with(".spv");
 		VkShaderModule computeShaderModule = VulkanShaders::CreateShaderModule(
-			VulkanShaders::ReadFile(pathEndsWithSpv ? shadersPath : VulkanShadersCompiler::Compile(shadersPath)),
+			VulkanShaders::ReadFile(pathEndsWithSpv ? shadersPath
+													: ShaderReflection::CompileHlsl(shadersPath, "mainCS", ShaderReflection::PL_COMPUTE_SHADER).string()),
 			VulkanRenderer::GetRenderer()->mDevice);
 
 		VkPipelineShaderStageCreateInfo computeShaderStageInfo{};
 		computeShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 		computeShaderStageInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
 		computeShaderStageInfo.module = computeShaderModule;
-		computeShaderStageInfo.pName = "main";
+		computeShaderStageInfo.pName = "mainCS";
 
 		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;

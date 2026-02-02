@@ -34,9 +34,10 @@ namespace Plaza {
 		const unsigned int irradianceSize = 64;
 		const unsigned int brdfSize = 512;
 		const glm::vec2 screenSize = Application::Get()->appSizes->sceneSize;
+		const glm::vec2 totalScreenSize = Application::Get()->appSizes->appSize;
 		const glm::vec2 deferredTileSize = glm::vec2(32, 32);
-		const uint32_t clusterCount =
-			glm::ceil(screenSize.x / deferredTileSize.x + 1) * glm::ceil(screenSize.y / deferredTileSize.y + 1);
+		const uint32_t clusterCount = glm::ceil(totalScreenSize.x / deferredTileSize.x + 1) *
+									  glm::ceil(totalScreenSize.y / deferredTileSize.y + 1);
 
 		this->AddTexture(mRenderer->mMaxBindlessTextures, inImageUsageFlags, PL_TYPE_2D, PL_VIEW_TYPE_2D,
 						 PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(1, 1, 1), 1, 1, "TexturesBuffer");
@@ -136,6 +137,8 @@ namespace Plaza {
 						PL_BUFFER_USAGE_UNIFORM_BUFFER, PL_MEMORY_USAGE_CPU_TO_GPU, "GPassUBO");
 		this->AddBuffer(PL_BUFFER_UNIFORM_BUFFER, 1, sizeof(DeferredLightingPassUbo), bufferCount,
 						PL_BUFFER_USAGE_UNIFORM_BUFFER, PL_MEMORY_USAGE_CPU_TO_GPU, "LightingPassUBO");
+		this->AddBuffer(PL_BUFFER_UNIFORM_BUFFER, 1, sizeof(LightSorterPC), bufferCount, PL_BUFFER_USAGE_UNIFORM_BUFFER,
+						PL_MEMORY_USAGE_CPU_TO_GPU, "LightSorterPassPC");
 		this->AddBuffer(PL_BUFFER_STORAGE_BUFFER, 1024 * 16, sizeof(glm::mat4), bufferCount,
 						PL_BUFFER_USAGE_STORAGE_BUFFER, PL_MEMORY_USAGE_CPU_TO_GPU, "BoneMatricesBuffer");
 		this->AddBuffer(PL_BUFFER_STORAGE_BUFFER, 1024 * 16, sizeof(MaterialData), bufferCount,
@@ -203,7 +206,7 @@ namespace Plaza {
 			pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f, 0.0f,
 													 PL_CULL_MODE_BACK, PL_FRONT_FACE_COUNTER_CLOCKWISE),
 			pl::pipelineColorBlendStateCreateInfo({pl::pipelineColorBlendAttachmentState(true)}),
-			pl::pipelineDepthStencilStateCreateInfo(true, true, PL_COMPARE_OP_GREATER),
+			pl::pipelineDepthStencilStateCreateInfo(true, true, PL_COMPARE_OP_LESS_OR_EQUAL),
 			pl::pipelineViewportStateCreateInfo(1, 1), pl::pipelineMultisampleStateCreateInfo(PL_SAMPLE_COUNT_1_BIT, 0),
 			{PL_DYNAMIC_STATE_VIEWPORT, PL_DYNAMIC_STATE_SCISSOR}, {});
 
@@ -214,6 +217,7 @@ namespace Plaza {
 			->SetBuffer("BoneMatrices", this->GetSharedBuffer("BoneMatricesBuffer"))
 			->AddRenderTarget(this->GetSharedTexture("ShadowsDepthMap"))
 			->SetShader("Shadows.hlsl")
+			->SetMultiViewCount(mRenderer->mRendererSettings.mLightingSettings.mCascadeCount)
 			->AddPipeline(shadowPassPipelineCreateInfo);
 
 		static ShadowPassUBO shadowPassUbo{};
@@ -323,8 +327,42 @@ namespace Plaza {
 				->UpdateData<UniformBufferObject>(Application::Get()->mRenderer->mCurrentFrame, geometryUbo);
 		});
 
+		// Light sorter
+		this->AddRenderPass("LightSorterPass", PL_STAGE_COMPUTE, PL_RENDER_PASS_COMPUTE, screenSize, false)
+			->SetTexture("depthMap", this->GetSharedTexture("SceneDepth"))
+			->SetBuffer("LightsArray", this->GetSharedBuffer("LightsBuffer"))
+			->SetBuffer("ClusterBuffer", this->GetSharedBuffer("ClustersBuffer"))
+			->SetBuffer("CameraData", this->GetSharedBuffer("LightSorterPassPC"))
+			->SetBuffer("DepthTileBuffer", this->GetSharedBuffer("TilesDepthBuffer"))
+			->SetSampler("texSampler", this->GetSharedTextureSampler("MaterialsSampler"))
+			->SetShader("LightSorter.hlsl")
+			->AddPipeline(pl::pipelineCreateInfo(
+				"LightSorter", PlRenderPassMode::PL_RENDER_PASS_COMPUTE,
+				{pl::pipelineShaderStageCreateInfo(
+					PlRenderStage::PL_STAGE_COMPUTE,
+					FilesManager::sEngineFolder.string() + "/Shaders/LightSorter.hlsl", "mainCS")},
+				{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}));
+
+		this->AddRenderPassCallback(
+			"LightSorterPass", [&](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass, Scene* scene) {
+				static LightSorterPC ubo{};
+				ubo.projection = Application::Get()->activeCamera->GetProjectionMatrix();
+				ubo.view = Application::Get()->activeCamera->GetViewMatrix();
+				ubo.invProjection = glm::inverse(Application::Get()->activeCamera->GetProjectionMatrix());
+				ubo.invView = glm::inverse(Application::Get()->activeCamera->GetViewMatrix());
+				ubo.lightCount = mRenderer->mRendererSettings.mLightingSettings.mLightsCount;
+				ubo.numGroups = glm::vec3(8, 8, 8);
+				ubo.screenSize = Application::Get()->appSizes->sceneSize;
+				ubo.clusterSize = glm::vec2(32, 32);
+				ubo.numGroups = glm::vec3(Application::Get()->appSizes->sceneSize / ubo.clusterSize, 1);
+				plazaRenderPass->mDispatchSize = glm::vec3(ubo.numGroups.x, ubo.numGroups.y, 1);
+				plazaRenderGraph->GetSharedBuffer("LightSorterPassPC")
+					->UpdateData<LightSorterPC>(Application::Get()->mRenderer->mCurrentFrame, ubo);
+			});
+
+		// Deferred lighting pass
 		this->AddRenderPass("DeferredLightingPass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT,
-							PL_RENDER_PASS_FULL_SCREEN_QUAD, screenSize, true)
+							PL_RENDER_PASS_FULL_SCREEN_QUAD, screenSize, false)
 			->SetBuffer("UBO", this->GetSharedBuffer("LightingPassUBO"))
 			->SetBuffer("LightsSSBO", this->GetSharedBuffer("LightsBuffer"))
 			->SetBuffer("ClustersSSBO", this->GetSharedBuffer("ClustersBuffer"))
@@ -340,7 +378,7 @@ namespace Plaza {
 			->SetSampler("linearSampler", this->GetSharedTextureSampler("MaterialsSampler"))
 			->AddRenderTarget(this->GetSharedTexture("SceneTexture"))
 			->SetShader("DeferredLighting.hlsl");
-			//->AddPipeline(geometryPassPipelineCreateInfo);'
+		//->AddPipeline(geometryPassPipelineCreateInfo);'
 
 		/*
 						->AddInputBuffer(1, 15, PlBufferType::PL_BUFFER_UNIFORM_BUFFER, PL_STAGE_FRAGMENT,
@@ -375,25 +413,25 @@ namespace Plaza {
 		 */
 
 		this->GetRenderPass("DeferredLightingPass")
-	->AddPipeline(pl::pipelineCreateInfo(
-		"LightingPassShaders", PL_RENDER_PASS_FULL_SCREEN_QUAD,
-		{pl::pipelineShaderStageCreateInfo(
-			 PL_STAGE_VERTEX,
-			 FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/lighting/deferredPass.vert", "main"),
-		 pl::pipelineShaderStageCreateInfo(
-			 PL_STAGE_FRAGMENT,
-			 FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/lighting/deferredPass.frag", "main")},
-		{}, {}, PL_TOPOLOGY_TRIANGLE_LIST, false,
-		pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f,
-												 0.0f, PL_CULL_MODE_NONE, PL_FRONT_FACE_COUNTER_CLOCKWISE),
-		pl::pipelineColorBlendStateCreateInfo({pl::pipelineColorBlendAttachmentState(true)}),
-		pl::pipelineDepthStencilStateCreateInfo(false, false, PL_COMPARE_OP_ALWAYS),
-		pl::pipelineViewportStateCreateInfo(1, 1),
-		pl::pipelineMultisampleStateCreateInfo(PL_SAMPLE_COUNT_1_BIT, 0),
-		{PL_DYNAMIC_STATE_VIEWPORT, PL_DYNAMIC_STATE_SCISSOR}, {}));
+			->AddPipeline(pl::pipelineCreateInfo(
+				"LightingPassShaders", PL_RENDER_PASS_FULL_SCREEN_QUAD,
+				{pl::pipelineShaderStageCreateInfo(
+					 PL_STAGE_VERTEX,
+					 FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/lighting/deferredPass.vert", "main"),
+				 pl::pipelineShaderStageCreateInfo(
+					 PL_STAGE_FRAGMENT,
+					 FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/lighting/deferredPass.frag", "main")},
+				{}, {}, PL_TOPOLOGY_TRIANGLE_LIST, false,
+				pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f,
+														 0.0f, PL_CULL_MODE_NONE, PL_FRONT_FACE_COUNTER_CLOCKWISE),
+				pl::pipelineColorBlendStateCreateInfo({pl::pipelineColorBlendAttachmentState(true)}),
+				pl::pipelineDepthStencilStateCreateInfo(false, false, PL_COMPARE_OP_ALWAYS),
+				pl::pipelineViewportStateCreateInfo(1, 1),
+				pl::pipelineMultisampleStateCreateInfo(PL_SAMPLE_COUNT_1_BIT, 0),
+				{PL_DYNAMIC_STATE_VIEWPORT, PL_DYNAMIC_STATE_SCISSOR}, {}));
 
 		this->AddRenderPassCallback("DeferredLightingPass", [&](PlazaRenderGraph* plazaRenderGraph,
-																  PlazaRenderPass* plazaRenderPass, Scene* scene) {
+																PlazaRenderPass* plazaRenderPass, Scene* scene) {
 			static DeferredLightingPassUbo ubo{};
 			ubo.projection = Application::Get()->activeCamera->GetProjectionMatrix();
 			ubo.view = Application::Get()->activeCamera->GetViewMatrix();
