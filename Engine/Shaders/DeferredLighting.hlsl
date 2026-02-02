@@ -74,6 +74,7 @@ TextureCube<float4>    prefilterMap       : register(t7);
 TextureCube<float4>    irradianceMap      : register(t8);
 Texture2DArray<float4> shadowsDepthMap    : register(t9);
 TextureCube<float4>    equirectangularMap : register(t10);
+Texture2D<float4>      ssgiTexture        : register(t14);
 
 SamplerState linearSampler : register(s13);
 
@@ -152,6 +153,10 @@ PSOutput mainPS(PSInput input)
 			}
         }
         //color = color + (lighting - 1.0f); //* (lighting);
+
+		// Apply SSGI indirect lighting
+		float3 ssgi = ssgiTexture.Sample(linearSampler, uv).rgb;
+		color += ssgi * Diffuse; // Modulate by albedo for indirect diffuse
     }
     output.SceneColor = float4(color, 1.0f);
 

@@ -108,6 +108,13 @@ namespace Plaza {
 						 glm::vec3(Application::Get()->appSizes->sceneSize, 1), 1, 1, "SSRTexture");
 
 		this->AddTexture(1, PlImageUsage(outImageUsageFlags | PL_IMAGE_USAGE_STORAGE), PL_TYPE_2D, PL_VIEW_TYPE_2D,
+						 PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(Application::Get()->appSizes->sceneSize, 1), 1, 1,
+						 "SSGITexture");
+		TextureInfo ssgiInfo = this->GetTexture<Texture>("SSGITexture")->GetTextureInfo();
+		ssgiInfo.mInitialLayout = PL_IMAGE_LAYOUT_GENERAL;
+		this->GetTexture<Texture>("SSGITexture")->SetTextureInfo(ssgiInfo);
+
+		this->AddTexture(1, PlImageUsage(outImageUsageFlags | PL_IMAGE_USAGE_STORAGE), PL_TYPE_2D, PL_VIEW_TYPE_2D,
 						 PL_FORMAT_R32G32B32A32_SFLOAT, glm::vec3(1, 1, 1), 1, 1, "LuminanceTexture");
 		TextureInfo luminanceInfo = this->GetTexture<Texture>("LuminanceTexture")->GetTextureInfo();
 		luminanceInfo.mInitialLayout = PL_IMAGE_LAYOUT_GENERAL;
@@ -360,6 +367,34 @@ namespace Plaza {
 					->UpdateData<LightSorterPC>(Application::Get()->mRenderer->mCurrentFrame, ubo);
 			});
 
+		// SSGI
+		this->AddRenderPass("SSGIPass", PL_STAGE_COMPUTE, PL_RENDER_PASS_COMPUTE, screenSize, false)
+			->SetTexture("GDiffuse", this->GetSharedTexture("GDiffuse"))
+			->SetTexture("GNormal", this->GetSharedTexture("GNormal"))
+			->SetTexture("GDepth", this->GetSharedTexture("SceneDepth"))
+			->SetTexture("SSGIOutput", this->GetSharedTexture("SSGITexture"))
+			->SetBuffer("CameraData", this->GetSharedBuffer("LightSorterPassPC"))
+			->SetSampler("texSampler", this->GetSharedTextureSampler("MaterialsSampler"))
+			->SetShader("SSGI.hlsl")
+			->AddPipeline(pl::pipelineCreateInfo(
+				"SSGI", PlRenderPassMode::PL_RENDER_PASS_COMPUTE,
+				{pl::pipelineShaderStageCreateInfo(PlRenderStage::PL_STAGE_COMPUTE,
+												   FilesManager::sEngineFolder.string() + "/Shaders/SSGI.hlsl",
+												   "mainCS")},
+				{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}));
+
+		this->AddRenderPassCallback(
+			"SSGIPass", [&](PlazaRenderGraph* plazaRenderGraph, PlazaRenderPass* plazaRenderPass, Scene* scene) {
+				// SSGI uses 8x8 thread groups
+				glm::vec2 ssgiTileSize = glm::vec2(8, 8);
+				glm::vec2 sceneSize = Application::Get()->appSizes->sceneSize;
+				plazaRenderPass->mDispatchSize = glm::vec3(
+					glm::ceil(sceneSize.x / ssgiTileSize.x),
+					glm::ceil(sceneSize.y / ssgiTileSize.y),
+					1);
+				// Note: CameraData buffer is already updated by LightSorterPass callback
+			});
+
 		// Deferred lighting pass
 		this->AddRenderPass("DeferredLightingPass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT,
 							PL_RENDER_PASS_FULL_SCREEN_QUAD, screenSize, false)
@@ -375,6 +410,7 @@ namespace Plaza {
 			->SetTexture("gDiffuse", this->GetSharedTexture("GDiffuse"))
 			->SetTexture("gOthers", this->GetSharedTexture("GOthers"))
 			->SetTexture("gSceneDepth", this->GetSharedTexture("SceneDepth"))
+			->SetTexture("ssgiTexture", this->GetSharedTexture("SSGITexture"))
 			->SetSampler("linearSampler", this->GetSharedTextureSampler("MaterialsSampler"))
 			->AddRenderTarget(this->GetSharedTexture("SceneTexture"))
 			->SetShader("DeferredLighting.hlsl");
