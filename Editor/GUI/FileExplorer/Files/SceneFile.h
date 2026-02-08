@@ -15,6 +15,7 @@ namespace Plaza {
 			void Move(std::string oldPath, std::string newPath);
 			void Copy();
 			void Paste();
+			void Popup();
 		};
 	} // namespace Editor
 } // namespace Plaza

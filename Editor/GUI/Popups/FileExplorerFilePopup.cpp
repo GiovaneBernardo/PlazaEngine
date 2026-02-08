@@ -27,6 +27,8 @@ namespace Plaza::Editor {
 			Editor::File::firstFocus = true;
 		}
 
+		file->Popup();
+
 		if (ImGui::MenuItem("Delete")) {
 			for (const auto& [key, value] : Editor::selectedFiles) {
 				Utils::Filesystem::DeleteFileF(value->directory);
