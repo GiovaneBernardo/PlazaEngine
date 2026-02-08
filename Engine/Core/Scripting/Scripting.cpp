@@ -43,7 +43,8 @@ namespace Plaza {
 					std::filesystem::path(AssetsManager::GetAsset(uuid)->mAssetName).stem().string());
 				script->mAssetUuid = uuid;
 				component.AddScript(script);
-				script->OnStart(scene);
+				if (scene->mRunning == true)
+					script->OnStart(scene);
 			}
 		}
 	}
