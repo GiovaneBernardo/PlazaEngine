@@ -27,4 +27,9 @@ namespace Plaza {
 		}
 		return script;
 	}
-}
+
+	void CppScriptComponent::ClearScripts() {
+		mScripts.clear();
+		mScriptsUuid.clear();
+	}
+} // namespace Plaza
