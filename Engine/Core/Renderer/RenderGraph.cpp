@@ -345,9 +345,9 @@ namespace Plaza {
 			->SetShader("LightSorter.hlsl")
 			->AddPipeline(pl::pipelineCreateInfo(
 				"LightSorter", PlRenderPassMode::PL_RENDER_PASS_COMPUTE,
-				{pl::pipelineShaderStageCreateInfo(
-					PlRenderStage::PL_STAGE_COMPUTE,
-					FilesManager::sEngineFolder.string() + "/Shaders/LightSorter.hlsl", "mainCS")},
+				{pl::pipelineShaderStageCreateInfo(PlRenderStage::PL_STAGE_COMPUTE,
+												   FilesManager::sEngineFolder.string() + "/Shaders/LightSorter.hlsl",
+												   "mainCS")},
 				{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}));
 
 		this->AddRenderPassCallback(
@@ -388,11 +388,18 @@ namespace Plaza {
 				// SSGI uses 8x8 thread groups
 				glm::vec2 ssgiTileSize = glm::vec2(8, 8);
 				glm::vec2 sceneSize = Application::Get()->appSizes->sceneSize;
-				plazaRenderPass->mDispatchSize = glm::vec3(
-					glm::ceil(sceneSize.x / ssgiTileSize.x),
-					glm::ceil(sceneSize.y / ssgiTileSize.y),
-					1);
-				// Note: CameraData buffer is already updated by LightSorterPass callback
+				plazaRenderPass->mDispatchSize =
+					glm::vec3(glm::ceil(sceneSize.x / ssgiTileSize.x), glm::ceil(sceneSize.y / ssgiTileSize.y), 1);
+				// Update the buffer with current camera data for SSGI
+				static LightSorterPC ubo{};
+				ubo.projection = Application::Get()->activeCamera->GetProjectionMatrix();
+				ubo.view = Application::Get()->activeCamera->GetViewMatrix();
+				ubo.invProjection = glm::inverse(Application::Get()->activeCamera->GetProjectionMatrix());
+				ubo.invView = glm::inverse(Application::Get()->activeCamera->GetViewMatrix());
+				ubo.screenSize = sceneSize;
+				ubo.clusterSize = glm::vec2(8, 8);
+				plazaRenderGraph->GetSharedBuffer("LightSorterPassPC")
+					->UpdateData<LightSorterPC>(Application::Get()->mRenderer->mCurrentFrame, ubo);
 			});
 
 		// Deferred lighting pass
@@ -414,39 +421,6 @@ namespace Plaza {
 			->SetSampler("linearSampler", this->GetSharedTextureSampler("MaterialsSampler"))
 			->AddRenderTarget(this->GetSharedTexture("SceneTexture"))
 			->SetShader("DeferredLighting.hlsl");
-		//->AddPipeline(geometryPassPipelineCreateInfo);'
-
-		/*
-						->AddInputBuffer(1, 15, PlBufferType::PL_BUFFER_UNIFORM_BUFFER, PL_STAGE_FRAGMENT,
-							 this->GetSharedBuffer("DeferredPassUBO"))
-			->AddInputTexture(1, 0, 6, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT,
-							  PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("SamplerBRDFLUT"))
-			->AddInputTexture(1, 0, 7, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT,
-							  PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("PreFilterMap"))
-			->AddInputTexture(1, 0, 8, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT,
-							  PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("IrradianceMap"))
-			->AddInputTexture(1, 0, 9, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT,
-							  PL_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, 0, 0,
-							  this->GetSharedTexture("ShadowsDepthMap"))
-			->AddInputTexture(1, 0, 10, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT,
-							  PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0,
-							  this->GetSharedTexture("EquirectangularTexture"))
-			->AddInputTexture(1, 0, 0, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT,
-							  PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("GNormal"))
-			->AddInputTexture(1, 0, 1, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT,
-							  PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("GDiffuse"))
-			->AddInputTexture(1, 0, 2, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT,
-							  PL_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, 0, 0, this->GetSharedTexture("GOthers"))
-			->AddInputTexture(1, 0, 3, PL_BUFFER_COMBINED_IMAGE_SAMPLER, PL_STAGE_FRAGMENT,
-							  PL_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, 0, 0,
-							  this->GetSharedTexture("SceneDepth"))
-			->AddInputBuffer(1, 4, PL_BUFFER_STORAGE_BUFFER, PL_STAGE_FRAGMENT, this->GetSharedBuffer("LightsBuffer"))
-			->AddInputBuffer(1, 5, PL_BUFFER_STORAGE_BUFFER, PL_STAGE_FRAGMENT, this->GetSharedBuffer("ClustersBuffer"))
-			->AddOutputTexture(1, 0, 0, PL_BUFFER_SAMPLER, PL_STAGE_FRAGMENT, PL_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-							   0, 0, this->GetSharedTexture("SceneTexture"));
-
-
-		 */
 
 		this->GetRenderPass("DeferredLightingPass")
 			->AddPipeline(pl::pipelineCreateInfo(
@@ -511,25 +485,58 @@ namespace Plaza {
 				->UpdateData<DeferredLightingPassUbo>(Application::Get()->mRenderer->mCurrentFrame, ubo);
 		});
 
+		PlViewport viewport = PlViewport();
+		viewport.width = screenSize.x;
+		viewport.height = screenSize.y;
+
+		DebugRendererNodes(viewport, "SceneTexture");
+
 		this->OrderPasses();
 		this->UpdateUsedTexturesInfo();
 	}
 
-	void VulkanRenderGraph::DebugRendererNodes(const PlViewport& viewport, const std::string& textureToDraw) {
-		struct DebugPC {
+	void PlazaRenderGraph::DebugRendererNodes(const PlViewport& viewport, const std::string& textureToDraw) {
+		struct DebugUBO {
+			glm::mat4 projectionMatrix;
 			glm::mat4 viewMatrix;
 		};
 
+		const unsigned int bufferCount = Application::Get()->mRenderer->mMaxFramesInFlight;
+
+		this->AddBuffer(PL_BUFFER_UNIFORM_BUFFER, 1, sizeof(DebugUBO), bufferCount, PL_BUFFER_USAGE_UNIFORM_BUFFER,
+						PL_MEMORY_USAGE_CPU_TO_GPU, "DebugUBO");
+
+		this->AddBuffer(PL_BUFFER_STORAGE_BUFFER, 1024 * 1024 * 4, sizeof(Plaza::DebugLine), bufferCount,
+						static_cast<PlBufferUsage>(PL_BUFFER_USAGE_STORAGE_BUFFER | PL_BUFFER_USAGE_TRANSFER_DST),
+						PL_MEMORY_USAGE_CPU_TO_GPU, "DebugLinesSSBO");
+
+		this->AddBuffer(PL_BUFFER_STORAGE_BUFFER, 1024 * 1024 * 4, sizeof(Plaza::DebugBox), bufferCount,
+						static_cast<PlBufferUsage>(PL_BUFFER_USAGE_STORAGE_BUFFER | PL_BUFFER_USAGE_TRANSFER_DST),
+						PL_MEMORY_USAGE_CPU_TO_GPU, "DebugBoxesSSBO");
+
+		this->AddBuffer(PL_BUFFER_STORAGE_BUFFER, 1024 * 1024 * 4, sizeof(Plaza::DebugSphere), bufferCount,
+						static_cast<PlBufferUsage>(PL_BUFFER_USAGE_STORAGE_BUFFER | PL_BUFFER_USAGE_TRANSFER_DST),
+						PL_MEMORY_USAGE_CPU_TO_GPU, "DebugSpheresSSBO");
+
+		this->AddRenderPass("DebugRendererPass", PL_STAGE_VERTEX | PL_STAGE_FRAGMENT, PL_RENDER_PASS_FULL_SCREEN_QUAD,
+							glm::vec2(viewport.width, viewport.height), false)
+			->SetBuffer("UBO", this->GetSharedBuffer("DebugUBO"))
+			->SetBuffer("DebugLinesSSBO", this->GetSharedBuffer("DebugLinesSSBO"))
+			->SetBuffer("DebugBoxesSSBO", this->GetSharedBuffer("DebugBoxesSSBO"))
+			->SetBuffer("DebugSpheresSSBO", this->GetSharedBuffer("DebugSpheresSSBO"))
+			->AddRenderTarget(this->GetSharedTexture(textureToDraw))
+			->SetShader("DebugRenderer.hlsl");
+
 		this->GetRenderPass("DebugRendererPass")
 			->AddPipeline(pl::pipelineCreateInfo(
-				"Skybox", PL_RENDER_PASS_INDIRECT_BUFFER,
+				"Skybox", PL_RENDER_PASS_DEBUG_RENDERER,
 				{pl::pipelineShaderStageCreateInfo(
 					 PL_STAGE_VERTEX,
 					 FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/debug/debugTriangles.vert", "main"),
 				 pl::pipelineShaderStageCreateInfo(
 					 PL_STAGE_FRAGMENT,
 					 FilesManager::sEngineFolder.string() + "/Shaders/Vulkan/debug/debugTriangles.frag", "main")},
-				VertexGetBindingDescription(), VertexGetAttributeDescriptions(), PL_TOPOLOGY_TRIANGLE_LIST, false,
+				{}, {}, PL_TOPOLOGY_LINE_LIST, false,
 				pl::pipelineRasterizationStateCreateInfo(false, false, PL_POLYGON_MODE_FILL, 1.0f, false, 0.0f, 0.0f,
 														 0.0f, PL_CULL_MODE_NONE, PL_FRONT_FACE_CLOCKWISE),
 				pl::pipelineColorBlendStateCreateInfo({pl::pipelineColorBlendAttachmentState(true),
@@ -539,7 +546,24 @@ namespace Plaza {
 				pl::pipelineViewportStateCreateInfo(1, 1),
 				pl::pipelineMultisampleStateCreateInfo(PL_SAMPLE_COUNT_1_BIT, 0),
 				{PL_DYNAMIC_STATE_VIEWPORT, PL_DYNAMIC_STATE_SCISSOR},
-				{pl::pushConstantRange(PL_STAGE_ALL, 0, sizeof(DebugPC))}));
+				{pl::pushConstantRange(PL_STAGE_ALL, 0, sizeof(DebugUBO))}));
+
+		this->AddRenderPassCallback("DebugRendererPass", [&](PlazaRenderGraph* plazaRenderGraph,
+															 PlazaRenderPass* plazaRenderPass, Scene* scene) {
+			static DebugUBO ubo{};
+			ubo.projectionMatrix = Application::Get()->activeCamera->GetProjectionMatrix();
+			ubo.viewMatrix = Application::Get()->activeCamera->GetViewMatrix();
+			plazaRenderGraph->GetSharedBuffer("DebugUBO")
+				->UpdateData<DebugUBO>(Application::Get()->mRenderer->mCurrentFrame, ubo);
+
+			mRenderer->mDebugRenderer->AddLine(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(5.0f, 5.0f, 5.0f), 1.0f,
+											   PlColor::RED);
+
+			plazaRenderGraph->GetSharedBuffer("DebugLinesSSBO")
+				->UpdateData<DebugLine>(Application::Get()->mRenderer->mCurrentFrame,
+										mRenderer->mDebugRenderer->mDebugLines.data(),
+										mRenderer->mDebugRenderer->mDebugLines.size());
+		});
 	}
 
 	VulkanRenderGraph* VulkanRenderGraph::BuildSkyboxRenderGraph() {

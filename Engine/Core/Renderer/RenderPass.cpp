@@ -57,6 +57,9 @@ namespace Plaza {
 				case PL_RENDER_PASS_GUI_TEXT:
 					this->RenderGuiText(scene, pipeline.get());
 					break;
+				case PL_RENDER_PASS_DEBUG_RENDERER:
+					this->RenderDebug(scene, pipeline.get());
+					break;
 			}
 		}
 

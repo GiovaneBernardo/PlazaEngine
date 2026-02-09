@@ -69,6 +69,7 @@ namespace Plaza {
 		virtual void RenderGuiRectangle(Scene* scene, PlazaPipeline* pipeline) {};
 		virtual void RenderGuiButton(Scene* scene, PlazaPipeline* pipeline) {};
 		virtual void RenderGuiText(Scene* scene, PlazaPipeline* pipeline) {};
+		virtual void RenderDebug(Scene* scene, PlazaPipeline* pipeline) {};
 		virtual void CompilePipeline(std::shared_ptr<PlazaPipeline> plazaPipeline) {};
 		virtual void TerminatePipeline(std::shared_ptr<PlazaPipeline> plazaPipeline) {};
 		virtual void ResetPipelineCompiledBool() {};

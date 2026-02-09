@@ -142,6 +142,7 @@ namespace Plaza {
 		Renderer* mRenderer;
 		PlazaRenderGraph(Renderer* renderer) { mRenderer = renderer; }
 		void BuildDefaultRenderGraph();
+		void DebugRendererNodes(const PlViewport& viewport, const std::string& textureToDraw);
 
 		virtual void Execute(Scene* scene, uint8_t imageIndex, uint8_t currentFrame) {};
 		virtual void OrderPasses() {};

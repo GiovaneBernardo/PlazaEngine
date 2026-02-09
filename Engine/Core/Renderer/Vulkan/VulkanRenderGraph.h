@@ -1645,6 +1645,7 @@ namespace Plaza {
 		virtual void RenderGuiRectangle(Scene* scene, PlazaPipeline* pipeline) override;
 		virtual void RenderGuiButton(Scene* scene, PlazaPipeline* pipeline) override;
 		virtual void RenderGuiText(Scene* scene, PlazaPipeline* pipeline) override;
+		virtual void RenderDebug(Scene* scene, PlazaPipeline* pipeline) override;
 		virtual void CompilePipeline(std::shared_ptr<PlazaPipeline> plazaPipeline) override;
 		virtual void TerminatePipeline(std::shared_ptr<PlazaPipeline> plazaPipeline) override;
 		virtual void ResetPipelineCompiledBool() override;

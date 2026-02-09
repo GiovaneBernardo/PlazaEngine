@@ -31,7 +31,7 @@ namespace Plaza {
 		if (isComputeShaders) {
 			pipeline->mComputeShaders->mComputeDescriptorSetLayout = mDescriptorSetLayout;
 			pipeline->mComputeShaders->mComputeDescriptorSets = mDescriptorSets;
-			//pipeline->mComputeShaders->mComputeDescriptorSetLayout = mDescriptorSetLayout;
+			// pipeline->mComputeShaders->mComputeDescriptorSetLayout = mDescriptorSetLayout;
 			pipeline->mComputeShaders->Init(mBaseShaderPath.string(), pushConstants);
 			return;
 		}
@@ -173,7 +173,7 @@ namespace Plaza {
 				pipeline->mPushConstants.clear();
 				this->ReflectPass(graph);
 				this->Compile(graph);
-				//this->CompilePipeline(pipeline);
+				// this->CompilePipeline(pipeline);
 			}
 			else {
 				VulkanPlazaPipeline* vkPipeline = static_cast<VulkanPlazaPipeline*>(pipeline.get());
@@ -913,7 +913,8 @@ namespace Plaza {
 					reflectedBinding.texture = mTextures.at(reflectedBinding.name)->mTexture;
 					mTextures[reflectedBinding.name]->mBinding = reflectedBinding.binding;
 					mTextures[reflectedBinding.name]->mLocation = reflectedBinding.binding;
-					mTextures[reflectedBinding.name]->mDescriptorCount = reflectedBinding.texture->GetTextureInfo().mDescriptorCount;
+					mTextures[reflectedBinding.name]->mDescriptorCount =
+						reflectedBinding.texture->GetTextureInfo().mDescriptorCount;
 					// mTextures[reflectedBinding.texture->mAssetName]->mLocation = reflectedBinding.loca;
 				}
 				if (this->mBuffers.find(reflectedBinding.name) != this->mBuffers.end()) {
@@ -1345,25 +1346,25 @@ namespace Plaza {
 		// TODO: FIX RUN COMPUTE TO WORK WITH NEW RENDER GRAPH
 		//  TODO: WHY THIS MANUALLY GETS THE BLOOM TEXTURE???
 
-		 VulkanPlazaPipeline* vulkanPipeline = static_cast<VulkanPlazaPipeline*>(pipeline);
-		 VkPipelineLayout pipelineLayout = vulkanPipeline->mComputeShaders->mComputePipelineLayout;
-		
+		VulkanPlazaPipeline* vulkanPipeline = static_cast<VulkanPlazaPipeline*>(pipeline);
+		VkPipelineLayout pipelineLayout = vulkanPipeline->mComputeShaders->mComputePipelineLayout;
+
 		// VkCommandBuffer commandBuffer = VulkanRenderer::GetRenderer()->BeginSingleTimeCommands();
-		 vkCmdBindPipeline(mCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
+		vkCmdBindPipeline(mCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
 						  vulkanPipeline->mComputeShaders->mComputePipeline);
 
-		 vkCmdBindDescriptorSets(mCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
-								 vulkanPipeline->mComputeShaders->mComputePipelineLayout, 0, 1,
-								 &mDescriptorSets[VulkanRenderer::GetRenderer()->mCurrentFrame], 0, nullptr);
+		vkCmdBindDescriptorSets(mCommandBuffer, VK_PIPELINE_BIND_POINT_COMPUTE,
+								vulkanPipeline->mComputeShaders->mComputePipelineLayout, 0, 1,
+								&mDescriptorSets[VulkanRenderer::GetRenderer()->mCurrentFrame], 0, nullptr);
 
-		 for (const PlPushConstants& pushConstant : vulkanPipeline->mPushConstants) {
+		for (const PlPushConstants& pushConstant : vulkanPipeline->mPushConstants) {
 			vkCmdPushConstants(mCommandBuffer, vulkanPipeline->mComputeShaders->mComputePipelineLayout,
 							   VK_SHADER_STAGE_COMPUTE_BIT, pushConstant.mOffset, pushConstant.mStride,
 							   pushConstant.mData);
-		 }
-		 vkCmdDispatch(mCommandBuffer, mDispatchSize.x, mDispatchSize.y, mDispatchSize.z);
-		
-		//if (this->GetInputResource<PlazaTextureBinding>("BloomTexture")) {
+		}
+		vkCmdDispatch(mCommandBuffer, mDispatchSize.x, mDispatchSize.y, mDispatchSize.z);
+
+		// if (this->GetInputResource<PlazaTextureBinding>("BloomTexture")) {
 		//	VkImageMemoryBarrier imageMemoryBarrier = {};
 		//	imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
 		//	imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
@@ -1385,7 +1386,7 @@ namespace Plaza {
 		//	vkCmdPipelineBarrier(mCommandBuffer, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
 		//						 VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier);
 		//
-		// VulkanRenderer::GetRenderer()->EndSingleTimeCommands(commandBuffer);
+		//  VulkanRenderer::GetRenderer()->EndSingleTimeCommands(commandBuffer);
 	}
 
 	void VulkanRenderPass::RenderGui(Scene* scene, PlazaPipeline* pipeline) {
@@ -1617,6 +1618,18 @@ namespace Plaza {
 		for (uint32_t j = 0; j < numLetters; j++) {
 			vkCmdDraw(mCommandBuffer, 4, 1, j * 4, 0);
 		}
+	}
+
+	void VulkanRenderPass::RenderDebug(Scene* scene, PlazaPipeline* pipeline) {
+		VulkanPlazaPipeline* vulkanPipeline = static_cast<VulkanPlazaPipeline*>(pipeline);
+		vkCmdBindPipeline(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkanPipeline->mShaders->mPipeline);
+		vkCmdBindDescriptorSets(mCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+								vulkanPipeline->mShaders->mPipelineLayout, 0, 1,
+								&mDescriptorSets[VulkanRenderer::GetRenderer()->mCurrentFrame], 0, nullptr);
+
+
+
+		vkCmdDraw(mCommandBuffer, 2, Application::Get()->mRenderer->mDebugRenderer->mDebugLines.size(), 0, 0);
 	}
 
 #pragma endregion Rendering
