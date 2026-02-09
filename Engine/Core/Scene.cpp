@@ -177,7 +177,7 @@ namespace Plaza {
 
 	void Scene::RemoveEntity(uint64_t uuid) {
 #ifdef EDITOR_MODE
-		if (Editor::selectedGameObject->uuid == uuid) {
+		if (Editor::selectedGameObject != nullptr && Editor::selectedGameObject->uuid == uuid) {
 			Editor::selectedGameObject = nullptr;
 		}
 #endif

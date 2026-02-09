@@ -36,8 +36,9 @@ namespace Plaza {
 			ReloadAllScripts(Scene::GetEditorScene());
 		}
 		for (const uint64_t& uuid : SceneView<CppScriptComponent>(scene)) {
-			auto& component = *scene->GetComponent<CppScriptComponent>(uuid);
+			CppScriptComponent& component = *scene->GetComponent<CppScriptComponent>(uuid);
 			std::vector<uint64_t> scriptsUuid = component.mScriptsUuid;
+			component.ClearScripts();
 			for (uint64_t uuid : scriptsUuid) {
 				CppScript* script = ScriptFactory::CreateScript(
 					std::filesystem::path(AssetsManager::GetAsset(uuid)->mAssetName).stem().string());
