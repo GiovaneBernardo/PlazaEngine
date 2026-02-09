@@ -117,11 +117,11 @@ void mainCS(
     uint3 groupID : SV_GroupID,
     uint localIndex : SV_GroupIndex)
 {
-	int2 screenSizee = float2(1920, 1080); // ----qweqeqweeqweqw------------------qweqeqweeqweqw----------------------------------------------- THE ZOOMED IN GI WAS FIXED BY MANUALLY SETTING THE RESOLUTION HERE, THIS IS A WORKAROUND BUT THE FIX IS RELATED TO IT
+	int2 screenSizee = float2(1920, 1080); // -----qweqeqweeqweqw------------------ qweqeqweeqweqw---------------------------------------------- - THE ZOOMED IN GI WAS FIXED BY MANUALLY SETTING THE RESOLUTION HERE, THIS IS A WORKAROUND BUT THE FIX IS RELATED TO IT
 	uint2 pixel = dispatchID.xy;
 
 	// Bounds check
-	if (pixel.x >= (uint)screenSizee.x || pixel.y >= (uint)screenSizee.y)
+	if (pixel.x >= (uint) screenSizee.x || pixel.y >= (uint) screenSizee.y)
 		return;
 
 	float2 uv = (float2(pixel) + 0.5) / screenSizee;
@@ -136,8 +136,7 @@ void mainCS(
 		return;
 	}
 
-	float3 normal = GNormal.SampleLevel(texSampler, uv, 0).xyz;
-	normal = normalize(normal * 2.0 - 1.0); // Assuming normal is stored as [0,1]
+	float3 normal = normalize(GNormal.SampleLevel(texSampler, uv, 0).xyz);
 
 	float3 worldPos = ReconstructWorldPosition(uv, depth);
 	float3 viewPos = ReconstructViewPosition(uv, depth);

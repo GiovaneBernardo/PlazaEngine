@@ -156,6 +156,7 @@ PSOutput mainPS(PSInput input)
 
 		// Apply SSGI indirect lighting
 		float3 ssgi = ssgiTexture.Sample(linearSampler, uv).rgb;
+		ssgi *= float3(0.0f, 0.0f, 0.0f);
 		color += ssgi * Diffuse; // Modulate by albedo for indirect diffuse
     }
     output.SceneColor = float4(color, 1.0f);
